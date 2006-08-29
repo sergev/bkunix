@@ -1,0 +1,2 @@
+cc -c -O c20.c c21.c
+cc -n c2?.o

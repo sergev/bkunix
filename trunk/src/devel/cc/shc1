@@ -1,0 +1,5 @@
+cc -c -O c1[0-3].c
+as c1t.s;mv a.out c1t.o
+cvopt table.s table.i
+as table.i;mv a.out table.o
+cc -n c1?.o table.o

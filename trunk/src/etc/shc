@@ -1,0 +1,17 @@
+cc -O -r -d cc.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/cc.5
+cc -O -r -d check.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/check.5
+cc -O -r -d cp.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/cp.5
+cc -O -r -d ed.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/ed.5
+cc -O -r -d glob.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/etc/glob.5
+cc -O -r -d init.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/etc/init.5
+cc -O -r -d ld.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/ld.5
+cc -O -r -d ls.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/ls.5
+cc -O -r -d mkfs.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/etc/mkfs.5
+cc -O -r -d mknod.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/etc/mknod.5
+cc -O -r -d mv.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/mv.5
+cc -O -r -d od.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/od.5
+cc -O -r -d reloc.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/reloc.5
+cc -O -r -d rm.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/rm.5
+cc -O -r -d sh.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/sh.5
+cc -O -r -d size.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/size.5
+cc -O -r -d stty.c;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/stty.5

@@ -1,0 +1,12 @@
+cc -r -d -O c0?.o
+reloc a.out 40000
+strip a.out
+mv a.out ../rfs/lib/c0
+cc -r -d -O c1?.o table.o
+reloc a.out 40000
+strip a.out
+mv a.out ../rfs/lib/c1
+cc -r -d -O c2?.o
+reloc a.out 40000
+strip a.out
+mv a.out ../rfs/lib/c2

@@ -1,0 +1,7 @@
+Mkfs has been modified to create the free list in reverse order with the
+blocks interleaved by threes.  This makes the free blocks on the floppy
+disk closer to the inodes and tries to minimize head movement.
+
+To get the old version of mkfs, edit mkfs.c and comment out the line
+containing  '#define BACKWDFLIST	0'.  Then recompile the 
+program.

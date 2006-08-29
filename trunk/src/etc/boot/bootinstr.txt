@@ -1,0 +1,7 @@
+For DEC RX11 Floppy Disks and the IBM compatable ROM boot
+programs, assemble rxboot.s, strip a.out, and then copy a.out
+to /dev/fdn; where n is the disk you desire.  Then assemble
+rxboot2.s, and strip it.  If the command ldrxboot has not
+been compiled, do a cc -O -s on ldrxboot.c and move a.out
+to ldrxboot. Finally, type "ldrxboot n rxboot2" to install
+the second level boot program.
