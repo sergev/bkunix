@@ -1,0 +1,25 @@
+Since the LSI-Unix system does not support pipes, the shell has been
+modified to simulate pipes through the use of disk files.  When a
+command line which requires the use of a pipe is detected, a disk
+file is created and opened for reading and writing.  The file is
+immediately unlinked, so that the name is available for another pipe
+right away.  The file is called '.__pf'.  Hopefully this name will
+not conflict with any user file names.
+Thus, the symbol '|' in a shell command line becomes equivalent to
+\&'> .__pf ; < .__pf'.  The command:
+
+	% foo ^ goo
+
+translates into:
+
+	% foo > .__pf ; goo < .__pf
+
+
+The process writing on the pipe writes everything into the file, and
+when it exits, the reader process is swapped in.  It reads what the
+writer has written on the pipe file.  The only danger in this type
+of implementation is due to the limitation of space on the floppy
+disks.  A very large amount of information going through a pipe could
+fill up the disk.
+
+Except for this, the fake pipe code is transparent to the user.

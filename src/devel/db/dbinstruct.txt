@@ -1,0 +1,12 @@
+The debugger (db) has been slightly modified in order to ease debugging
+under the LSI-UNIX system.  The default relocation address of all programs
+is assumed to be 40000(8).  If the flag '-a' is given when the debugger
+is invoked, the relocation address is assumed to be zero.  This is useful
+for debugging the system.
+
+The default address can be changed by editing 'db1.s' and setting the 
+variable 'uorg' equal to the new relocation address.  Then reassemble
+the source.
+
+If none of the changes are desired, simply set the variable 'lsx' in db1.s
+to equal zero and reassemble.

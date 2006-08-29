@@ -1,0 +1,3 @@
+cc -c -O c0[0-5].c
+as c0t.s;mv a.out c0t.o
+cc -n c0?.o
