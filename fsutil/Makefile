@@ -2,7 +2,7 @@ CC		= gcc -g
 CFLAGS		= -O -Wall
 OBJS		= lsxfs-open.o lsxfs-inode.o lsxfs-create.o lsxfs-check.o
 PROGS		= lsx-util
-LIBS		= -largp
+#LIBS		= -largp
 
 all:		$(PROGS) rxboot rxboot2
 
