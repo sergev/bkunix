@@ -1,3 +1,4 @@
-PROGS		= check cp date ed ls mkdir mv od rm rmdir sh size stty sync
+PROGS		= check cp date ed ls mkdir mv od rm rmdir sh size strip \
+		  stty sync
 
-all:
+all:		$(PROGS)
