@@ -59,3 +59,8 @@ struct tty
 /* Hardware bits */
 #define	DONE	0200
 #define	IENABLE	0100
+
+#ifdef KERNEL
+int getc();
+int putc();
+#endif

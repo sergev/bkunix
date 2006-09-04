@@ -200,7 +200,6 @@ bflush(dev)
 	int dev;
 {
 	register struct buf *bp;
-	register int i;
 
 	for(bp = &buf[0]; bp < &buf[NBUF]; bp++)
 		if((bp->b_flags&B_DELWRI) && (dev == NODEV||dev==bp->b_dev))

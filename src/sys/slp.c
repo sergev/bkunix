@@ -31,7 +31,7 @@ sleep(chan, pri)
 	int chan, pri;
 {
 	register struct proc *rp;
-	register s;
+	register int s;
 
 	rp = u.u_procp;
 	s = spl7();

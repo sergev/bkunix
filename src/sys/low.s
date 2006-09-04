@@ -98,52 +98,7 @@ dump:
 	.word	fdintr, br5
 .endif
 
-
 .if DEC
-.if EIS-1
-.globl	_decmch
-
-rxcs = 0177170
-rxdb = 0177172
-
-_decmch:
-	mov	r2,-(sp)
-	mov	$rxdb,r1
-	mov	4(sp),r0
-	asl	r0
-	add	4(sp),r0
-	clr	r2
-0:
-	sub	$26,r0
-	bmi	0f
-	inc	r2
-	br	0b
-0:
-	add	$26,r0
-	inc	r0
-	mov	r0,(r1)	/ sector number
-0:
-	bit	$0200,-2(r1)
-	beq	0b
-	mov	r2,r0
-	clr	r2
-0:
-	sub	$3,r0
-	bmi	0f
-	inc	r2
-	br	0b
-0:
-.if IBMS
-	inc	r2
-	cmp	$77,r2
-	bne	0f
-	clr	r2
-0:
-.endif
-	mov	r2,(r1)	/ track number
-	mov	(sp)+,r2
-	rts	pc
-.endif
 . = init+0264
 	.word	fdintr, br5
 .endif

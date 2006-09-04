@@ -18,7 +18,7 @@ bmap(ip, bn)
 	int bn;
 {
 	register struct buf *bp;
-	register *bap, nb;
+	register int *bap, nb;
 	struct buf *nbp;
 	int d, i;
 
@@ -95,10 +95,10 @@ large:
  * on the last character of the user's read.
  * u_base is in the user address space unless u_segflg is set.
  */
+int
 passc(c)
-char c;
+	int c;
 {
-
 	if(subyte(u.u_base, c) < 0) {
 		u.u_error = EFAULT;
 		return(-1);
@@ -117,9 +117,10 @@ char c;
  * when u_count is exhausted.  u_base is in the user's
  * address space unless u_segflg is set.
  */
+int
 cpass()
 {
-	register c;
+	register int c;
 
 	if(u.u_count == 0)
 		return(-1);

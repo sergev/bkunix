@@ -34,6 +34,7 @@ struct swtab {
 #endif
 
 #ifdef KERNEL
+void signal();
 void psignal();
 void psig();
 void setrun();

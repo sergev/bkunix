@@ -21,4 +21,9 @@ extern struct file file[NFILE];
 #ifdef KERNEL
 struct file *getf();
 struct file *falloc();
+int ufalloc();
+void closef();
+void klopen();
+void klclose();
+void klsgtty();
 #endif

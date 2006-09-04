@@ -1,6 +1,3 @@
-/mfps = 0106700^tst	/LSI instruction
-/mtps = 0106400^tst
-
 .if	EIS-1
 .globl	nofault,emtrap,trapem
 

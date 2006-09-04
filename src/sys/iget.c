@@ -168,7 +168,6 @@ itrunc(ip)
 		free(rp->i_dev, *bnop);
 		*bnop = 0;
 	}
-cont:
 	rp->i_mode &= ~(ILARG|ICONT);
 	rp->i_size0 = 0;
 	rp->i_size1 = 0;

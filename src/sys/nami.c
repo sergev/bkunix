@@ -8,6 +8,21 @@
 #include "buf.h"
 
 /*
+ * Return the next character from the
+ * user string pointed at by dirp.
+ */
+int
+uchar()
+{
+	register int c;
+
+	c = fubyte(u.u_dirp++);
+	if(c == -1)
+		u.u_error = EFAULT;
+	return(c);
+}
+
+/*
  * Convert a pathname into a pointer to
  * an inode. Note that the inode is locked.
  *
@@ -20,7 +35,7 @@ namei(flag)
 	int flag;
 {
 	register struct inode *dp;
-	register c;
+	register int c;
 	register char *cp;
 	int eo;
 	struct buf *bp;
@@ -162,18 +177,4 @@ eloop:
 out:
 	iput(dp);
 	return(NULL);
-}
-
-/*
- * Return the next character from the
- * user string pointed at by dirp.
- */
-uchar()
-{
-	register c;
-
-	c = fubyte(u.u_dirp++);
-	if(c == -1)
-		u.u_error = EFAULT;
-	return(c);
 }

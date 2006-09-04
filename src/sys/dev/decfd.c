@@ -4,6 +4,7 @@
  * Copyright 1975 Bell Telephone Laboratories Inc
  */
 #include "param.h"
+#include "systm.h"
 #include "buf.h"
 #include "user.h"
 
@@ -46,29 +47,7 @@ int hbuf[40];
 int *hp hbuf;
 */
 
-fdstrategy(abp)
-struct buf *abp;
-{
-	register struct buf *bp;
-
-	bp = abp;
-	if (bp->b_blkno >= NFDBLK) {
-		bp->b_flags |= B_DONE | B_ERROR;
-		return;
-	}
-	bp->b_link = 0;
-	spl7();
-	if (fdtab.d_actf==0)
-		fdtab.d_actf = bp;
-	else
-		fdtab.d_actl->b_link = (int*) bp;
-	fdtab.d_actl = bp;
-	if (fdtab.d_active==0) {
-		fdstart();
-	}
-	spl0();
-}
-
+void
 fdstart()
 {
 	register struct buf *bp;
@@ -108,6 +87,31 @@ fdstart()
 #endif
 }
 
+void
+fdstrategy(abp)
+struct buf *abp;
+{
+	register struct buf *bp;
+
+	bp = abp;
+	if (bp->b_blkno >= NFDBLK) {
+		bp->b_flags |= B_DONE | B_ERROR;
+		return;
+	}
+	bp->b_link = 0;
+	spl7();
+	if (fdtab.d_actf==0)
+		fdtab.d_actf = bp;
+	else
+		fdtab.d_actl->b_link = (int*) bp;
+	fdtab.d_actl = bp;
+	if (fdtab.d_active==0) {
+		fdstart();
+	}
+	spl0();
+}
+
+void
 fdintr()
 {
 	register struct buf *bp;
