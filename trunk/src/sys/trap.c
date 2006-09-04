@@ -28,7 +28,7 @@
  */
 static void
 trap1(f)
-	int (*f)();
+	void (*f)();
 {
 	u.u_intflg = 1;
 	savu(u.u_qsav);
