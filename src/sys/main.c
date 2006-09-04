@@ -18,8 +18,7 @@ int		cpid;			/* current process ID */
 
 #ifdef BGOPTION
 struct proc	proc[NPROC+2];
-#endif
-#ifndef BGOPTION
+#else
 struct proc	proc[NPROC];
 #endif
 
