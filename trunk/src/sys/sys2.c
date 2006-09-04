@@ -1,8 +1,6 @@
-#
 /*
- *	Copyright 1975 Bell Telephone Laboratories Inc
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "systm.h"
 #include "user.h"
@@ -11,29 +9,16 @@
 #include "inode.h"
 
 /*
- * read system call
- */
-read()
-{
-	rdwr(FREAD);
-}
-
-/*
- * write system call
- */
-write()
-{
-	rdwr(FWRITE);
-}
-
-/*
  * common code for read and write calls:
  * check permissions, set base, count, and offset,
  * and switch out to readi, writei, or pipe code.
  */
+static void
 rdwr(mode)
+	int mode;
 {
-	register *fp, m;
+	register struct file *fp;
+	register int m;
 
 	m = mode;
 	fp = getf(u.u_ar0[R0]);
@@ -43,7 +28,7 @@ rdwr(mode)
 		u.u_error = EBADF;
 		return;
 	}
-	u.u_base = u.u_arg[0];
+	u.u_base = (char*) u.u_arg[0];
 	u.u_count = u.u_arg[1];
 	u.u_offset[1] = fp->f_offset[1];
 	u.u_offset[0] = fp->f_offset[0];
@@ -55,36 +40,21 @@ rdwr(mode)
 }
 
 /*
- * open system call
+ * read system call
  */
-open()
+void
+read()
 {
-	register *ip;
-
-	ip = namei(0);
-	if(ip == NULL)
-		return;
-	u.u_arg[1]++;
-	open1(ip, u.u_arg[1], 0);
+	rdwr(FREAD);
 }
 
 /*
- * creat system call
+ * write system call
  */
-creat()
+void
+write()
 {
-	register *ip;
-
-	ip = namei(1);
-	if(ip == NULL) {
-		if(u.u_error)
-			return;
-		ip = maknode(u.u_arg[1]&07777);
-		if (ip==NULL)
-			return;
-		open1(ip, FWRITE, 2);
-	} else
-		open1(ip, FWRITE, 1);
+	rdwr(FWRITE);
 }
 
 /*
@@ -92,11 +62,15 @@ creat()
  * Check permissions, allocate an open file structure,
  * and call the device open routine if any.
  */
+static void
 open1(ip, mode, trf)
-int *ip;
+	struct inode *ip;
+	int mode;
+	int trf;
 {
 	register struct file *fp;
-	register *rip, m;
+	register struct inode *rip;
+	register int m;
 
 	rip = ip;
 	m = mode;
@@ -113,7 +87,8 @@ int *ip;
 		goto out;
 	if(trf)
 		itrunc(rip);
-	if ((fp = falloc()) == NULL)
+	fp = falloc();
+	if(fp == NULL)
 		goto out;
 	fp->f_flag = m&(FREAD|FWRITE);
 	fp->f_inode = rip;
@@ -126,17 +101,52 @@ int *ip;
 		fp->f_count--;
 		return;
 	}
-
 out:
 	iput(rip);
 }
 
 /*
+ * open system call
+ */
+void
+open()
+{
+	register struct inode *ip;
+
+	ip = namei(0);
+	if(ip == NULL)
+		return;
+	u.u_arg[1]++;
+	open1(ip, u.u_arg[1], 0);
+}
+
+/*
+ * creat system call
+ */
+void
+creat()
+{
+	register struct inode *ip;
+
+	ip = namei(1);
+	if(ip == NULL) {
+		if(u.u_error)
+			return;
+		ip = maknode(u.u_arg[1]&07777);
+		if (ip==NULL)
+			return;
+		open1(ip, FWRITE, 2);
+	} else
+		open1(ip, FWRITE, 1);
+}
+
+/*
  * close system call
  */
+void
 close()
 {
-	register *fp;
+	register struct file *fp;
 
 	fp = getf(u.u_ar0[R0]);
 	if(fp == NULL)
@@ -148,10 +158,12 @@ close()
 /*
  * seek system call
  */
+void
 seek()
 {
 	int n[2];
-	register *fp, t;
+	register struct file *fp;
+	register int t;
 
 	fp = getf(u.u_ar0[R0]);
 	if(fp == NULL)
@@ -161,7 +173,7 @@ seek()
 		n[1] = u.u_arg[0]<<9;
 		n[0] = u.u_arg[0]>>7;
 		if(t == 3)
-			n[0] =& 0777;
+			n[0] &= 0777;
 	} else {
 		n[1] = u.u_arg[0];
 		n[0] = 0;
@@ -172,12 +184,12 @@ seek()
 
 	case 1:
 	case 4:
-		n[0] =+ fp->f_offset[0];
+		n[0] += fp->f_offset[0];
 		dpadd(n, fp->f_offset[1]);
 		break;
 
 	default:
-		n[0] =+ fp->f_inode->i_size0&0377;
+		n[0] += fp->f_inode->i_size0&0377;
 		dpadd(n, fp->f_inode->i_size1);
 
 	case 0:
@@ -191,9 +203,10 @@ seek()
 /*
  * link system call
  */
+void
 link()
 {
-	register *ip, *xp;
+	register struct inode *ip, *xp;
 
 	ip = namei(0);
 	if(ip == NULL)
@@ -202,7 +215,7 @@ link()
 		u.u_error = EMLINK;
 		goto out;
 	}
-	u.u_dirp = u.u_arg[1];
+	u.u_dirp = (char*) u.u_arg[1];
 	xp = namei(1);
 	if(xp != NULL) {
 		u.u_error = EEXIST;
@@ -217,7 +230,7 @@ link()
 	}
 	wdir(ip);
 	ip->i_nlink++;
-	ip->i_flag =| IUPD;
+	ip->i_flag |= IUPD;
 
 out:
 	iput(ip);
@@ -226,9 +239,10 @@ out:
 /*
  * mknod system call
  */
+void
 mknod()
 {
-	register *ip;
+	register struct inode *ip;
 
 	ip = namei(1);
 	if(ip != NULL) {
@@ -250,11 +264,11 @@ out:
  * sleep system call
  * not to be confused with the sleep internal routine.
  */
-
-/*
+#if 0
+void
 sslep()
 {
-	char *d[2];
+	unsigned int d[2];
 
 	spl7();
 	d[0] = time[0];
@@ -271,4 +285,4 @@ sslep()
 	}
 	spl0();
 }
-*/
+#endif

@@ -1,13 +1,14 @@
-#
 /*
- *	Copyright 1975 Bell Telephone Laboratories Inc
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "user.h"
 #include "buf.h"
 #include "systm.h"
 #include "proc.h"
+
+struct buf	buf[NBUF];
+struct buf	*bufp[NBUF];		/* pointers to buffer descriptors */
 
 /*
  * This is the set of buffers proper, whose heads
@@ -41,14 +42,17 @@ struct	buf	swbuf;
 /*
  * Read in (if necessary) the block and return a buffer pointer.
  */
+struct buf *
 bread(dev, blkno)
+	int dev;
+	unsigned int blkno;
 {
 	register struct buf *rbp;
 
 	rbp = getblk(dev, blkno);
 	if (rbp->b_flags&B_DONE)
 		return(rbp);
-	rbp->b_flags =| B_READ;
+	rbp->b_flags |= B_READ;
 	rbp->b_wcount = -256;
 	fdstrategy(rbp);
 	iowait(rbp);
@@ -59,13 +63,14 @@ bread(dev, blkno)
  * Write the buffer, waiting for completion.
  * Then release the buffer.
  */
+void
 bwrite(bp)
-struct buf *bp;
+	struct buf *bp;
 {
 	register struct buf *rbp;
 
 	rbp = bp;
-	rbp->b_flags =& ~(B_READ | B_DONE | B_ERROR | B_DELWRI);
+	rbp->b_flags &= ~(B_READ | B_DONE | B_ERROR | B_DELWRI);
 	rbp->b_wcount = -256;
 	fdstrategy(rbp);
 	iowait(rbp);
@@ -80,23 +85,25 @@ struct buf *bp;
  * This can't be done for magtape, since writes must be done
  * in the same order as requested.
  */
+void
 bdwrite(bp)
-struct buf *bp;
+	struct buf *bp;
 {
 	register struct buf *rbp;
 
 	rbp = bp;
-	rbp->b_flags =| B_DELWRI | B_DONE;
+	rbp->b_flags |= B_DELWRI | B_DONE;
 	brelse(rbp);
 }
 
 /*
  * release the buffer, with no I/O implied.
  */
+void
 brelse(bp)
-struct buf *bp;
+	struct buf *bp;
 {
-	bp->b_flags =& ~B_BUSY;
+	bp->b_flags &= ~B_BUSY;
 }
 
 /*
@@ -107,11 +114,14 @@ struct buf *bp;
  * (e.g. during exec, for the user arglist) getblk can be called
  * with device NODEV to avoid unwanted associativity.
  */
+struct buf *
 getblk(dev, blkno)
+	int dev;
+	unsigned int blkno;
 {
-	register struct buf *bp;
-	register int *bdp, i;
-	int *bdp2;
+	register struct buf *bp, **bdp;
+	register int i;
+	struct buf **bdp2;
 
 	bdp = NULL;
 	for(i = 0; i < NBUF; i++) {
@@ -138,7 +148,7 @@ fnd:
 	while(bdp > &bufp[0])
 		*--bdp2 = *--bdp;
 	*bdp = bp;
-	bp->b_flags =| B_BUSY;
+	bp->b_flags |= B_BUSY;
 	return(bp);
 }
 
@@ -146,8 +156,9 @@ fnd:
  * Wait for I/O completion on the buffer; return errors
  * to the user.
  */
+void
 iowait(bp)
-struct buf *bp;
+	struct buf *bp;
 {
 	register struct buf *rbp;
 
@@ -162,25 +173,10 @@ struct buf *bp;
 }
 
 /*
- * Zero the core associated with a buffer.
- */
-clrbuf(bp)
-int *bp;
-{
-	register *p;
-	register c;
-
-	p = bp->b_addr;
-	c = 256;
-	do
-		*p++ = 0;
-	while (--c);
-}
-
-/*
  * Initialize the buffer I/O system by freeing
  * all buffers and setting all device buffer lists to empty.
  */
+void
 binit()
 {
 	register struct buf *bp;
@@ -189,7 +185,7 @@ binit()
 	for(i = 0; i < NBUF; i++) {
 		bp = bufp[i] = &buf[i];
 		bp->b_dev = NODEV;
-		bp->b_addr = &buffers[i];
+		bp->b_addr = &buffers[i][0];
 	}
 }
 
@@ -199,8 +195,9 @@ binit()
  * are flushed out.
  * (from umount and update)
  */
-
+void
 bflush(dev)
+	int dev;
 {
 	register struct buf *bp;
 	register int i;
@@ -213,10 +210,7 @@ bflush(dev)
 /*
  * swap I/O
  */
-
 #define	USTACK	(TOPSYS-12)
-struct { int *intp;};
-struct { char *chrp;};
 
 #ifdef BGOPTION
 struct swtab swtab[] {
@@ -226,7 +220,10 @@ struct swtab swtab[] {
 	49*256,	50+49,
 };
 
+int
 swap(rdflg,tab)
+	int rdflg;
+	int tab;
 {
 	register struct swtab *t;
 
@@ -246,18 +243,21 @@ swap(rdflg,tab)
 #endif
 
 #ifndef BGOPTION
+int
 swap(rdflg)
+	int rdflg;
 {
-	register int *p, *p1, *p2;
+	register struct proc *p;
+	register int *p1, *p2;
 
 	p = &proc[cpid];
 	if(rdflg == B_WRITE) {
-		p1 = USTACK->integ;
-		p2 = TOPSYS + (u.u_dsize<<6) + (p1.integ&077);
+		p1 = *(int**) USTACK;
+		p2 = (int*) (TOPSYS + (u.u_dsize<<6) + ((int) p1 & 077));
 		if(p2 <= p1) {
 			p->p_size = u.u_dsize + USIZE +
-			    ((TOPUSR>>6)&01777) - ((p1.integ>>6)&01777);
-			while(p1.chrp < TOPUSR)
+			    ((TOPUSR >> 6) & 01777) - (((int) p1 >> 6) & 01777);
+			while(p1 < (int*) TOPUSR)
 				*p2++ = *p1++;
 		} else
 			p->p_size = SWPSIZ<<3;
@@ -266,17 +266,17 @@ swap(rdflg)
 	swbuf.b_dev = SWAPDEV;
 	swbuf.b_wcount = -(((p->p_size+7)&~07)<<5);	/* 32 words per block */
 	swbuf.b_blkno = SWPLO+cpid*SWPSIZ;
-	swbuf.b_addr = &u;
+	swbuf.b_addr = (char*) &u;
 	fdstrategy(&swbuf);
 	spl7();
 	while((swbuf.b_flags&B_DONE)==0)
 		sleep(&swbuf, PSWP);
 	spl0();
 	if(rdflg == B_READ) {
-		p1 = TOPUSR;
-		p2 = (p->p_size<<6) + TOPSYS - (USIZE<<6);
+		p1 = (int*) TOPUSR;
+		p2 = (p->p_size<<6) + (int*) TOPSYS - (USIZE<<6);
 		if(p2 <= p1)
-			while(p1 >= USTACK->integ.intp)
+			while(p1 >= (int*) USTACK)
 				*--p1 = *--p2;
 	}
 	return(swbuf.b_flags&B_ERROR);

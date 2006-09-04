@@ -1,14 +1,14 @@
-#
 /*
- *	Copyright 1975 Bell Telephone Laboratories Inc
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "user.h"
 #include "filsys.h"
 #include "file.h"
 #include "inode.h"
 #include "reg.h"
+
+struct file file[NFILE];
 
 /*
  * Convert a user supplied
@@ -17,9 +17,12 @@
  * Only task is to check range
  * of the descriptor.
  */
+struct file *
 getf(f)
+	int f;
 {
-	register *fp, rf;
+	register struct file *fp;
+	register int rf;
 
 	rf = f;
 	if(rf<0 || rf>=NOFILE)
@@ -38,10 +41,11 @@ bad:
  * file structure and call closei
  * on last closef.
  */
+void
 closef(fp)
-int *fp;
+	struct file *fp;
 {
-	register *rfp, *ip;
+	register struct file *rfp;
 
 	rfp = fp;
 	if(rfp->f_count <= 1)
@@ -60,10 +64,11 @@ int *fp;
  * on every open and only on the last
  * close.
  */
+void
 closei(ip)
-int *ip;
+	struct inode *ip;
 {
-	register *rip;
+	register struct inode *rip;
 
 	rip = ip;
 	if(rip->i_count <= 1 && (rip->i_mode&IFMT) == IFCHR)
@@ -78,10 +83,11 @@ int *ip;
  * Called on all sorts of opens
  * and also on mount.
  */
+void
 openi(ip)
-int *ip;
+	struct inode *ip;
 {
-	register *rip;
+	register struct inode *rip;
 
 	rip = ip;
 	if((rip->i_mode&IFMT) == IFCHR)
@@ -100,14 +106,16 @@ int *ip;
  * at least one of the EXEC bits must
  * be on.
  */
+int
 access(aip, mode)
-int *aip;
+	struct inode *aip;
 {
-	register *ip, m;
+	register struct inode *ip;
+	register m;
 
 	ip = aip;
 	m = mode;
-	if(m == IEXEC && (ip->i_mode & 
+	if(m == IEXEC && (ip->i_mode &
 		(IEXEC | (IEXEC>>3) | (IEXEC>>6))) == 0)
 			goto bad;
 	return(0);
@@ -124,6 +132,7 @@ bad:
  * If permission is granted,
  * return inode pointer.
  */
+struct inode *
 owner()
 {
 	register struct inode *ip;
@@ -136,6 +145,7 @@ owner()
 /*
  * Allocate a user file descriptor.
  */
+int
 ufalloc()
 {
 	register i;
@@ -158,12 +168,14 @@ ufalloc()
  * no file -- if there are no available
  * 	file structures.
  */
+struct file *
 falloc()
 {
 	register struct file *fp;
 	register i;
 
-	if ((i = ufalloc()) < 0)
+	i = ufalloc();
+	if (i < 0)
 		return(NULL);
 	for (fp = &file[0]; fp < &file[NFILE]; fp++)
 		if (fp->f_count==0) {

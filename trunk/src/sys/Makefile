@@ -1,17 +1,21 @@
 #
 # Make LSI-UNIX system.
 #
-CC		= pdp11-cc
+CC		= pdp11-gcc
 AS		= pdp11-as
 STRIP		= pdp11-strip
-SIZE		= pdp11-size
+SIZE		= pdp11-size -o
+CFLAGS		= -DKERNEL -I.
+LDFLAGS		= -nostdlib
+
 ASRCS		= low.s mch.s emul.s
 CSRCS		= alloc.c bio.c \
 		  clock.c fio.c iget.c main.c nami.c rdwri.c sig.c slp.c \
 		  subr.c sys1.c sys2.c sys3.c sys4.c sysent.c trap.c
 OBJS		= low.o mch.o emul.o alloc.o bio.o \
 		  clock.o fio.o iget.o main.o nami.o rdwri.o sig.o slp.o \
-		  subr.o sys1.o sys2.o sys3.o sys4.o sysent.o trap.o
+		  subr.o sys1.o sys2.o sys3.o sys4.o sysent.o trap.o \
+
 vpath %.c . dev
 
 # Parameter settings for for DEC RX11 floppy disks and LSI-11 processor.
@@ -70,16 +74,16 @@ ASFLAGS_RF	= --defsym LSI=0 \
 #OBJS		+= kl.o rffd.o
 
 all:		lsx
-
-clean:
-		rm -f *~ *.o lsx a.out
-
-lsx:		$(OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OBJS)
-		$(STRIP) $@
 		@echo "Warning: For 10K LSX system, size must be less than 046000"
 		@echo "         for 8k lsx system size must be less than 036500"
-		$(SIZE) $@
+		$(SIZE) lsx
+
+clean:
+		rm -f *~ dev/*~ *.o lsx a.out
+
+lsx:		$(OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(OBJS) -L/usr/local/pdp11/lib/gcc/pdp11/4.1.1 -lgcc
+		$(STRIP) $@
 
 count:		$(ASRCS) $(CSRCS)
 		wc $(ASRCS) $(CSRCS)

@@ -1,8 +1,6 @@
-#
 /*
- *	Copyright 1975 Bell Telephone Laboratories Inc
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "inode.h"
 #include "user.h"
@@ -17,20 +15,23 @@
  *	1 if name is to be created
  *	2 if name is to be deleted
  */
+struct inode *
 namei(flag)
+	int flag;
 {
 	register struct inode *dp;
 	register c;
 	register char *cp;
-	int eo, *bp;
+	int eo;
+	struct buf *bp;
 
 	/*
 	 * If name starts with '/' start from
 	 * root; otherwise start from current dir.
 	 */
-
 	dp = u.u_cdir;
-	if((c=uchar()) == '/')
+	c = uchar();
+	if(c == '/')
 		dp = rootdir;
 	iget(dp->i_dev, dp->i_number);
 	while(c == '/')
@@ -39,13 +40,11 @@ namei(flag)
 		u.u_error = ENOENT;
 		goto out;
 	}
-
 cloop:
 	/*
 	 * Here dp contains pointer
 	 * to last component matched.
 	 */
-
 	if(u.u_error)
 		goto out;
 	if(c == '\0')
@@ -56,7 +55,6 @@ cloop:
 	 * dp must be a directory and
 	 * must have x permission.
 	 */
-
 	if((dp->i_mode&IFMT) != IFDIR) {
 		u.u_error = ENOTDIR;
 		goto out;
@@ -68,7 +66,6 @@ cloop:
 	 * Gather up name into
 	 * users' dir buffer.
 	 */
-
 	cp = &u.u_dbuf[0];
 	while(c!='/' && c!='\0' && u.u_error==0) {
 		if(cp < &u.u_dbuf[DIRSIZ])
@@ -85,21 +82,17 @@ cloop:
 	/*
 	 * Set up to search a directory.
 	 */
-
 	u.u_offset[1] = 0;
 	u.u_offset[0] = 0;
 	eo = 0;
-	u.u_count = dp->i_size1/(DIRSIZ+2);
+	u.u_count = dp->i_size1 / (DIRSIZ+2);
 	bp = NULL;
-
 eloop:
-
 	/*
 	 * If at the end of the directory,
 	 * the search failed. Report what
 	 * is appropriate as per flag.
 	 */
-
 	if(u.u_count == 0) {
 		if(bp != NULL)
 			brelse(bp);
@@ -108,8 +101,9 @@ eloop:
 				goto out;
 			u.u_pdir = dp;
 			if(eo)
-				u.u_offset[1] = eo-DIRSIZ-2; else
-				dp->i_flag =| IUPD;
+				u.u_offset[1] = eo-DIRSIZ-2;
+			else
+				dp->i_flag |= IUPD;
 			return(NULL);
 		}
 		u.u_error = ENOENT;
@@ -121,12 +115,11 @@ eloop:
 	 * read the next directory block.
 	 * Release previous if it exists.
 	 */
-
 	if((u.u_offset[1]&0777) == 0) {
 		if(bp != NULL)
 			brelse(bp);
 		bp = bread(dp->i_dev,
-			bmap(dp, u.u_offset[1]/512));
+			bmap(dp, u.u_offset[1] / 512));
 	}
 
 	/*
@@ -136,9 +129,8 @@ eloop:
 	 * and the current component.
 	 * If they do not match, go back to eloop.
 	 */
-
-	bcopy(bp->b_addr+(u.u_offset[1]&0777), &u.u_dent, (DIRSIZ+2)/2);
-	u.u_offset[1] =+ DIRSIZ+2;
+	memcpy(&u.u_dent, bp->b_addr+(u.u_offset[1]&0777), DIRSIZ+2);
+	u.u_offset[1] += DIRSIZ+2;
 	u.u_count--;
 	if(u.u_dent.u_ino == 0) {
 		if(eo == 0)
@@ -154,7 +146,6 @@ eloop:
 	 * If there is more pathname, go back to
 	 * cloop, otherwise return.
 	 */
-
 	if(bp != NULL)
 		brelse(bp);
 	if(flag==2 && c=='\0') {
@@ -162,13 +153,12 @@ eloop:
 			goto out;
 		return(dp);
 	}
-	bp = dp->i_dev;
+	c = dp->i_dev;
 	iput(dp);
-	dp = iget(bp, u.u_dent.u_ino);
+	dp = iget(c, u.u_dent.u_ino);
 	if(dp == NULL)
 		return(NULL);
 	goto cloop;
-
 out:
 	iput(dp);
 	return(NULL);

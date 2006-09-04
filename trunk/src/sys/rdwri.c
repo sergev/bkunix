@@ -1,13 +1,24 @@
-#
 /*
- *	Copyright 1975 Bell Telephone Laboratories Inc
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "inode.h"
 #include "user.h"
 #include "buf.h"
 #include "systm.h"
+
+/*
+ * Return the logical minimum
+ * of the 2 arguments.
+ */
+static int
+min(a, b)
+	int a, b;
+{
+	if(a < b)
+		return(a);
+	return(b);
+}
 
 /*
  * Read the file corresponding to
@@ -18,10 +29,11 @@
  *	u_offset	byte offset in file
  *	u_count		number of bytes to read
  */
+void
 readi(aip)
-struct inode *aip;
+	struct inode *aip;
 {
-	int *bp;
+	struct buf *bp;
 	int lbn, bn, on;
 	register dn, n;
 	register struct inode *ip;
@@ -65,10 +77,11 @@ struct inode *aip;
  *	u_offset	byte offset in file
  *	u_count		number of bytes to write
  */
+void
 writei(aip)
-struct inode *aip;
+	struct inode *aip;
 {
-	int *bp;
+	struct buf *bp;
 	int n, on;
 	register dn, bn;
 	register struct inode *ip;
@@ -91,7 +104,7 @@ struct inode *aip;
 			dn = ip->i_dev;
 		} else
 			dn = ip->i_addr[0];
-		if(n == 512) 
+		if(n == 512)
 			bp = getblk(dn, bn); else
 			bp = bread(dn, bn);
 		iomove(bp, on, n, B_WRITE);
@@ -106,21 +119,8 @@ struct inode *aip;
 			ip->i_size0 = u.u_offset[0];
 			ip->i_size1 = u.u_offset[1];
 		}
-		ip->i_flag =| IUPD;
+		ip->i_flag |= IUPD;
 	} while(u.u_error==0 && u.u_count!=0);
-}
-
-/*
- * Return the logical minimum
- * of the 2 arguments.
- */
-min(a, b)
-char *a, *b;
-{
-
-	if(a < b)
-		return(a);
-	return(b);
 }
 
 /*
@@ -146,7 +146,7 @@ struct buf *bp;
 
 	n = an;
 	cp = bp->b_addr + o;
-	if(((n | cp | u.u_base)&01) == 0) {
+	if(((n | (int)cp | (int)u.u_base)&01) == 0) {
 		if (flag==B_WRITE)
 			cp = copyin(u.u_base, cp, n);
 		else
@@ -155,9 +155,9 @@ struct buf *bp;
 			u.u_error = EFAULT;
 			return;
 		}
-		u.u_base =+ n;
+		u.u_base += n;
 		dpadd(u.u_offset, n);
-		u.u_count =- n;
+		u.u_count -= n;
 		return;
 	}
 	if (flag==B_WRITE) {

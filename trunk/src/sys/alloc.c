@@ -1,8 +1,6 @@
-#
 /*
- *	Copyright 1975 Bell Telephone Laboratories Inc
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "systm.h"
 #include "filsys.h"
@@ -20,77 +18,46 @@
  * panic: iinit -- cannot read the super
  * block. Usually because of an IO error.
  */
-iinit()
+void iinit()
 {
-	register *cp, *bp;
+	register struct buf *bp, *cp;
+	register struct filsys *fs;
 
 	bp = bread(ROOTDEV, 1);
-	cp = getblk(NODEV);
+	cp = getblk(NODEV, 0);
 	if(u.u_error)
 		panic();
-	bcopy(bp->b_addr, cp->b_addr, 256);
+	memcpy(cp->b_addr, bp->b_addr, 512);
 	brelse(bp);
 	mount[0].m_bufp = cp;
 	mount[0].m_dev = ROOTDEV;
-	cp = cp->b_addr;
-	time[0] = cp->s_time[0];
-	time[1] = cp->s_time[1];
+	fs = (struct filsys*) cp->b_addr;
+	time[0] = fs->s_time[0];
+	time[1] = fs->s_time[1];
 }
 
 /*
  * mount user file system
  */
-
-minit()
+void minit()
 {
-	register *cp, *bp, *ip;
+	register struct buf *bp, *cp;
+	register struct inode *ip;
 
 	bp = bread(MNTDEV, 1);
 	if(bp->b_flags&B_ERROR)
 		goto nomount;
 	u.u_dirp = "/usr";
+	cp = getblk(NODEV);
+	memcpy(cp->b_addr, bp->b_addr, 512);
 	ip = namei(0);
 	mount[1].m_inodp = ip;
 	mount[1].m_dev = MNTDEV;
-	mount[1].m_bufp = cp = getblk(NODEV);
-	bcopy(bp->b_addr, cp->b_addr, 256);
-	ip->i_flag =| IMOUNT;
+	mount[1].m_bufp = cp;
+	ip->i_flag |= IMOUNT;
 nomount:
 	brelse(bp);
 }
-
-#ifdef	CONTIG
-
-alloc(dev)
-{
-	register bno;
-	register *fp, *bp;
-
-	fp = getfs(dev);
-	for(bno = fp->s_isize+2; bno < fp->s_fsize; bno++) {
-		if(fp->s_bmap[bno>>3]&(1<<(bno&07))) {
-			fp->s_bmap[bno>>3] =& ~(1<<(bno&07));
-			bp = getblk(dev, bno);
-			clrbuf(bp);
-			fp->s_fmod = 1;
-			return(bp);
-		}
-	}
-	u.u_error = ENOSPC;
-	return(0);
-}
-
-free(dev, bno)
-{
-	register *fp;
-
-	fp = getfs(dev);
-	fp->s_bmap[bno>>3] =| (1<<(bno&07));
-}
-
-#endif
-
-#ifndef CONTIG
 
 /*
  * alloc will obtain the next available
@@ -103,10 +70,14 @@ free(dev, bno)
  * no space on dev x/y -- when
  * the free list is exhausted.
  */
+struct buf *
 alloc(dev)
+	int dev;
 {
 	int bno;
-	register *bp, *ip, *fp;
+	register struct filsys *fp;
+	register struct buf *bp;
+	register int *ip;
 
 	fp = getfs(dev);
 	if(fp->s_nfree <= 0)
@@ -116,15 +87,15 @@ alloc(dev)
 		goto nospace;
 	if(fp->s_nfree <= 0) {
 		bp = bread(dev, bno);
-		ip = bp->b_addr;
+		ip = (int*) bp->b_addr;
 		fp->s_nfree = *ip++;
-		bcopy(ip, fp->s_free, 100);
+		memcpy(fp->s_free, ip, 200);
 		brelse(bp);
 	}
 	if(bno < fp->s_isize+2 || bno >= fp->s_fsize)
 		panic();
 	bp = getblk(dev, bno);
-	clrbuf(bp);
+	memzero (bp->b_addr, 512);
 	fp->s_fmod = 1;
 	return(bp);
 
@@ -139,9 +110,14 @@ nospace:
  * back on the free list of the
  * specified device.
  */
+void
 free(dev, bno)
+	int dev;
+	int bno;
 {
-	register *fp, *bp, *ip;
+	register struct filsys *fp;
+	register int *ip;
+	register struct buf *bp;
 
 	fp = getfs(dev);
 	if(bno < fp->s_isize+2 || bno >= fp->s_fsize)
@@ -152,17 +128,15 @@ free(dev, bno)
 	}
 	if(fp->s_nfree >= 100) {
 		bp = getblk(dev, bno);
-		ip = bp->b_addr;
+		ip = (int*) bp->b_addr;
 		*ip++ = fp->s_nfree;
-		bcopy(fp->s_free, ip, 100);
+		memcpy(ip, fp->s_free, 200);
 		fp->s_nfree = 0;
 		bwrite(bp);
 	}
 	fp->s_free[fp->s_nfree++] = bno;
 	fp->s_fmod = 1;
 }
-
-#endif
 
 /*
  * Allocate an unused I node
@@ -175,30 +149,23 @@ free(dev, bno)
  * I list is instituted to pick
  * up 100 more.
  */
+struct inode *
 ialloc(dev)
+	int dev;
 {
-	register *fp, *bp, *ip;
+	register struct filsys *fp;
+	register int *bp;
+	register struct inode *ip;
 	int i, j, k, ino;
 
 	fp = getfs(dev);
-#ifdef	CONTIG
-	for(ino = 1; ino < fp->s_isize*16; ino++) {
-		if((fp->s_imap[ino>>3]&(1<<(ino&07))) == 0)
-			continue;
-		ip = iget(dev, ino+1);
-#endif
-#ifndef	CONTIG
 loop:
 	if(fp->s_ninode > 0) {
 		ino = fp->s_inode[--fp->s_ninode];
 		ip = iget(dev, ino);
-#endif
 		if (ip==NULL)
 			return(NULL);
 		if(ip->i_mode == 0) {
-#ifdef	CONTIG
-			fp->s_imap[ino>>3] =& ~(1<<(ino&07));
-#endif
 			for(bp = &ip->i_mode; bp < &ip->i_addr[8];)
 				*bp++ = 0;
 			fp->s_fmod = 1;
@@ -209,9 +176,7 @@ loop:
 		 * Look some more.
 		 */
 		iput(ip);
-#ifndef	CONTIG
 		goto loop;
-#endif
 	}
 	u.u_error = ENOSPC;
 	return(NULL);
@@ -224,18 +189,15 @@ loop:
  * to 100 I nodes in the super
  * block and throws away any more.
  */
-
+void
 ifree(dev, ino)
+	int dev;
+	int ino;
 {
-	register *fp;
+	register struct filsys *fp;
 
 	fp = getfs(dev);
-#ifdef	CONTIG
-	fp->s_imap[(ino-1)>>3] =| (1<<((ino-1)&07));
-#endif
-#ifndef	CONTIG
 	fp->s_inode[fp->s_ninode++] = ino;
-#endif
 	fp->s_fmod = 1;
 }
 
@@ -248,15 +210,16 @@ ifree(dev, ino)
  * panic: no fs -- the device is not mounted.
  *	this "cannot happen"
  */
+struct filsys *
 getfs(dev)
+	int dev;
 {
 	register struct mount *p;
 
 	for(p = &mount[0]; p < &mount[NMOUNT]; p++)
-	if(p->m_bufp != NULL && p->m_dev == dev) {
-		p = p->m_bufp->b_addr;
-		return(p);
-	}
+		if(p->m_bufp != NULL && p->m_dev == dev) {
+			return (struct filsys*) ((p->m_bufp)->b_addr);
+		}
 	panic();
 }
 
@@ -269,25 +232,41 @@ getfs(dev)
  * the mount table to initiate modified
  * super blocks.
  */
+void
 update()
 {
+	register struct filsys *fp;
 	register struct inode *ip;
 	register struct mount *mp;
-	register *bp;
+	register struct buf *bp;
 
 	for(mp = &mount[0]; mp < &mount[NMOUNT]; mp++)
 		if(mp->m_bufp != NULL) {
-			ip = mp->m_bufp->b_addr;
-			if(ip->s_fmod == 0)
+			fp = (struct filsys*) mp->m_bufp->b_addr;
+			if(fp->s_fmod == 0)
 				continue;
 			bp = getblk(mp->m_dev, 1);
-			ip->s_time[0] = time[0];
-			ip->s_time[1] = time[1];
-			ip->s_fmod = 0;
-			bcopy(ip, bp->b_addr, 256);
+			fp->s_time[0] = time[0];
+			fp->s_time[1] = time[1];
+			fp->s_fmod = 0;
+			memcpy(bp->b_addr, fp, 512);
 			bwrite(bp);
 		}
 	for(ip = &inode[0]; ip < &inode[NINODE]; ip++)
 		iupdat(ip);
 	bflush(NODEV);
+}
+
+void
+memzero (ptr, len)
+	void *ptr;
+	int len;
+{
+	register int *wp, bytes;
+
+	wp = (int*) ptr;
+	for (bytes=len; bytes>1; bytes-=2)
+		*wp++ = 0;
+	if (bytes > 0)
+		*(char*) wp = 0;
 }

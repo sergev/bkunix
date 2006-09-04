@@ -1,10 +1,3 @@
-#
-/*
- * comment next define statement if standard UNIX file structure
-
-#define	CONTIG	1
-*/
-
 char	*dargv[]
 {
 	0,
@@ -42,22 +35,6 @@ struct	inode
 #define	ILARG	010000
 #define	ICONT	01000
 
-#ifdef	CONTIG
-
-struct {
-	char	*s_isize;
-	char	*s_fsize;
-	char	s_fmod;
-	int	s_time[2];
-	char	s_imap[60];
-	char	s_bmap[302];
-	int	pad[70];
-} sblock;
-
-#endif
-
-#ifndef	CONTIG
-
 struct
 {
 	char	*s_isize;
@@ -72,8 +49,6 @@ struct
 	int	time[2];
 	int	pad[50];
 } sblock;
-
-#endif
 
 char	bitcnt[]
 {
@@ -273,13 +248,12 @@ char *file;
 			fprintf("cannot write %s\n", file);
 			return;
 		}
-#ifndef	CONTIG
 		sblock.s_nfree = 0;
 		sblock.s_ninode = 0;
 		sblock.s_flock = 0;
 		sblock.s_ilock = 0;
 		free(0);
-#endif
+
 		sblock.s_fmod = 0;
 		for(i=sblock.s_fsize-1; i>=sblock.s_isize+2; i--) {
 			ndup = 0;
@@ -577,31 +551,6 @@ p2dig(n, c)
 	putchar(c);
 }
 
-#ifdef	CONTIG
-
-alloc()
-{
-	register bno;
-
-	for(bno = sblock.s_isize+2; bno < sblock.s_fsize; bno++) {
-		if(sblock.s_bmap[bno>>3]&(1<<(bno&07))) {
-			sblock.s_bmap[bno>>3] =& ~(1<<(bno&07));
-			return(bno);
-		}
-	}
-	return(0);
-}
-
-free(bno)
-{
-
-	sblock.s_bmap[bno>>3] =| (1<<(bno&07));
-}
-
-#endif
-
-#ifndef	CONTIG
-
 alloc()
 {
 	register b, i;
@@ -638,8 +587,6 @@ free(in)
 	}
 	sblock.s_free[sblock.s_nfree++] = in;
 }
-
-#endif
 
 bread(bno, buf)
 {
@@ -739,14 +686,9 @@ inodlist()
 		for(i = 0; i < 16; i++) {
 			ino++;
 			if(ip->i_mode == 0) {
-#ifdef	CONTIG
-				sblock.s_imap[(ino-1)>>3] =| 1<<((ino-1)&07);
-#endif
-#ifndef	CONTIG
 				sblock.s_inode[sblock.s_ninode++] = ino;
 				if(sblock.s_ninode >= 100)
 					return;
-#endif
 			}
 			ip =+ 16;
 		}

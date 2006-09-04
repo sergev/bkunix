@@ -1,8 +1,6 @@
-#
 /*
- *	Copyright 1975 Bell Telephone Laboratories Inc
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "systm.h"
 #include "reg.h"
@@ -13,11 +11,39 @@
 #include "file.h"
 
 /*
+ * The basic routine for fstat and stat:
+ * get the inode and pass appropriate parts back.
+ */
+static void
+stat1(ip, ub)
+	struct inode *ip;
+	int ub;
+{
+	register int i, *cp;
+	register struct buf *bp;
+
+	iupdat(ip);
+	bp = bread(ip->i_dev, (ip->i_number + 31) / 16);
+	cp = &(ip->i_dev);
+	for(i=0; i<14; i++) {
+		suword(ub, *cp++);
+		ub += 2;
+	}
+	cp = (int*) (bp->b_addr + 32 * ((ip->i_number + 31) & 017) + 24);
+	for(i=0; i<4; i++) {
+		suword(ub, *cp++);
+		ub += 2;
+	}
+	brelse(bp);
+}
+
+/*
  * the fstat system call.
  */
+void
 fstat()
 {
-	register *fp;
+	register struct file *fp;
 
 	fp = getf(u.u_ar0[R0]);
 	if(fp == NULL)
@@ -28,9 +54,10 @@ fstat()
 /*
  * the stat system call.
  */
+void
 stat()
 {
-	register ip;
+	register struct inode *ip;
 
 	ip = namei(0);
 	if(ip == NULL)
@@ -40,35 +67,13 @@ stat()
 }
 
 /*
- * The basic routine for fstat and stat:
- * get the inode and pass appropriate parts back.
- */
-stat1(ip, ub)
-int *ip;
-{
-	register i, *bp, *cp;
-
-	iupdat(ip);
-	bp = bread(ip->i_dev, (ip->i_number+31)/16);
-	cp = bp->b_addr + 32*((ip->i_number+31)&017) + 24;
-	ip = &(ip->i_dev);
-	for(i=0; i<14; i++) {
-		suword(ub, *ip++);
-		ub =+ 2;
-	}
-	for(i=0; i<4; i++) {
-		suword(ub, *cp++);
-		ub =+ 2;
-	}
-	brelse(bp);
-}
-
-/*
  * the dup system call.
  */
+void
 dup()
 {
-	register i, *fp;
+	register int i;
+	register struct file *fp;
 
 	fp = getf(u.u_ar0[R0]);
 	if(fp == NULL)
@@ -79,11 +84,13 @@ dup()
 	fp->f_count++;
 }
 
+void
 stty()
 {
 	klsgtty(1);
 }
 
+void
 gtty()
 {
 	klsgtty(0);

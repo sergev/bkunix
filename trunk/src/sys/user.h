@@ -30,19 +30,19 @@ struct user
 	char	u_gid;			/* effective group id */
 	char	u_ruid;			/* real user id */
 	char	u_rgid;			/* real group id */
-	int	u_procp;		/* pointer to proc structure */
+	struct proc *u_procp;		/* pointer to proc structure */
 	char	*u_base;		/* base address for IO */
-	char	*u_count;		/* bytes remaining for IO */
-	char	*u_offset[2];		/* offset in file for IO */
-	int	*u_cdir;		/* pointer to inode of current directory */
+	unsigned int u_count;		/* bytes remaining for IO */
+	unsigned int u_offset[2];	/* offset in file for IO */
+	struct inode *u_cdir;		/* pointer to inode of current directory */
 	char	u_dbuf[DIRSIZ];		/* current pathname component */
 	char	*u_dirp;		/* current pointer to inode */
 	struct	{			/* current directory entry */
 		int	u_ino;
 		char	u_name[DIRSIZ];
 	} u_dent;
-	int	*u_pdir;		/* inode of parent directory of dirp */
-	int	u_ofile[NOFILE];	/* pointers to file structures of open files */
+	struct inode *u_pdir;		/* inode of parent directory of dirp */
+	struct file *u_ofile[NOFILE];	/* pointers to file structures of open files */
 	int	u_arg[5];		/* arguments to current system call */
 	int	u_tsize;		/* text size (*64) */
 	int	u_dsize;		/* data size (*64) */
@@ -70,7 +70,8 @@ struct user
 					 * extends from u + USIZE*64
 					 * backward not to reach here
 					 */
-} u;
+};
+extern struct user u;
 
 /* u_error codes */
 #define	EFAULT	106

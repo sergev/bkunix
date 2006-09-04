@@ -1,12 +1,8 @@
-#
-/*
- *	Copyright 1975 Bell Telephone Laboratories Inc
- */
-
 /*
  * FD disk driver
+ *
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "buf.h"
 #include "user.h"
@@ -54,7 +50,7 @@ struct buf *abp;
 
 	bp = abp;
 	if (bp->b_blkno >= NFDBLK) {
-		bp->b_flags =| B_DONE | B_ERROR;
+		bp->b_flags |= B_DONE | B_ERROR;
 		return;
 	}
 	bp->b_link = 0;
@@ -86,9 +82,9 @@ fdstart()
 	FD->fdba = bp->b_addr;
 	com = bp->b_blkno;
 	if(bp->b_flags&B_READ)
-		com =| FDREAD;
+		com |= FDREAD;
 	else
-		com =| FDWRITE;
+		com |= FDWRITE;
 	FD->fdcont = IENABLE|com;
 }
 
@@ -113,17 +109,17 @@ fdintr()
 			fdstart();
 			return;
 		}
-		bp->b_flags =| B_ERROR;
+		bp->b_flags |= B_ERROR;
 	}
 	fdtab.d_errcnt = 0;
-	if((bp->b_wcount =+ 256) == 0) {
+	if((bp->b_wcount += 256) == 0) {
 		fdtab.d_actf = bp->b_link;
-		bp->b_flags =| B_DONE;
+		bp->b_flags |= B_DONE;
 #ifdef BGOPTION
 		wakeup(bp);
 #endif
 	} else {
-		bp->b_addr =+ 512;
+		bp->b_addr += 512;
 		bp->b_blkno++;
 	}
 	fdstart();

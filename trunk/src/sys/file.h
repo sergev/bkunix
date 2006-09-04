@@ -7,12 +7,18 @@
  */
 struct	file
 {
-	char	f_flag;
-	char	f_count;	/* reference count */
-	int	f_inode;	/* pointer to inode structure */
-	char	*f_offset[2];	/* read/write character pointer */
-} file[NFILE];
+	char		f_flag;
+	char		f_count;	/* reference count */
+	struct inode	*f_inode;	/* pointer to inode structure */
+	unsigned int	f_offset[2];	/* read/write character pointer */
+};
+extern struct file file[NFILE];
 
 /* flags */
 #define	FREAD	01
 #define	FWRITE	02
+
+#ifdef KERNEL
+struct file *getf();
+struct file *falloc();
+#endif

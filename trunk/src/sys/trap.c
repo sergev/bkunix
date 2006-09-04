@@ -1,8 +1,6 @@
-#
 /*
- *	Copyright 1975 Bell Telephone Laboratories Inc
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "systm.h"
 #include "user.h"
@@ -15,21 +13,28 @@
 #define	USER	020		/* user-mode flag added to dev */
 
 /*
- * structure of the system entry table (sysent.c)
+ * Call the system-entry routine f (out of the
+ * sysent table). This is a subroutine for trap, and
+ * not in-line, because if a signal occurs
+ * during processing, an (abnormal) return is simulated from
+ * the last caller to savu(qsav); if this took place
+ * inside of trap, it wouldn't have a chance to clean up.
+ *
+ * If this occurs, the return takes place without
+ * clearing u_intflg; if it's still set, trap
+ * marks an error which means that a system
+ * call (like read on a typewriter) got interrupted
+ * by a signal.
  */
-struct sysent	{
-	int	count;		/* argument count */
-	int	(*call)();	/* name of handler */
-} sysent[64];
-
-/*
- * Offsets of the user's registers relative to
- * the saved r0. See reg.h
- */
-char	regloc[9]
+static void
+trap1(f)
+	int (*f)();
 {
-	R0, R1, R2, R3, R4, R5, R6, R7, RPS
-};
+	u.u_intflg = 1;
+	savu(u.u_qsav);
+	(*f)();
+	u.u_intflg = 0;
+}
 
 /*
  * Called from l40.s or l45.s when a processor trap occurs.
@@ -41,14 +46,15 @@ char	regloc[9]
  * get copied back on return.
  * dev is the kind of trap that occurred.
  */
+void
 trap(dev, sp, r1, nps, r0, pc, ps)
-char *pc;
+	char *pc;
 {
 	register i, a;
 	register struct sysent *callp;
 
-	if(pc > TOPSYS)
-		dev =| USER;
+	if(pc > (char*) TOPSYS)
+		dev |= USER;
 	u.u_ar0 = &r0;
 	switch(dev) {
 
@@ -91,30 +97,30 @@ char *pc;
 
 	case 6+USER: /* sys call */
 		u.u_error = 0;
-		ps =& ~EBIT;
+		ps &= ~EBIT;
 		callp = &sysent[fuiword(pc-2)&077];
 		if (callp == sysent) { /* indirect */
 			a = fuiword(pc);
-			pc =+ 2;
+			pc += 2;
 			i = fuword(a);
 			if ((i & ~077) != SYS)
 				i = 077;	/* illegal */
 			callp = &sysent[i&077];
 			for(i=0; i<callp->count; i++)
-				u.u_arg[i] = fuword(a =+ 2);
+				u.u_arg[i] = fuword(a += 2);
 		} else {
 			for(i=0; i<callp->count; i++) {
 				u.u_arg[i] = fuiword(pc);
-				pc =+ 2;
+				pc += 2;
 			}
 		}
-		u.u_dirp = u.u_arg[0];
+		u.u_dirp = (char*) u.u_arg[0];
 		trap1(callp->call);
 		if(u.u_intflg)
 			u.u_error = EINTR;
 		if(u.u_error < 100) {
 			if(u.u_error) {
-				ps =| EBIT;
+				ps |= EBIT;
 				r0 = u.u_error;
 			}
 			goto out;
@@ -147,32 +153,9 @@ out:
 }
 
 /*
- * Call the system-entry routine f (out of the
- * sysent table). This is a subroutine for trap, and
- * not in-line, because if a signal occurs
- * during processing, an (abnormal) return is simulated from
- * the last caller to savu(qsav); if this took place
- * inside of trap, it wouldn't have a chance to clean up.
- *
- * If this occurs, the return takes place without
- * clearing u_intflg; if it's still set, trap
- * marks an error which means that a system
- * call (like read on a typewriter) got interrupted
- * by a signal.
- */
-trap1(f)
-int (*f)();
-{
-
-	u.u_intflg = 1;
-	savu(u.u_qsav);
-	(*f)();
-	u.u_intflg = 0;
-}
-
-/*
  * nonexistent system call-- set fatal error code.
  */
+void
 nosys()
 {
 	u.u_error = 100;
@@ -181,6 +164,7 @@ nosys()
 /*
  * Ignored system call
  */
+void
 nullsys()
 {
 }

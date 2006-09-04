@@ -7,8 +7,8 @@ wait	= 1
 rti	= 2
 reset	= 5
 
-mfps = 106700^tst	/ LSI instruction
-mtps = 106400^tst
+/mfps = 0106700^tst	/ LSI instruction
+/mtps = 0106400^tst
 
 .if BGOPTION
 .globl	_swtch
@@ -27,7 +27,7 @@ trap:
 	tst	nofault
 	bne	1f
 emtrap:
-	jsr	r0,call1; _trap
+	jsr	r0,call1; .word _trap
 	/ no return
 1:
 	mov	nofault,(sp)
@@ -40,7 +40,7 @@ call1:
 	mtps	(sp)+
 .endif
 .if LSI-1
-	bic	$340,PS
+	bic	$0340,PS
 .endif
 	br	1f
 
@@ -55,14 +55,14 @@ call:
 	mov	r1,-(sp)
 	mov	sp,r1	/get stack pointer at trap
 	mov	r1,-(sp)
-	add	$10.,(sp)
+	add	$10,(sp)
 	mov	4(sp),-(sp)
 	bic	$!37,(sp)	/ trap type
-	cmp	10.(sp),$_u+[usize*64.]
+	cmp	10(sp),$_u+[usize*64]
 	blo	1f	/ trap from system
 	inc	_user
 	mov	2(sp),r1	/ trap from user, get user stack
-	mov	$_u+[usize*64.],sp
+	mov	$_u+[usize*64],sp
 	mov	-(r1),-(sp)	/ copy user stack to system stack
 	mov	-(r1),-(sp)
 	mov	-(r1),-(sp)
@@ -77,11 +77,11 @@ call:
 	tst	(sp)+
 .endif
 .if LSI
-	mov	$340,-(sp)
+	mov	$0340,-(sp)
 	mtps	(sp)+
 .endif
 .if LSI-1
-	bis	$340,PS
+	bis	$0340,PS
 .endif
 	br	2f
 1:
@@ -95,15 +95,15 @@ call:
 2:
 	tst	(sp)+
 	mov	(sp)+,r1	/ new user stack pointer
-	cmp	6(sp),$_u+[usize*64.]
+	cmp	6(sp),$_u+[usize*64]
 	blo	1f	/ return from system trap
-	sub	$10.,r1	/ begin. of system stack to be copied to user stack
+	sub	$10,r1	/ begin. of system stack to be copied to user stack
 	mov	(sp)+,(r1)+	/ copy system stack to user stack
 	mov	(sp)+,(r1)+
 	mov	(sp)+,(r1)+
 	mov	(sp)+,(r1)+
 	mov	(sp)+,(r1)+
-	sub	$10.,r1
+	sub	$10,r1
 	mov	r1,sp	/ switch to user stack
 1:
 	mov	(sp)+,r1
@@ -126,11 +126,11 @@ _getc:
 .endif
 	mov	r2,-(sp)
 .if LSI
-	mov	$340,-(sp)
+	mov	$0340,-(sp)
 	mtps	(sp)+
 .endif
 .if LSI-1
-	bis	$340,PS
+	bis	$0340,PS
 .endif
 	mov	2(r1),r2	/ first ptr
 	beq	9f		/ empty
@@ -185,11 +185,11 @@ _putc:
 	mov	r2,-(sp)
 	mov	r3,-(sp)
 .if LSI
-	mov	$340,-(sp)
+	mov	$0340,-(sp)
 	mtps	(sp)+
 .endif
 .if LSI-1
-	bis	$340,PS
+	bis	$0340,PS
 .endif
 	mov	4(r1),r2	/ last ptr
 	bne	1f
@@ -278,12 +278,12 @@ fuword:
 gword:
 .if LSI
 	mfps	-(sp)
-	mov	$340,-(sp)
+	mov	$0340,-(sp)
 	mtps	(sp)+
 .endif
 .if LSI-1
 	mov	PS,-(sp)
-	bis	$340,PS
+	bis	$0340,PS
 .endif
 	mov	nofault,-(sp)
 	mov	$err,nofault
@@ -301,12 +301,12 @@ suword:
 pword:
 .if LSI
 	mfps	-(sp)
-	mov	$340,-(sp)
+	mov	$0340,-(sp)
 	mtps	(sp)+
 .endif
 .if LSI-1
 	mov	PS,-(sp)
-	bis	$340,PS
+	bis	$0340,PS
 .endif
 	mov	nofault,-(sp)
 	mov	$err,nofault
@@ -391,7 +391,7 @@ _idle:
 .endif
 .if LSI-1
 	mov	PS,-(sp)
-	bic	$340,PS
+	bic	$0340,PS
 .endif
 	wait
 .if LSI
@@ -405,11 +405,11 @@ _idle:
 .globl	_savu, _retu
 _savu:
 .if LSI
-	mov	$340,r0
+	mov	$0340,r0
 	mtps	r0
 .endif
 .if LSI-1
-	bis	$340,PS
+	bis	$0340,PS
 .endif
 	mov	(sp)+,r1
 	mov	(sp),r0
@@ -420,17 +420,17 @@ _savu:
 	mtps	r0
 .endif
 .if LSI-1
-	bic	$340,PS
+	bic	$0340,PS
 .endif
 	jmp	(r1)
 
 _retu:
 .if LSI
-	mov	$340,r0
+	mov	$0340,r0
 	mtps	r0
 .endif
 .if LSI-1
-	bis	$340,PS
+	bis	$0340,PS
 .endif
 	mov	(sp)+,r1
 	mov	(sp),r0
@@ -441,7 +441,7 @@ _retu:
 	mtps	r0
 .endif
 .if LSI-1
-	bic	$340,PS
+	bic	$0340,PS
 .endif
 	jmp	(r1)
 
@@ -454,19 +454,19 @@ _spl0:
 .endif
 .if LSI-1
 	mov	*$PS,r0
-	bic	$340,PS
+	bic	$0340,PS
 .endif
 	rts	pc
 
 _spl7:
 .if LSI
 	mfps	r0
-	mov	$340,r1
+	mov	$0340,r1
 	mtps	r1
 .endif
 .if LSI-1
 	mov	*$PS,r0
-	bis	$340,PS
+	bis	$0340,PS
 .endif
 	rts	pc
 
@@ -498,22 +498,22 @@ _dpcmp:
 	bge	1f
 	cmp	r0,$-1
 	bne	2f
-	cmp	r1,$-512.
+	cmp	r1,$-512
 	bhi	3f
 2:
-	mov	$-512.,r0
+	mov	$-512,r0
 	rts	pc
 1:
 	bne	2f
-	cmp	r1,$512.
+	cmp	r1,$512
 	blo	3f
 2:
-	mov	$512.,r1
+	mov	$512,r1
 3:
 	mov	r1,r0
 	rts	pc
 
-.globl	start, _end, _edata, _main
+.globl	start, _end, _edata, _unixmain
 start:
 	reset
 
@@ -522,7 +522,7 @@ start:
 	mov	$_edata,r0
 1:
 	clr	(r0)+
-	cmp	r0,$_u+[usize*64.]
+	cmp	r0,$_u+[usize*64]
 	blo	1b
 
 / set up stack pointer
@@ -537,10 +537,10 @@ start:
 / set up previous mode and call main
 / on return, enter user mode at 040000
 
-	jsr	pc,_main
-	mov	$_u+[usize*64.]+8192.,sp	/ set stack at first 4K of user space
+	jsr	pc,_unixmain
+	mov	$_u+[usize*64]+8192,sp	/ set stack at first 4K of user space
 	clr	-(sp)
-	mov	$_u+[usize*64.],-(sp)
+	mov	$_u+[usize*64],-(sp)
 	rti
 
 
@@ -573,10 +573,10 @@ cret:
 	rts	pc
 
 .globl	_u
-_u	= 47000
-usize	= 8.
+_u	= 047000
+usize	= 8
 
-PS	= 177776
+PS	= 0177776
 
 .bss
 .globl	nofault, _user

@@ -1,8 +1,6 @@
-#
 /*
- *	Copyright 1975 Bell Telephone Laboratories Inc
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "user.h"
 #include "proc.h"
@@ -15,8 +13,9 @@
 #endif
 
 #ifdef BGOPTION
-int swflg,swwait;
+int swflg, swwait;
 #endif
+
 /*
  * Give up the processor till a wakeup occurs
  * on chan, at which time the process resumes execution.
@@ -27,15 +26,18 @@ int swflg,swwait;
  * premature return, and check that the reason for
  * sleeping has gone away.
  */
+void
 sleep(chan, pri)
+	int chan, pri;
 {
-	register *rp, s;
+	register struct proc *rp;
+	register s;
 
 	rp = u.u_procp;
 	s = spl7();
 #ifdef BGOPTION
 	rp->p_stat = ((pri == PRIBIO) || (pri == TTOPRI)) ? SWAIT : SSLEEP;
-#endif BGOPTION
+#endif
 #ifndef BGOPTION
 	rp->p_stat = SSLEEP;
 #endif
@@ -77,7 +79,9 @@ psig:
 /*
  * Wake up process if sleeping on chan.
  */
+void
 wakeup(chan)
+	int chan;
 {
 	register struct proc *p;
 
@@ -97,7 +101,9 @@ wakeup(chan)
 /*
  * Set the process running;
  */
+void
 setrun(p)
+	struct proc *p;
 {
 	register struct proc *rp;
 
@@ -120,28 +126,30 @@ setrun(p)
  * (see above) is that this is the value that newproc's
  * caller in the new process sees.
  */
+int
 newproc()
 {
 	register struct proc *rpp;
-	register *rip;
+	register struct file **rip, *fp;
 
 	/*
 	 * make duplicate entries
 	 * where needed
 	 */
-
-	for(rip = &u.u_ofile[0]; rip < &u.u_ofile[NOFILE];)
-		if((rpp = *rip++) != NULL)
-			rpp->f_count++;
+	for(rip = &u.u_ofile[0]; rip < &u.u_ofile[NOFILE];) {
+		fp = *rip++;
+		if(fp != NULL)
+			fp->f_count++;
+	}
 	u.u_cdir->i_count++;
 	savu(u.u_ssav);	/* save state of parent */
 #ifdef BGOPTION
 	retu(u.u_rsav);
 #endif
-	rip = u.u_procp;
-	rip->p_stat = SIDL;
+	rpp = u.u_procp;
+	rpp->p_stat = SIDL;
 #ifdef BGOPTION
-	swap(B_WRITE,cpid);
+	swap(B_WRITE, cpid);
 #endif
 #ifndef BGOPTION
 	swap(B_WRITE);

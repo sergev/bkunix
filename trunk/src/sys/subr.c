@@ -1,8 +1,6 @@
-#
 /*
- *	Copyright 1975 Bell Telephone Laboratories Inc
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "inode.h"
 #include "user.h"
@@ -14,48 +12,40 @@
  * by returning the physical block number on a device given the
  * inode and the logical block number in a file.
  */
+int
 bmap(ip, bn)
-struct inode *ip;
-int bn;
+	struct inode *ip;
+	int bn;
 {
-	register *bp, *bap, nb;
-	int *nbp, d, i;
+	register struct buf *bp;
+	register *bap, nb;
+	struct buf *nbp;
+	int d, i;
 
 	d = ip->i_dev;
 	if(bn & 0174000) {
 		u.u_error = EFBIG;
 		return(0);
 	}
-#ifdef	CONTIG
-	if(ip->i_mode&ICONT) {
-		if(bn >= ip->i_addr[1])
-			return(0);
-		else
-			return(ip->i_addr[0]+bn);
-	}
-#endif
 	if((ip->i_mode&ILARG) == 0) {
-
 		/*
 		 * small file algorithm
 		 */
-
 		if((bn & ~7) != 0) {
-
 			/*
 			 * convert small to large
 			 */
-
-			if ((bp = alloc(d)) == NULL)
+			bp = alloc(d);
+			if (bp == NULL)
 				return(NULL);
-			bap = bp->b_addr;
+			bap = (int*) bp->b_addr;
 			for(i=0; i<8; i++) {
 				*bap++ = ip->i_addr[i];
 				ip->i_addr[i] = 0;
 			}
 			ip->i_addr[0] = bp->b_blkno;
 			bdwrite(bp);
-			ip->i_mode =| ILARG;
+			ip->i_mode |= ILARG;
 			goto large;
 		}
 		nb = ip->i_addr[bn];
@@ -63,7 +53,7 @@ int bn;
 			bdwrite(bp);
 			nb = bp->b_blkno;
 			ip->i_addr[bn] = nb;
-			ip->i_flag =| IUPD;
+			ip->i_flag |= IUPD;
 		}
 		return(nb);
 	}
@@ -71,24 +61,25 @@ int bn;
 	/*
 	 * large file algorithm
 	 */
-
-    large:
+large:
 	i = bn>>8;
-	if((nb=ip->i_addr[i]) == 0) {
-		ip->i_flag =| IUPD;
-		if ((bp = alloc(d)) == NULL)
+	nb = ip->i_addr[i];
+	if(nb == 0) {
+		ip->i_flag |= IUPD;
+		bp = alloc(d);
+		if (bp == NULL)
 			return(NULL);
 		ip->i_addr[i] = bp->b_blkno;
 	} else
 		bp = bread(d, nb);
-	bap = bp->b_addr;
+	bap = (int*) bp->b_addr;
 
 	/*
 	 * normal indirect fetch
 	 */
-
 	i = bn & 0377;
-	if((nb=bap[i]) == 0 && (nbp = alloc(d)) != NULL) {
+	nb = bap[i];
+	if(nb == 0 && (nbp = alloc(d)) != NULL) {
 		nb = nbp->b_blkno;
 		bap[i] = nb;
 		bdwrite(nbp);
@@ -141,20 +132,4 @@ cpass()
 		u.u_offset[0]++;
 	u.u_base++;
 	return(c&0377);
-}
-
-/*
- * copy count words from from to to.
- */
-bcopy(from, to, count)
-int *from, *to;
-{
-	register *a, *b, c;
-
-	a = from;
-	b = to;
-	c = count;
-	do
-		*b++ = *a++;
-	while(--c);
 }

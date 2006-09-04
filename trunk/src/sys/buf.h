@@ -16,12 +16,13 @@ struct buf
 	int	*b_link;		/* io driver link word */
 	int	b_wcount;		/* transfer count (usu. words) */
 	char	*b_addr;		/* low order core address */
-	char	*b_blkno;		/* block # on device */
+	unsigned int b_blkno;		/* block # on device */
 	char	b_dev;			/* device number */
 	char	b_error;		/* returned after I/O */
-} buf[NBUF];
+};
 
-int	*bufp[NBUF];			/* pointers to buffer descriptors */
+extern struct buf buf[NBUF];
+extern struct buf *bufp[NBUF];		/* pointers to buffer descriptors */
 
 /*
  * Each block device has a devtab, which contains private state stuff
@@ -51,3 +52,11 @@ struct devtab
 #define	B_ERROR	04	/* transaction aborted */
 #define	B_BUSY	010	/* not on av_forw/back list */
 #define	B_DELWRI 01000	/* don't write till block leaves available list */
+
+#ifdef KERNEL
+struct buf *alloc();
+struct buf *bread();
+struct buf *getblk();
+void brelse();
+void iowait();
+#endif
