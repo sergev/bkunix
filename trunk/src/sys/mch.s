@@ -3,9 +3,9 @@
 / for LSI-11
 
 / non-UNIX instructions
-wait	= 1
-rti	= 2
-reset	= 5
+/wait	= 1
+/rti	= 2
+/reset	= 5
 
 .if BGOPTION
 .globl	_swtch
@@ -15,12 +15,7 @@ reset	= 5
 .globl	emtrap
 
 trap:
-.if LSI
 	mfps	-4(sp)
-.endif
-.if LSI-1
-	mov	PS,-4(sp)
-.endif
 	tst	nofault
 	bne	1f
 emtrap:
@@ -32,22 +27,12 @@ emtrap:
 
 call1:
 	tst	-(sp)
-.if LSI
 	clr	-(sp)
 	mtps	(sp)+
-.endif
-.if LSI-1
-	bic	$0340,PS
-.endif
 	br	1f
 
 call:
-.if LSI
 	mfps	-(sp)
-.endif
-.if LSI-1
-	mov	PS,-(sp)
-.endif
 1:
 	mov	r1,-(sp)
 	mov	sp,r1	/get stack pointer at trap
@@ -73,13 +58,8 @@ call:
 	jsr	pc,*$_swtch
 	tst	(sp)+
 .endif
-.if LSI
 	mov	$0340,-(sp)
 	mtps	(sp)+
-.endif
-.if LSI-1
-	bis	$0340,PS
-.endif
 	br	2f
 1:
 	clr	_user
@@ -115,20 +95,10 @@ call:
 
 _getc:
 	mov	2(sp),r1
-.if LSI
 	mfps	-(sp)
-.endif
-.if LSI-1
-	mov	PS,-(sp)
-.endif
 	mov	r2,-(sp)
-.if LSI
 	mov	$0340,-(sp)
 	mtps	(sp)+
-.endif
-.if LSI-1
-	bis	$0340,PS
-.endif
 	mov	2(r1),r2	/ first ptr
 	beq	9f		/ empty
 	movb	(r2)+,r0	/ character
@@ -151,43 +121,23 @@ _getc:
 	mov	r2,_cfreelist
 3:
 	mov	(sp)+,r2
-.if LSI
 	mtps	(sp)+
-.endif
-.if LSI-1
-	mov	(sp)+,PS
-.endif
 	rts	pc
 9:
 	clr	4(r1)
 	mov	$-1,r0
 	mov	(sp)+,r2
-.if LSI
 	mtps	(sp)+
-.endif
-.if LSI-1
-	mov	(sp)+,PS
-.endif
 	rts	pc
 
 _putc:
 	mov	2(sp),r0
 	mov	4(sp),r1
-.if LSI
 	mfps	-(sp)
-.endif
-.if LSI-1
-	mov	PS,-(sp)
-.endif
 	mov	r2,-(sp)
 	mov	r3,-(sp)
-.if LSI
 	mov	$0340,-(sp)
 	mtps	(sp)+
-.endif
-.if LSI-1
-	bis	$0340,PS
-.endif
 	mov	4(r1),r2	/ last ptr
 	bne	1f
 	mov	_cfreelist,r2
@@ -212,23 +162,13 @@ _putc:
 	clr	r0
 	mov	(sp)+,r3
 	mov	(sp)+,r2
-.if LSI
 	mtps	(sp)+
-.endif
-.if LSI-1
-	mov	(sp)+,PS
-.endif
 	rts	pc
 9:
 	mov	pc,r0
 	mov	(sp)+,r3
 	mov	(sp)+,r2
-.if LSI
 	mtps	(sp)+
-.endif
-.if LSI-1
-	mov	(sp)+,PS
-.endif
 	rts	pc
 
 .globl	_fubyte, _subyte
@@ -273,15 +213,9 @@ fuword:
 	rts	pc
 
 gword:
-.if LSI
 	mfps	-(sp)
 	mov	$0340,-(sp)
 	mtps	(sp)+
-.endif
-.if LSI-1
-	mov	PS,-(sp)
-	bis	$0340,PS
-.endif
 	mov	nofault,-(sp)
 	mov	$err,nofault
 	mov	(r1),r0
@@ -296,36 +230,19 @@ suword:
 	rts	pc
 
 pword:
-.if LSI
 	mfps	-(sp)
 	mov	$0340,-(sp)
 	mtps	(sp)+
-.endif
-.if LSI-1
-	mov	PS,-(sp)
-	bis	$0340,PS
-.endif
 	mov	nofault,-(sp)
 	mov	$err,nofault
 	mov	r0,(r1)
 1:
 	mov	(sp)+,nofault
-.if LSI
 	mtps	(sp)+
-.endif
-.if LSI-1
-	mov	(sp)+,PS
-.endif
 	rts	pc
-
 err:
 	mov	(sp)+,nofault
-.if LSI
 	mtps	(sp)+
-.endif
-.if LSI-1
-	mov	(sp)+,PS
-.endif
 	tst	(sp)+
 	mov	$-1,r0
 	rts	pc
@@ -360,7 +277,6 @@ _copyout:
 	mov	(sp)+,r2
 	clr	r0
 	rts	pc
-
 copsu:
 	mov	(sp)+,r0
 	mov	r2,-(sp)
@@ -372,7 +288,6 @@ copsu:
 	asr	r2
 	mov	$1f,nofault
 	rts	pc
-
 1:
 	mov	(sp)+,nofault
 	mov	(sp)+,r2
@@ -381,101 +296,53 @@ copsu:
 
 .globl	_idle
 _idle:
-.if LSI
 	mfps	-(sp)
 	clr	-(sp)
 	mtps	(sp)+
-.endif
-.if LSI-1
-	mov	PS,-(sp)
-	bic	$0340,PS
-.endif
 	wait
-.if LSI
 	mtps	(sp)+
-.endif
-.if LSI-1
-	mov	(sp)+,PS
-.endif
 	rts	pc
 
 .globl	_savu, _retu
 _savu:
-.if LSI
 	mov	$0340,r0
 	mtps	r0
-.endif
-.if LSI-1
-	bis	$0340,PS
-.endif
 	mov	(sp)+,r1
 	mov	(sp),r0
 	mov	sp,(r0)+
 	mov	r5,(r0)+
-.if LSI
 	clr	r0
 	mtps	r0
-.endif
-.if LSI-1
-	bic	$0340,PS
-.endif
 	jmp	(r1)
 
 _retu:
-.if LSI
 	mov	$0340,r0
 	mtps	r0
-.endif
-.if LSI-1
-	bis	$0340,PS
-.endif
 	mov	(sp)+,r1
 	mov	(sp),r0
 	mov	(r0)+,sp
 	mov	(r0)+,r5
-.if LSI
 	clr	r0
 	mtps	r0
-.endif
-.if LSI-1
-	bic	$0340,PS
-.endif
 	jmp	(r1)
 
 .globl	_spl0, _spl7
 _spl0:
-.if LSI
 	mfps	r0
 	clr	r1
 	mtps	r1
-.endif
-.if LSI-1
-	mov	*$PS,r0
-	bic	$0340,PS
-.endif
 	rts	pc
 
 _spl7:
-.if LSI
 	mfps	r0
 	mov	$0340,r1
 	mtps	r1
-.endif
-.if LSI-1
-	mov	*$PS,r0
-	bis	$0340,PS
-.endif
 	rts	pc
 
 .globl _rstps
 
 _rstps:
-.if LSI
 	mtps	2(sp)
-.endif
-.if LSI-1
-	mov	2(sp),*$PS
-.endif
 	rts	pc
 
 .globl	_dpadd

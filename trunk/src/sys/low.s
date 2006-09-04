@@ -27,9 +27,6 @@ init:	br	1f
 .globl	start
 1:	jmp	start
 	jmp	dump
-.if RXROM
-	jmp	reboot
-.endif
 
 .if KL
 . = init+060
@@ -106,98 +103,4 @@ dump:
 .if FLTVECT
 . = init+0300
 	. = .+040
-.endif
-
-.if RXROM
-reboot:
-/
-/	rxrom.p -- is similar to the DEC rom bootstrap
-/	programs for the rx11 floppy disk units.
-/
-unit_0	=0
-go	=1
-empty	=2
-rdrx	=6
-unit_1	=020
-done	=040
-treq	=0200
-error	=0100000
-rxcs	=0177170
-/
-	.globl	rxrom
-/
-rxrom:
-		/can use unit_1 below to boot from unit 1
-	mov	$error+treq+done+unit_0+rdrx+go,r2	/mask reg
-x0:
-	mov	$rxcs,r1	/pointer to status reg
-x1:
-	bitb	r2,(r1)		/test done bit
-	jeq	x1
-	movb	$7,r3		/3 bits for loop counter
-	mov	r1,r0		/pointer - rxcs then rxdb
-	mov	r2,(r0)+	/read sector command
-	jbr	x3
-x2:
-	mov	$1,(r0)		/sector 1; track 1; nop
-x3:
-	asr	r3		/shift out bits for loop count
-	jcs	x5		/jmp if r3 not zero
-	movb	(pc)+,(r1)	/the following immediate operand
-				/111023 looks like an empty function
-				/023 == 3 == (empty + go)
-x4:
-	movb	(r0),(r3)+	/read a byte into core from zero
-x5:
-	bit	r2,(r1)		/error, "treq", done
-	jeq	x5		/until ready
-	jmi	x0		/error condition
-	jcs	x2		/jmp if set by "x3:"
-	tstb	(r1)		/is treq set
-	jmi	x4		/jmp if treq high
-	clr	r0		/pointer to location zero
-	cmp	$0240,(r0)	/nop instruction at location zero
-	jne	x0		/retry if test fails
-	cmpb	$treq+done+rdrx+go,r2	/clear carry if equal
-	adc	r0		/id unit number 0,1 (see rxrom:)
-	clr	pc		/execute the bootstrap
-/
-/	the following is the octal of the above program.
-/	this program can be loaded anywhere after location 1000
-/
-/	012702
-/	100247	/this can be 100267 for booting from unit 1
-/	012701
-/	177170
-/	130211
-/	001776
-/	112703
-/	000007
-/	010100
-/	010220
-/	000402
-/	012710
-/	000001
-/	006203
-/	103402
-/	112711
-/	111023
-/	030211
-/	001776
-/	100756
-/	103766
-/	105711
-/	100771
-/	005000
-/	022710
-/	000240
-/	001347
-/	122702
-/	000247
-/	005500
-/	005007
-/
-/	end of hardware type rom program
-/
-/	.end rxrom.p
 .endif
