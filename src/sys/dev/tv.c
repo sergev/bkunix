@@ -1,10 +1,7 @@
-#
 /*
- *	Copyright 1975 Bell Telephone Laboratories Inc
- */
-
-/*
- *   TV terminal driver
+ * TV terminal driver
+ *
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
 #include "param.h"
 #include "user.h"
@@ -58,12 +55,12 @@ klopen()
 	register struct tty *tp;
 	tp = &kl11[0];
 	if((tp->t_modes & TOPEN) == 0) {
-		tp->t_modes =| TOPEN;
+		tp->t_modes |= TOPEN;
 		tp->t_flags = ECHO|CRMOD|LCASE;
 		klline = 0;
 		klscroll = 0;
 		klcol = 0;
-		KLADDR->klrcsr =| IENABLE | CRSRENB | AUTORPT;
+		KLADDR->klrcsr |= IENABLE | CRSRENB | AUTORPT;
 	}
 }
 
@@ -80,7 +77,7 @@ klrint()
 
 	tp = &kl11[0];
 	c = KLADDR->klrbuf;
-	tp->t_modes =& ~STALLON;
+	tp->t_modes &= ~STALLON;
 	if(c >= 0) klspecial(c >> 8);
 	else ttyinput(c);
 }
@@ -92,7 +89,7 @@ klsgtty(f)
 
 	tp = &kl11[0];
 	a = u.u_arg[0];
-	a =+ 2;
+	a += 2;
 	flushtty(tp);
 	if(f)
 		tp->t_flags = fuword(a);
@@ -252,7 +249,7 @@ ttyinput(ac)
 	tp = kl11;
 	c = ac;
 	flags = tp->t_flags;
-	c =& 0177;
+	c &= 0177;
 	if(flags & CRMOD) if(c == '\r')
 		c = '\n';
 	if (c==CQUIT || c==CINTR) {
@@ -266,7 +263,7 @@ ttyinput(ac)
 	}
 	if(flags & LCASE)
 		if(c>='A' && c<='Z')
-			c =+ 'a'-'A';
+			c += 'a'-'A';
 	putc(c, &tp->t_rawq);
 	if (c=='\n' || c==004) {
 		wakeup(&tp->t_rawq);
@@ -315,7 +312,7 @@ ttyoutput(ac)
 				break;
 			}
 		if ('a'<=c && c<='z')
-			c =+ 'A' - 'a';
+			c += 'A' - 'a';
 	}
 
 	/*
@@ -448,18 +445,18 @@ int c;
 		break;
 
 	case SPSTALL:
-		tp->t_modes =| STALLON;
+		tp->t_modes |= STALLON;
 		break;
 
 	case SPUNSTALL:
-		tp->t_modes =& ~STALLON;
+		tp->t_modes &= ~STALLON;
 		wakeup(tp);
 		break;
 
 	case SPDISPAR:
 		dispff = dispff ? 0 : 1;
-		if(dispff) KLADDR->klrcsr =| DISPPAR;
-		else KLADDR->klrcsr =& ~DISPPAR;
+		if(dispff) KLADDR->klrcsr |= DISPPAR;
+		else KLADDR->klrcsr &= ~DISPPAR;
 		break;
 	case SPERASE:
 		klputc(010);

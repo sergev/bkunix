@@ -1,38 +1,24 @@
 /* comment out EIS if no EIS chip on machine */
-/*
-#define	EIS	1
-*/
-
+#define EIS		1
 
 /*
- * remove the comments to enable background process, allow contiguous files,
+ * remove the comments to enable background process,
  * mount user file system on /usr and enable clock, respectively
  */
-
-/*
-#define BGOPTION	1
-*/
-
-/*
-#define	CONTIG	1
-*/
-
-#define MOUNT	0
-
+/*#define BGOPTION	1*/
+#define MOUNT_USR	0
 #define CLOCKOPT	1
-
 
 /*
  * the following 4 variables may be modified.
  */
-
 #define	NPROC	3	/* max number of processes */
 #define	NBLKS	500	/* 256-word blocks per diskette */
 #define	SYSSIZ	8 	/* system size in 1K words */
 #define	USRSIZ	12	/* user program size in 1K words */
 #define UCORE	(USRSIZ*32)
 #define TOPSYS	(SYSSIZ*2048)
-#define	TOPUSR	((SYSSIZ+USRSIZ)*2048)
+#define	TOPUSR	((SYSSIZ+USRSIZ)*(unsigned)2048)
 #define SWPSIZ	(USRSIZ*4+1)
 #ifdef BGOPTION
 #define NSWAP	(NPROC*SWPSIZ+2)
@@ -58,7 +44,6 @@
  * probably should not be
  * altered too much
  */
-
 #ifdef BGOPTION
 #define	PSWP	-50
 #endif
@@ -72,7 +57,6 @@
  * signals
  * dont change
  */
-
 #define	NSIG	20
 #define		SIGHUP	1	/* hangup */
 #define		SIGINT	2	/* interrupt (rubout) */
@@ -93,7 +77,6 @@
  * fundamental constants
  * cannot be changed
  */
-
 #define	USIZE	8		/* size of user block (*64) */
 #define	NULL	0
 #define	NODEV	(-1)
@@ -101,29 +84,12 @@
 #define	DIRSIZ	14		/* max characters per directory */
 
 /*
- * structure to access an
- * integer in bytes
- */
-struct
-{
-	char	lobyte;
-	char	hibyte;
-};
-
-/*
- * structure to access an integer
- */
-struct
-{
-	int	integ;
-};
-
-/*
  * Certain processor registers
  */
 #define PS	0177776
 #define KL	0177560
 #define SW	0177570
+
 /*
  * Comment out the definition of CLOCK for LSI-11;
  * otherwise, set CLOCK to be 0177546 or 0172540 for the line
@@ -137,7 +103,9 @@ struct
 /*
  * configuration dependent variables
  */
-
 #define ROOTDEV 0
 #define SWAPDEV 1
 #define MNTDEV  1
+
+void *memcpy();
+void *memset();

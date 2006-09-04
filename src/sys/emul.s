@@ -1,11 +1,11 @@
-mfps = 106700^tst	/LSI instruction
-mtps = 106400^tst
+/mfps = 0106700^tst	/LSI instruction
+/mtps = 0106400^tst
 
 .if	EIS-1
 .globl	nofault,emtrap,trapem
 
 rti = 2
-PS = 177776
+PS = 0177776
 
 /
 /
@@ -19,7 +19,7 @@ trapem:
 	mov	r0,-(sp)
 	tst	-(sp)
 	mov	r1,-(sp)
-	mov	$12.,-(sp)
+	mov	$12,-(sp)
 	add	sp,*sp
 	mov	4(sp),-(sp)
 	bic	$!17,*sp
@@ -46,12 +46,12 @@ trapem:
 /
 /   This program is designed to allow the use
 /   of the PDP 11/40 instruction set on the PDP 11/10
-/   in an environment which handles traps in the 
+/   in an environment which handles traps in the
 /   same manner as the UNIX operating system.
 /   This program returns the same results
 /   and condition codes that the internal DEC
 /   instruction does on the PDP 11/40.  This allows
-/   programs which run under UNIX on an 11/40 to 
+/   programs which run under UNIX on an 11/40 to
 /   be run on an 11/10 with a UNIX-like system.
 /   The functions implimented are listed below:
 /	multiply (MUL)
@@ -82,8 +82,8 @@ trapem:
 /
 /
 /   After it is determined that the trap is an illegal
-/   instruction trap ( DEV = 1 ), a register save routine 
-/   is used which saves the other user registers and 
+/   instruction trap ( DEV = 1 ), a register save routine
+/   is used which saves the other user registers and
 /   allocates temporary space for variables.
 /
 /   This causes the stack to look as follows:
@@ -112,13 +112,13 @@ trapem:
 /
 /
 /
-UPC	=16
-UPS	=20
+UPC	=016
+UPS	=020
 MODMAP	=2
 INST	=0
 DSTN	=4
 PCFLG	=6
-nfaddr	=10
+nfaddr	=010
 /
 /
 /
@@ -133,7 +133,7 @@ emul2.o = .
 /
 trapems:
 	jsr	r5,csv
-	sub	$12,sp
+	sub	$012,sp
 / set up to catch traps which occur during emululation
 	mov	nofault,nfaddr(sp)
 	mov	$errrtn,nofault
@@ -146,15 +146,15 @@ trapems:
 	bgt	1f		/ bhis for 40 testing
 				/ bgt for 10 use
 	mov	(sp),r0
-	bic	$77,r0
-	cmp	r0,$6700
+	bic	$077,r0
+	cmp	r0,$06700
 	beq	ssxt
 	jmp	errrtn
 ssxt:
 	jsr	pc,getsrc
 	bis	$4,(r4)	/set z-bit
 	clr	*DSTN(sp)
-	bit	$10,UPS(r5)	/n-bit on?
+	bit	$010,UPS(r5)	/n-bit on?
 	beq	0f
 	dec	*DSTN(sp)
 	bic	$4,(r4)	/clear z-bit
@@ -173,7 +173,7 @@ ssxt:
 /
 / find register number = n
 	mov	(sp),r4
-	bic	$177077,r4
+	bic	$0177077,r4
 	asl	r4
 	asl	r4
 	swab	r4
@@ -190,7 +190,7 @@ ssxt:
 /
 / find out which function is to be performed
 	mov	(sp),r4
-	bic	$170777,r4
+	bic	$0170777,r4
 	swab	r4
 	jmp	*fcntbl(r4)
 fcntbl:
@@ -222,7 +222,7 @@ smul:
 	dec	r3
 1:
 / set counter for 17 cycles
-	mov	$21,-(sp)
+	mov	$021,-(sp)
 2:
 / use shift and add algorithm
 	clc
@@ -255,14 +255,14 @@ smul:
 	bis	$1,*r4
 3:
 / was the register odd?
-	bit	$100,(sp)
+	bit	$0100,(sp)
 	beq	1f
 / if so, move product to r0
 	mov	r1,r0
 1:
 / set up flags and quit
 	mov	$1,r3
-	mov	$17,r2
+	mov	$017,r2
 	jmp	strreg
 /
 /
@@ -276,7 +276,7 @@ smul:
 /
 sdiv:
 / if an odd register instruction, error
-	bit	(sp),$100
+	bit	(sp),$0100
 	beq	1f
 	jmp	errrtn
 1:
@@ -294,7 +294,7 @@ div5:
 	tst	r0
 	bge	div16
 / yes
-	bis	$17,*r4
+	bis	$017,*r4
 	neg	r0
 	clr	r1
 	sub	r5,r1
@@ -304,7 +304,7 @@ div12:
 / error exit
 	bis	$2,*r4
 	mov	(sp)+,r5
-	mov	$17,r2
+	mov	$017,r2
 	jmp	setcc
 div16:
 / first step of algorithm
@@ -332,7 +332,7 @@ div16:
 	bge	3f
 	inc	r5
 3:
-	bit	$10,*r4
+	bit	$010,*r4
 	beq	3f
 	inc	r5
 3:
@@ -340,7 +340,7 @@ div16:
 	jcc	div12
 1:
 / if no overflow, interate algorithm 15 times
-	mov	$17,-(sp)
+	mov	$017,-(sp)
 div19:
 	clc
 	rol	r1
@@ -376,14 +376,14 @@ div19:
 div27:
 	add	r2,r0
 div23:
-	bit	$10,*r4
+	bit	$010,*r4
 	bne	div29
 div26:
 	clr	*r4
 	tst	r1
 	beq	2f
 	bpl	1f
-	bis	$10,*r4
+	bis	$010,*r4
 	br	1f
 2:
 	bis	$4,*r4
@@ -392,7 +392,7 @@ div26:
 div31:
 	sub	r2,r0
 div33:
-	bit	$10,*r4
+	bit	$010,*r4
 	beq	div37
 	neg	r0
 	jmp	div26
@@ -407,7 +407,7 @@ div37:
 	tst	r1
 	beq	2f
 	bpl	1f
-	bis	$10,*r4
+	bis	$010,*r4
 	br	div42
 2:
 	bis	$4,*r4
@@ -420,7 +420,7 @@ div42:
 	mov	r1,r0
 	mov	r3,r1
 	mov	$1,r3
-	mov	$-17,r2
+	mov	$-017,r2
 	jmp	strreg
 /
 /
@@ -442,10 +442,10 @@ sashc:
 	inc	r3
 1:
 / get shift distance
-	bic	$177700,r2
-	bit	$40,r2
+	bic	$0177700,r2
+	bit	$040,r2
 	beq	1f
-	bis	$177700,r2
+	bis	$0177700,r2
 2:
 / right shift
 	tst	r3
@@ -496,13 +496,13 @@ sashc:
 	mov	r0,r1
 	br	8f
 7:
-	bit	$100,(sp)
+	bit	$0100,(sp)
 	beq	8f
 / for ashc
 	mov	r1,r0
 8:
 / exit
-	mov	$17,r2
+	mov	$017,r2
 	jmp	strreg
 /
 /
@@ -523,19 +523,19 @@ sxor:
 1:
 	mov	r2,r0
 	clr	r1
-	mov	$16,r2
+	mov	$016,r2
 	jmp	setnz
 /
 /
 /
 /
-/ this routine performs the subtract one and 
+/ this routine performs the subtract one and
 /   branch function
 / ( untested )
 /
 ssob:
 	mov	(sp),r2
-	bic	$177700,r2
+	bic	$0177700,r2
 / subtract 1
 	dec	r0
 	beq	1f
@@ -551,15 +551,15 @@ ssob:
 /
 /
 /
-/ this routine performs the decoding and 
-/   fetching of the source operand and 
+/ this routine performs the decoding and
+/   fetching of the source operand and
 /   places it in register 2
 /
 getsrc:
 	mov	INST+2(sp),r4
 	mov	r4,r3
-	bic	$177770,r4	/ register
-	bic	$177707,r3	/ mode
+	bic	$0177770,r4	/ register
+	bic	$0177707,r3	/ mode
 	asr	r3
 	asr	r3
 	clr	PCFLG+2(sp)
@@ -570,9 +570,9 @@ getsrc:
 / then modes 1,4 and 5 are errors
 	cmp	r3,$2
 	jeq	errrtn
-	cmp	r3,$10
+	cmp	r3,$010
 	jeq	errrtn
-	cmp	r3,$12
+	cmp	r3,$012
 	jeq	errrtn
 1:
 	asr	r3
@@ -609,7 +609,7 @@ mods:
 4:
 / address of location in r2
 / is mode indirect?
-	bit	$10,INST+2(sp)
+	bit	$010,INST+2(sp)
 	beq	5f
 / if so, new address to r2
 	mov	(r2),r2
@@ -628,7 +628,7 @@ mods:
 /
 /
 /
-/ this table contains the offset in bytes of the 
+/ this table contains the offset in bytes of the
 /   user's registers in the stack based at r5
 /
 	.data
@@ -652,7 +652,7 @@ regs:
 strreg:
 / find register number = n
 	mov	(sp),r4
-	bic	$177077,r4
+	bic	$0177077,r4
 	asl	r4
 	asl	r4
 	swab	r4
@@ -712,14 +712,14 @@ setnz:
 	bis	$4,MODMAP(sp)
 	br	setcc
 1:
-	bis	$10,MODMAP(sp)
+	bis	$010,MODMAP(sp)
 /
 /
 /
 /
 / this routine sets the proper condition codes
 /   in the user's PS and jumps to cret which
-/   cleans up the stack and causes the 
+/   cleans up the stack and causes the
 /   return to the user
 /
 setcc:

@@ -1,31 +1,29 @@
 / Copyright 1975 Bell Telephone Laboratories Inc
 / low core
 
-br4 = 340
-br5 = 340
-br6 = 340
-br7 = 340
+br4 = 0340
+br5 = 0340
+br6 = 0340
+br7 = 0340
 
-. = 0^.
-	br	1f
-	4
+init:	br	1f
+	.word	4
 
 / trap vectors
-	trap; br7+0.		/ bus error
+	.word	trap, br7+0	/ bus error
 .if	EIS
-	trap; br7+1.		/ illegal instruction
-.endif
-.if	EIS-1
+	.word	trap, br7+1	/ illegal instruction
+.else
 .globl	trapem
-	trapem; br7+1.		/ emulation package
+	.word	trapem, br7+1	/ emulation package
 .endif
-	trap; br7+2.		/ bpt-trace trap
-	trap; br7+3.		/ iot trap
-	trap; br7+4.		/ power fail
-	trap; br7+5.		/ emulator trap
-	trap; br7+6.		/ system entry
+	.word	trap, br7+2	/ bpt-trace trap
+	.word	trap, br7+3	/ iot trap
+	.word	trap, br7+4	/ power fail
+	.word	trap, br7+5	/ emulator trap
+	.word	trap, br7+6	/ system entry
 
-. = 40^.
+. = init+040
 .globl	start
 1:	jmp	start
 	jmp	dump
@@ -34,20 +32,20 @@ br7 = 340
 .endif
 
 .if KL
-. = 60^.
-	klin; br4
-	klou; br4
+. = init+060
+	.word	klin, br4
+	.word	klou, br4
 .endif
 
 .if CLOCK
-. = 100^.
-	kwlp; br6
-	kwlp; br6
+. = init+0100
+	.word	kwlp, br6
+	.word	kwlp, br6
 .endif
 
 .if PER
-. = 124^.
-	fdintr; br5
+. = init+0124
+	.word	fdintr, br5
 .endif
 
 //////////////////////////////////////////////////////
@@ -58,46 +56,46 @@ br7 = 340
 
 .if KL
 .globl _klrint, _klxint
-klin:	jsr	r0,call; _klrint
-klou:	jsr	r0,call; _klxint
+klin:	jsr	r0,call; .word _klrint
+klou:	jsr	r0,call; .word _klxint
 .endif
 
 .if CLOCK
 .globl _clock
-kwlp:	jsr	r0,call; _clock
+kwlp:	jsr	r0,call; .word _clock
 .endif
 
 .globl	_fdintr
-fdintr:	jsr	r0,call; _fdintr
+fdintr:	jsr	r0,call; .word _fdintr
 
 .globl _panic
 _panic:
 dump:
-	0
+	.word	0
 
 .if AED
-. = 170^.
-	fdintr; br5
+. = init+0170
+	.word	fdintr, br5
 .endif
 
 .if PER
-. = 174^.
-	fdintr; br5
+. = init+0174
+	.word	fdintr, br5
 .endif
 
 .if SYK
-. = 174^.
-	fdintr; br5
+. = init+0174
+	.word	fdintr, br5
 .endif
 
 .if TVT
-. = 200^.
-	klin; br5
+. = init+0200
+	.word	klin, br5
 .endif
 
 .if RF
-. = 204^.
-	fdintr; br5
+. = init+0204
+	.word	fdintr, br5
 .endif
 
 
@@ -105,8 +103,8 @@ dump:
 .if EIS-1
 .globl	_decmch
 
-rxcs = 177170
-rxdb = 177172
+rxcs = 0177170
+rxdb = 0177172
 
 _decmch:
 	mov	r2,-(sp)
@@ -116,28 +114,28 @@ _decmch:
 	add	4(sp),r0
 	clr	r2
 0:
-	sub	$26.,r0
+	sub	$26,r0
 	bmi	0f
 	inc	r2
 	br	0b
 0:
-	add	$26.,r0
+	add	$26,r0
 	inc	r0
 	mov	r0,(r1)	/ sector number
 0:
-	bit	$200,-2(r1)
+	bit	$0200,-2(r1)
 	beq	0b
 	mov	r2,r0
 	clr	r2
 0:
-	sub	$3.,r0
+	sub	$3,r0
 	bmi	0f
 	inc	r2
 	br	0b
 0:
 .if IBMS
 	inc	r2
-	cmp	$77.,r2
+	cmp	$77,r2
 	bne	0f
 	clr	r2
 0:
@@ -146,13 +144,13 @@ _decmch:
 	mov	(sp)+,r2
 	rts	pc
 .endif
-. = 264^.
-	fdintr; br5
+. = init+0264
+	.word	fdintr, br5
 .endif
 
 .if FLTVECT
-. = 300^.
-	. = .+40
+. = init+0300
+	. = .+040
 .endif
 
 .if RXROM
@@ -165,11 +163,11 @@ unit_0	=0
 go	=1
 empty	=2
 rdrx	=6
-unit_1	=20
-done	=40
-treq	=200
-error	=100000
-rxcs	=177170
+unit_1	=020
+done	=040
+treq	=0200
+error	=0100000
+rxcs	=0177170
 /
 	.globl	rxrom
 /
@@ -203,7 +201,7 @@ x5:
 	tstb	(r1)		/is treq set
 	jmi	x4		/jmp if treq high
 	clr	r0		/pointer to location zero
-	cmp	$240,(r0)	/nop instruction at location zero
+	cmp	$0240,(r0)	/nop instruction at location zero
 	jne	x0		/retry if test fails
 	cmpb	$treq+done+rdrx+go,r2	/clear carry if equal
 	adc	r0		/id unit number 0,1 (see rxrom:)

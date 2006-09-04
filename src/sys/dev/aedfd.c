@@ -1,12 +1,8 @@
-#
-/*
- *	Copyright 1976 Bell Telephone Laboratories Inc
- */
-
 /*
  * AED 6200lp disk driver
+ *
+ * Copyright 1976 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "buf.h"
 #include "user.h"
@@ -77,7 +73,7 @@ struct buf *abp;
 
 	bp = abp;
 	if (bp->b_blkno >= NFDBLK || bp->b_dev>=NFD || bp->b_dev<0) {
-		bp->b_flags =| B_DONE | B_ERROR;
+		bp->b_flags |= B_DONE | B_ERROR;
 		return;
 	}
 	bp->b_link = 0;
@@ -105,7 +101,7 @@ fdstart()
 	FDADDR->badr=bp->b_addr;
 	FDADDR->wcr= -256;
 	FDADDR->sstat=com|CMD1|(bp->b_blkno&017);
-	com=| CMD0|((bp->b_blkno>>4)&0177);
+	com |= CMD0|((bp->b_blkno>>4)&0177);
 	FDADDR->pstat=IENB;
 	if(bp->b_flags&B_READ)
 		FDADDR->sstat=RS|com;
@@ -129,17 +125,17 @@ fdintr()
 			fdstart();
 			return;
 		}
-		bp->b_flags =| B_ERROR;
+		bp->b_flags |= B_ERROR;
 	}
 	fdtab.d_errcnt = 0;
-	if((bp->b_wcount =+ 256) == 0) {
+	if((bp->b_wcount += 256) == 0) {
 		fdtab.d_actf = bp->b_link;
-		bp->b_flags =| B_DONE;
+		bp->b_flags |= B_DONE;
 #ifdef BGOPTION
 		wakeup(bp);
 #endif
 	} else {
-		bp->b_addr =+ 512;
+		bp->b_addr += 512;
 		bp->b_blkno++;
 	}
 	fdstart();

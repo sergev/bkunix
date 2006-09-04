@@ -19,9 +19,10 @@ struct	inode
 	char	i_uid;		/* owner */
 	char	i_gid;		/* group of owner */
 	char	i_size0;	/* most significant of size */
-	char	*i_size1;	/* least sig */
+	unsigned int i_size1;	/* least sig */
 	int	i_addr[8];	/* device addresses constituting file */
-} inode[NINODE];
+};
+extern struct inode inode[NINODE];
 
 /* flags */
 #define	IUPD	02		/* inode has been modified */
@@ -39,3 +40,16 @@ struct	inode
 #define	IREAD	0400		/* read, write, execute permissions */
 #define	IWRITE	0200
 #define	IEXEC	0100
+
+#ifdef KERNEL
+struct inode *ialloc();
+struct inode *namei();
+struct inode *iget();
+struct inode *owner();
+struct inode *maknode();
+void closei();
+void iput();
+void iupdat();
+void itrunc();
+void wdir();
+#endif

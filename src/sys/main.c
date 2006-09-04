@@ -1,21 +1,34 @@
-#
 /*
- *	Copyright 1975 Bell Telephone Laboratories Inc
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "user.h"
 #include "systm.h"
 #include "proc.h"
 #include "inode.h"
 
+char		canonb[CANBSIZ];	/* buffer for erase and kill (#@) */
+struct inode	*rootdir;		/* pointer to inode of root directory */
+int		lbolt;			/* time of day in 60th not in time */
+int		time[2];		/* time in sec from 1970 */
+int		tout[2];		/* time of day of next sleep */
+
+struct mount	mount[NMOUNT];
+int		cpid;			/* current process ID */
+
+#ifdef BGOPTION
+struct proc	proc[NPROC+2];
+#endif
+#ifndef BGOPTION
+struct proc	proc[NPROC];
+#endif
+
 /*
  * Icode is the octal bootstrap
  * program executed in user mode
  * to bring up the system.
  */
-int	icode[]
-{
+int	icode[] = {
 	0104413,	/* sys exec; init; initp */
 	TOPSYS+014,
 	TOPSYS+010,
@@ -43,42 +56,27 @@ int	icode[]
  * loop at loc 40006 in user mode -- /etc/init
  *	cannot be executed.
  */
-
-main()
+void
+unixmain()
 {
-	extern schar;
-	register i1, *p;
-
-	/*
-	 * zero and free all of core
-	 */
-
-
-	/*
-	 * determine clock
-	 */
-
-
 	/*
 	 * set up system process
 	 */
-
 	proc[0].p_stat = SRUN;
 	u.u_procp = &proc[0];
 
 	/*
 	 * set up 'known' i-nodes
 	 */
-
 #ifdef CLOCK
-	CLOCK->integ = 0115;
+	*(int*) CLOCK = 0115;
 #endif
 	cinit();
 	binit();
 	iinit();
 	rootdir = iget(ROOTDEV, ROOTINO);
 	u.u_cdir = iget(ROOTDEV, ROOTINO);
-#ifdef	MOUNT
+#ifdef	MOUNT_USR
 	minit();	/* mount user file system */
 #endif
 
@@ -86,7 +84,6 @@ main()
 	 * make init process
 	 * with system process
 	 */
-
 	copyout(icode, TOPSYS, sizeof icode);
 	/*
 	 * Return goes to loc. 0 of user init

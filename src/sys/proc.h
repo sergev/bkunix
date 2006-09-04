@@ -13,12 +13,8 @@ struct	proc
 	int	p_wchan;	/* event process is awaiting */
 	int	p_clktim;	/* time to alarm clock signal */
 	int	p_size;		/* size of swap image in 32 word blocks */
-#ifdef BGOPTION
-} proc[NPROC+2];
-#endif
-#ifndef BGOPTION
-} proc[NPROC];
-#endif
+};
+extern struct proc proc[];
 
 /* stat codes */
 #define	SSLEEP	1		/* awaiting an event */
@@ -35,4 +31,11 @@ struct swtab {
 	int sw_size;
 	int sw_blk;
 } swtab[];
+#endif
+
+#ifdef KERNEL
+void psignal();
+void psig();
+void setrun();
+void pexit();
 #endif

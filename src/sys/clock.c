@@ -1,8 +1,6 @@
-#
 /*
- *	Copyright 1975 Bell Telephone Laboratories Inc
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "systm.h"
 #include "user.h"
@@ -22,30 +20,29 @@
  *	alarm clock signals
  */
 #ifdef CLOCKOPT
+void
 clock(dev, sp, r1, nps, r0, pc, ps)
-char *pc;
+	char *pc;
 {
 	register struct proc *pp;
 
 	/*
 	 * restart clock
 	 */
-
 #ifdef CLOCK
-	CLOCK->integ = 0115;
+	*(int*) CLOCK = 0115;
 #endif
 
 	/*
 	 * lightning bolt time-out
 	 * and time of day
 	 */
-
-	if(pc > TOPSYS) {
+	if(pc > (char*) TOPSYS) {
 		u.u_utime++;
 	} else
 		u.u_stime++;
 	if(++lbolt >= HZ) {
-		lbolt =- HZ;
+		lbolt -= HZ;
 		if(++time[1] == 0)
 			++time[0];
 		if(time[1]==tout[1] && time[0]==tout[0])
@@ -55,7 +52,7 @@ char *pc;
 				if(--pp->p_clktim == 0)
 					psignal(pp, SIGCLK);
 		}
-		if(pc > TOPSYS) {
+		if(pc > (char*) TOPSYS) {
 			u.u_ar0 = &r0;
 			if(issig())
 				psig();

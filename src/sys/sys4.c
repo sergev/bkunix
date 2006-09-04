@@ -1,12 +1,8 @@
-#
-/*
- *	Copyright 1975 Bell Telephone Laboratories Inc
- */
-
 /*
  * Everything in this file is a routine implementing a system call.
+ *
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "user.h"
 #include "reg.h"
@@ -14,44 +10,46 @@
 #include "systm.h"
 #include "proc.h"
 
+void
 gtime()
 {
-
 	u.u_ar0[R0] = time[0];
 	u.u_ar0[R1] = time[1];
 }
 
+void
 stime()
 {
-
 	time[0] = u.u_ar0[R0];
 	time[1] = u.u_ar0[R1];
 	wakeup(tout);
 }
 
+void
 getuid()
 {
-
 	u.u_ar0[R0] = 0;
 }
 
+void
 getpid()
 {
 	u.u_ar0[R0] = cpid;
 }
 
+void
 sync()
 {
-
 	update();
 }
 
 /*
  * Unlink system call.
  */
+void
 unlink()
 {
-	register *ip, *pp;
+	register struct inode *ip, *pp;
 
 	pp = namei(2);
 	if(pp == NULL)
@@ -59,24 +57,23 @@ unlink()
 	ip = iget(pp->i_dev, u.u_dent.u_ino);
 	if(ip == NULL)
 		goto out1;
-	u.u_offset[1] =- DIRSIZ+2;
-	u.u_base = &u.u_dent;
+	u.u_offset[1] -= DIRSIZ+2;
+	u.u_base = (char*) &u.u_dent;
 	u.u_count = DIRSIZ+2;
 	u.u_dent.u_ino = 0;
 	writei(pp);
 	ip->i_nlink--;
-	ip->i_flag =| IUPD;
-
+	ip->i_flag |= IUPD;
 out:
 	iput(ip);
 out1:
 	iput(pp);
 }
 
+void
 chdir()
 {
-	register *ip;
-	extern uchar;
+	register struct inode *ip;
 
 	ip = namei(0);
 	if(ip == NULL)
@@ -93,21 +90,23 @@ chdir()
 	u.u_cdir = ip;
 }
 
+void
 chmod()
 {
-	register *ip;
+	register struct inode *ip;
 
 	if ((ip = owner()) == NULL)
 		return;
-	ip->i_mode =& ~07777;
-	ip->i_mode =| u.u_arg[1]&07777;
-	ip->i_flag =| IUPD;
+	ip->i_mode &= ~07777;
+	ip->i_mode |= u.u_arg[1]&07777;
+	ip->i_flag |= IUPD;
 	iput(ip);
 }
 
+void
 ssig()
 {
-	register a;
+	register int a;
 
 	a = u.u_arg[0];
 	if(a<=0 || a>=NSIG) {
@@ -124,9 +123,11 @@ ssig()
 /*
  * alarm clock signal
  */
+void
 alarm()
 {
-	register c, *p;
+	register c;
+	register struct proc *p;
 
 	p = u.u_procp;
 	c = p->p_clktim;
@@ -138,7 +139,7 @@ alarm()
  * indefinite wait.
  * no one should wakeup(&u)
  */
-
+void
 pause()
 {
 
@@ -149,8 +150,8 @@ pause()
 /*
  * become the background process
  */
-
 #ifdef BGOPTION
+void
 bground()
 {
 	register int *p1,*p2;

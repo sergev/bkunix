@@ -2,7 +2,6 @@
 #define SCNCNTRL 0143740
 #define CHARMEM 0144000
 
-
 struct {
 	char	fscroll;
 	char	lscroll;

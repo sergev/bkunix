@@ -1,26 +1,3 @@
-#
-/*
- * comment out the next lines for the standard 'mkfs'
-#define BACKWDFLIST	1
-#define	CONTIG	1
-*/
-
-#ifdef	CONTIG
-
-struct {
-	char	*s_isize;
-	char	*s_fsize;
-	char	s_fmod;
-	int	s_time[2];
-	char	s_imap[60];
-	char	s_bmap[302];
-	int	pad[70];
-} filsys;
-
-#endif
-
-#ifndef	CONTIG
-
 struct
 {
 	char	*s_isize;
@@ -34,8 +11,6 @@ struct
 	char	s_fmod;
 	int	s_time[2];
 } filsys;
-
-#endif
 
 struct inode
 {
@@ -124,12 +99,7 @@ char **argv;
 			n = n*10 + proto[f]-'0';
 		}
 		filsys.s_fsize = n;
-#ifdef	CONTIG
-		filsys.s_isize = ldiv(0, n, 43+ldiv(0, n, 1000));
-#endif
-#ifndef	CONTIG
 		filsys.s_isize = 6;
-#endif
 		printf("isize = %d\n", filsys.s_isize);
 		if(f_n != 1)
 			printf("free list %d/%d\n", f_m, f_n);
@@ -270,22 +240,9 @@ struct inode *par;
 			printf("%s: cannot open\n", string);
 			break;
 		}
-#ifdef	CONTIG
-		fstat(f, sbuf);
-		ib[1] = ((sbuf[5]+511)>>9)&0177;
-		ib[0] = alloc(ib[1]);
-		bn = ib[0];
-		ibc = 2;
-		in.i_mode =| ICONT;
-#endif
 		while((i=read(f, db, 512)) > 0) {
 			in.i_size1 =+ i;
-#ifdef	CONTIG
-			wtfs(bn++, db);
-#endif
-#ifndef	CONTIG
 			newblk(&dbc, db, &ibc, ib);
-#endif
 		}
 		close(f);
 		break;
@@ -431,64 +388,6 @@ wtfs(bno, bf)
 	}
 }
 
-#ifdef	CONTIG
-
-dalloc()
-{
-	register bno;
-
-	for(bno = filsys.s_isize+2; bno < filsys.s_fsize; bno++) {
-		if(filsys.s_bmap[bno>>3]&(1<<(bno&07))) {
-			filsys.s_bmap[bno>>3] =& ~(1<<(bno&07));
-			return(bno);
-		}
-	}
-	printf("out of free space \n");
-	exit(1);
-}
-
-alloc(nb)
-{
-	register bno, fblk, nblk;
-
-	fblk = nblk = 0;
-#ifndef BACKWDFLIST
-	for(bno = filsys.s_isize+2; bno < filsys.s_fsize; bno++) {
-#endif
-#ifdef BACKWDFLIST
-	for(bno = filsys.s_fsize-1; bno >= filsys.s_isize+2; bno--) {
-#endif
-		if(filsys.s_bmap[bno>>3]&(1<<(bno&07))) {
-			if(fblk == 0) {
-				fblk = bno;
-#ifdef BACKWDFLIST
-				fblk =- (nb-1);
-#endif
-			}
-			nblk++;
-			if(nblk == nb) {
-				for(bno = fblk; bno < fblk+nblk; bno++)
-					filsys.s_bmap[bno>>3] =& ~(1<<(bno&07));
-				return(fblk);
-			}
-		} else {
-			fblk = nblk = 0;
-		}
-	}
-	printf("out of free space \n");
-	exit(1);
-}
-
-free(bno)
-{
-
-	filsys.s_bmap[bno>>3] =| (1<<(bno&07));
-}
-
-#endif
-
-#ifndef	CONTIG
-
 alloc()
 {
 	int bno, i;
@@ -524,8 +423,6 @@ free(bno)
 	filsys.s_nfree++;
 }
 
-#endif
-
 entry(ino, str, adbc, db, aibc, ib)
 char *str;
 int *adbc, *db, *aibc, *ib;
@@ -551,12 +448,7 @@ int *adbc, *db, *aibc, *ib;
 {
 	int bno, i;
 
-#ifndef CONTIG
 	bno = alloc();
-#endif
-#ifdef CONTIG
-	bno = dalloc();
-#endif
 	wtfs(bno, db);
 	for(i=0; i<256; i++)
 		db[i] = 0;
@@ -583,12 +475,6 @@ bflist()
 	register i, j;
 	char *low, *high;
 
-#ifdef	CONTIG
-	for(i = filsys.s_isize+2; i < filsys.s_fsize; i++)
-		free(i);
-	return;
-#endif
-#ifndef BACKWDFLIST
 	if(f_n > 100)
 		f_n = 100;
 	for(i=0; i<f_n; i++)
@@ -601,12 +487,9 @@ bflist()
 		flg[i]++;
 		i = (i+f_m)%f_n;
 	}
-
-#endif
 	high = filsys.s_fsize-1;
 	low = filsys.s_isize+2;
 	free(0);
-#ifndef BACKWDFLIST
 	for(i=high; lrem(0,i+1,f_n); i--) {
 		if(i < low)
 			break;
@@ -617,16 +500,6 @@ bflist()
 			free(i-adr[j]);
 	for(;i >= low; i--)
 		free(i);
-#endif
-#ifdef BACKWDFLIST
-	for(i = low; i <= high-5; i =+ 6) {
-		for(j = 0; j < 3; j++) {
-			free(i+j);
-			free(i+j+3);
-		}
-	}
-	for(; i <= high; i++) free(i);
-#endif
 }
 
 inodlist()
@@ -643,14 +516,9 @@ inodlist()
 		for(i = 0; i < 16; i++) {
 			ino++;
 			if(ip->i_mode == 0) {
-#ifdef	CONTIG
-				filsys.s_imap[(ino-1)>>3] =| 1<<((ino-1)&07);
-#endif
-#ifndef	CONTIG
 				filsys.s_inode[filsys.s_ninode++] = ino;
 				if(filsys.s_ninode >= 100)
 					return;
-#endif
 			}
 			ip =+ 16;
 		}

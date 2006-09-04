@@ -1,12 +1,9 @@
-#
-		/* fdrf.c */
-/* RF disk driver for LSX */
-
-
+/*
+ * RF disk driver for LSX
+ */
 #include "param.h"
 #include "buf.h"
 #include "user.h"
-
 
 #define RFADR  0177460
 #define NFDBLK 1024
@@ -38,7 +35,7 @@ struct buf *abp;
 	bp = abp;
 
 	if( bp->b_blkno >= NFDBLK ) {
-		bp->b_flags =| B_DONE | B_ERROR;
+		bp->b_flags |= B_DONE | B_ERROR;
 		return;
 	}
 
@@ -98,12 +95,12 @@ fdintr()
 			fdstart();
 			return;
 		}
-		bp->b_flags =| B_ERROR;
+		bp->b_flags |= B_ERROR;
 	}
 
 	fdtab.d_errcnt = 0;
 	fdtab.d_actf = bp->b_link;
-	bp->b_flags =| B_DONE;
+	bp->b_flags |= B_DONE;
 #ifdef BGOPTION
 	wakeup(bp);
 #endif

@@ -8,23 +8,6 @@
  * See alloc.c for general alloc/free
  * routines for free list and I list.
  */
-
-#ifdef	CONTIG
-
-struct filsys {
-	char	*s_isize;
-	char	*s_fsize;
-	char	s_fmod;
-	int	s_time[2];
-	char	s_imap[60];
-	char	s_bmap[302];
-	int	pad[70];
-};
-
-#endif
-
-#ifndef CONTIG
-
 struct	filsys
 {
 	int	s_isize;	/* size in blocks of I list */
@@ -41,4 +24,6 @@ struct	filsys
 	int	pad[50];
 };
 
+#ifdef KERNEL
+struct filsys *getfs();
 #endif

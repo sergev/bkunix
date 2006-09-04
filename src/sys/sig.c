@@ -1,8 +1,6 @@
-#
 /*
- *	Copyright 1975 Bell Telephone Laboratories Inc
+ * Copyright 1975 Bell Telephone Laboratories Inc
  */
-
 #include "param.h"
 #include "systm.h"
 #include "user.h"
@@ -11,21 +9,15 @@
 #include "reg.h"
 
 /*
- * Structure to access an array of integers.
- */
-struct
-{
-	int	inta[];
-};
-
-/*
  * Send the specified signal to
  * all processes with 'tp' as its
  * controlling teletype.
  * Called by tty.c for quits and
  * interrupts.
  */
+void
 signal(sig)
+	int sig;
 {
 	register struct proc *p;
 
@@ -37,11 +29,12 @@ signal(sig)
  * Send the specified signal to
  * the specified process.
  */
+void
 psignal(p, sig)
-int *p;
-char *sig;
+	struct proc *p;
+	int sig;
 {
-	register *rp;
+	register struct proc *rp;
 	extern user;
 
 	if(sig >= NSIG)
@@ -65,6 +58,7 @@ char *sig;
  * a flag that asks the process to
  * do something to itself.
  */
+int
 issig()
 {
 	register n;
@@ -85,15 +79,17 @@ issig()
  *	if(issig())
  *		psig();
  */
+void
 psig()
 {
 	register n, p;
-	register *rp;
+	register struct proc *rp;
 
 	rp = u.u_procp;
 	n = rp->p_sig;
 	rp->p_sig = 0;
-	if((p=u.u_signal[n]) != 0) {
+	p = u.u_signal[n];
+	if(p != 0) {
 		u.u_error = 0;
 		if(n != SIGINS)
 			u.u_signal[n] = 0;
@@ -101,7 +97,7 @@ psig()
 		suword(n+2, u.u_ar0[RPS]);
 		suword(n, u.u_ar0[R7]);
 		u.u_ar0[R6] = n;
-		u.u_ar0[RPS] =& ~TBIT;
+		u.u_ar0[RPS] &= ~TBIT;
 		u.u_ar0[R7] = p;
 		return;
 	}
@@ -118,10 +114,10 @@ psig()
 	case SIGSYS:
 		u.u_arg[0] = n;
 		if(core())
-			n =+ 0200;
+			n += 0200;
 	}
 	u.u_arg[0] = (u.u_ar0[R0]<<8) | n;
-	exit();
+	pexit();
 }
 
 /*
@@ -134,9 +130,10 @@ psig()
  * user.h area followed by the entire
  * data+stack segments.
  */
+int
 core()
 {
-	register s, *ip;
+	register struct inode *ip;
 
 	u.u_error = 0;
 	u.u_dirp = "core";
@@ -145,7 +142,7 @@ core()
 		if(u.u_error)
 			return(0);
 		ip = maknode(0666);
-		if (ip==NULL)
+		if (ip == NULL)
 			return(0);
 	}
 	itrunc(ip);
@@ -156,7 +153,7 @@ core()
 	u.u_count = USIZE*64;
 	writei(ip);
 */
-	u.u_base = &u;
+	u.u_base = (char*) &u;
 	u.u_count = (UCORE+USIZE)*64;
 	writei(ip);
 	iput(ip);
