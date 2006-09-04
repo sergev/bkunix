@@ -3,7 +3,7 @@
 #
 CC		= pdp11-gcc
 AS		= pdp11-as
-STRIP		= pdp11-strip
+LD		= pdp11-ld
 SIZE		= pdp11-size -o
 CFLAGS		= -Os -fomit-frame-pointer -DKERNEL -I.
 LDFLAGS		= -nostdlib
@@ -82,8 +82,7 @@ clean:
 		rm -f *~ dev/*~ *.o lsx a.out
 
 lsx:		$(OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OBJS) -L/usr/local/pdp11/lib/gcc/pdp11/4.1.1 -lgcc
-		$(STRIP) $@
+		$(LD) -o $@ $(OBJS)
 
 count:		$(ASRCS) $(CSRCS)
 		wc $(ASRCS) $(CSRCS)
