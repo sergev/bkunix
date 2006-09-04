@@ -7,9 +7,6 @@ wait	= 1
 rti	= 2
 reset	= 5
 
-/mfps = 0106700^tst	/ LSI instruction
-/mtps = 0106400^tst
-
 .if BGOPTION
 .globl	_swtch
 .endif
@@ -553,6 +550,7 @@ _lshift:
 	mov	r1,r0
 	rts	pc
 
+.if 0 / no cvs, cret needed for gcc
 .globl	csv
 csv:
 	mov	r5,r0
@@ -571,6 +569,7 @@ cret:
 	mov	r5,sp
 	mov	(sp)+,r5
 	rts	pc
+.endif
 
 .globl	_u
 _u	= 047000
@@ -578,7 +577,5 @@ usize	= 8
 
 PS	= 0177776
 
-.bss
-.globl	nofault, _user
-nofault:.=.+2
-_user:	.=.+2
+	.comm	nofault, 2
+	.comm	_user, 2

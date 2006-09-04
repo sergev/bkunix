@@ -35,7 +35,6 @@ psignal(p, sig)
 	int sig;
 {
 	register struct proc *rp;
-	extern user;
 
 	if(sig >= NSIG)
 		return;
@@ -61,63 +60,16 @@ psignal(p, sig)
 int
 issig()
 {
-	register n;
+	register int n;
 	register struct proc *p;
 
 	p = u.u_procp;
-	if(n = p->p_sig) {
+	n = p->p_sig;
+	if(n != 0) {
 		if((u.u_signal[n]&1) == 0)
 			return(n);
 	}
 	return(0);
-}
-
-/*
- * Perform the action specified by
- * the current signal.
- * The usual sequence is:
- *	if(issig())
- *		psig();
- */
-void
-psig()
-{
-	register n, p;
-	register struct proc *rp;
-
-	rp = u.u_procp;
-	n = rp->p_sig;
-	rp->p_sig = 0;
-	p = u.u_signal[n];
-	if(p != 0) {
-		u.u_error = 0;
-		if(n != SIGINS)
-			u.u_signal[n] = 0;
-		n = u.u_ar0[R6] - 4;
-		suword(n+2, u.u_ar0[RPS]);
-		suword(n, u.u_ar0[R7]);
-		u.u_ar0[R6] = n;
-		u.u_ar0[RPS] &= ~TBIT;
-		u.u_ar0[R7] = p;
-		return;
-	}
-	switch(n) {
-
-	case SIGQIT:
-	case SIGINS:
-	case SIGTRC:
-	case SIGIOT:
-	case SIGEMT:
-	case SIGFPT:
-	case SIGBUS:
-	case SIGSEG:
-	case SIGSYS:
-		u.u_arg[0] = n;
-		if(core())
-			n += 0200;
-	}
-	u.u_arg[0] = (u.u_ar0[R0]<<8) | n;
-	pexit();
 }
 
 /*
@@ -158,4 +110,52 @@ core()
 	writei(ip);
 	iput(ip);
 	return(u.u_error==0);
+}
+
+/*
+ * Perform the action specified by
+ * the current signal.
+ * The usual sequence is:
+ *	if(issig())
+ *		psig();
+ */
+void
+psig()
+{
+	register int n, p;
+	register struct proc *rp;
+
+	rp = u.u_procp;
+	n = rp->p_sig;
+	rp->p_sig = 0;
+	p = u.u_signal[n];
+	if(p != 0) {
+		u.u_error = 0;
+		if(n != SIGINS)
+			u.u_signal[n] = 0;
+		n = u.u_ar0[R6] - 4;
+		suword(n+2, u.u_ar0[RPS]);
+		suword(n, u.u_ar0[R7]);
+		u.u_ar0[R6] = n;
+		u.u_ar0[RPS] &= ~TBIT;
+		u.u_ar0[R7] = p;
+		return;
+	}
+	switch(n) {
+
+	case SIGQIT:
+	case SIGINS:
+	case SIGTRC:
+	case SIGIOT:
+	case SIGEMT:
+	case SIGFPT:
+	case SIGBUS:
+	case SIGSEG:
+	case SIGSYS:
+		u.u_arg[0] = n;
+		if(core())
+			n += 0200;
+	}
+	u.u_arg[0] = (u.u_ar0[R0]<<8) | n;
+	pexit();
 }

@@ -57,6 +57,11 @@ struct devtab
 struct buf *alloc();
 struct buf *bread();
 struct buf *getblk();
+void free();
 void brelse();
+void bwrite();
+void bdwrite();
+void bflush();
 void iowait();
+void fdstrategy();
 #endif

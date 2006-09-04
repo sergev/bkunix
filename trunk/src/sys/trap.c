@@ -50,7 +50,7 @@ void
 trap(dev, sp, r1, nps, r0, pc, ps)
 	char *pc;
 {
-	register i, a;
+	register int i, a;
 	register struct sysent *callp;
 
 	if(pc > (char*) TOPSYS)

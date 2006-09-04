@@ -182,7 +182,7 @@ ttyinput(ac)
 {
 	register int c;
 	register struct tty *tp;
-	register flags;
+	register int flags;
 
 	tp = kl11;
 	c = ac;

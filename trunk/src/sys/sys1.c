@@ -8,6 +8,7 @@
 #include "buf.h"
 #include "reg.h"
 #include "inode.h"
+#include "file.h"
 
 /*
  * exec system call.
@@ -49,7 +50,10 @@ exec()
 	cp = bp->b_addr;
 	na = 0;
 	nc = 0;
-	while(ap = fuword(u.u_arg[1])) {
+	for (;;) {
+		ap = fuword(u.u_arg[1]);
+		if (ap == 0)
+			break;
 		na++;
 		if(ap == -1)
 			goto bad;
@@ -185,9 +189,7 @@ pexit()
 	register struct file **fp;
 	register struct proc *p;
 	struct buf *bp;
-#ifdef BGOPTION
-	extern swflg, swwait;
-#endif
+
 	p = u.u_procp;
 	p->p_clktim = 0;
 	for(q = &u.u_signal[0]; q < &u.u_signal[NSIG];)
@@ -250,7 +252,7 @@ wait()
 	register struct buf *bp;
 	struct proc *p;
 	register struct user *q;
-	register chpid;
+	register int chpid;
 
 	p = &proc[chpid = cpid+1];
 	if(p->p_stat == SZOMB) {
@@ -314,7 +316,7 @@ out:
 void
 sbreak()
 {
-	register a, n, d;
+	register int n, d;
 
 	/*
 	 * set n to new data size

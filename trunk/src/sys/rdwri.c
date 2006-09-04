@@ -21,6 +21,56 @@ min(a, b)
 }
 
 /*
+ * Move 'an' bytes at byte location
+ * &bp->b_addr[o] to/from (flag) the
+ * user/kernel area starting at u.base.
+ * Update all the arguments by the number
+ * of bytes moved.
+ *
+ * There are 2 algorithms,
+ * if source address, dest address and count
+ * are all even in a user copy,
+ * then the machine language copyin/copyout
+ * is called.
+ * If not, its done byte-by-byte with
+ * cpass and passc.
+ */
+void
+iomove(bp, o, an, flag)
+struct buf *bp;
+{
+	register char *cp;
+	register int n, t;
+
+	n = an;
+	cp = bp->b_addr + o;
+	if(((n | (int)cp | (int)u.u_base)&01) == 0) {
+		if (flag==B_WRITE)
+			cp = copyin(u.u_base, cp, n);
+		else
+			cp = copyout(cp, u.u_base, n);
+		if (cp) {
+			u.u_error = EFAULT;
+			return;
+		}
+		u.u_base += n;
+		dpadd(u.u_offset, n);
+		u.u_count -= n;
+		return;
+	}
+	if (flag==B_WRITE) {
+		while(n--) {
+			if ((t = cpass()) < 0)
+				return;
+			*cp++ = t;
+		}
+	} else
+		while (n--)
+			if(passc(*cp++) < 0)
+				return;
+}
+
+/*
  * Read the file corresponding to
  * the inode pointed at by the argument.
  * The actual read arguments are found
@@ -35,7 +85,7 @@ readi(aip)
 {
 	struct buf *bp;
 	int lbn, bn, on;
-	register dn, n;
+	register int dn, n;
 	register struct inode *ip;
 
 	ip = aip;
@@ -83,7 +133,7 @@ writei(aip)
 {
 	struct buf *bp;
 	int n, on;
-	register dn, bn;
+	register int dn, bn;
 	register struct inode *ip;
 
 	ip = aip;
@@ -121,53 +171,4 @@ writei(aip)
 		}
 		ip->i_flag |= IUPD;
 	} while(u.u_error==0 && u.u_count!=0);
-}
-
-/*
- * Move 'an' bytes at byte location
- * &bp->b_addr[o] to/from (flag) the
- * user/kernel area starting at u.base.
- * Update all the arguments by the number
- * of bytes moved.
- *
- * There are 2 algorithms,
- * if source address, dest address and count
- * are all even in a user copy,
- * then the machine language copyin/copyout
- * is called.
- * If not, its done byte-by-byte with
- * cpass and passc.
- */
-iomove(bp, o, an, flag)
-struct buf *bp;
-{
-	register char *cp;
-	register int n, t;
-
-	n = an;
-	cp = bp->b_addr + o;
-	if(((n | (int)cp | (int)u.u_base)&01) == 0) {
-		if (flag==B_WRITE)
-			cp = copyin(u.u_base, cp, n);
-		else
-			cp = copyout(cp, u.u_base, n);
-		if (cp) {
-			u.u_error = EFAULT;
-			return;
-		}
-		u.u_base += n;
-		dpadd(u.u_offset, n);
-		u.u_count -= n;
-		return;
-	}
-	if (flag==B_WRITE) {
-		while(n--) {
-			if ((t = cpass()) < 0)
-				return;
-			*cp++ = t;
-		}
-	} else
-		while (n--)
-			if(passc(*cp++) < 0)
-				return;
 }

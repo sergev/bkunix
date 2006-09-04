@@ -47,9 +47,15 @@ struct inode *namei();
 struct inode *iget();
 struct inode *owner();
 struct inode *maknode();
+void ifree();
+void openi();
 void closei();
 void iput();
 void iupdat();
 void itrunc();
+void readi();
+void writei();
 void wdir();
+int bmap();
+int access();
 #endif

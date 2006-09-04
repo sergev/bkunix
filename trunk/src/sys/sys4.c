@@ -56,7 +56,7 @@ unlink()
 		return;
 	ip = iget(pp->i_dev, u.u_dent.u_ino);
 	if(ip == NULL)
-		goto out1;
+		goto out;
 	u.u_offset[1] -= DIRSIZ+2;
 	u.u_base = (char*) &u.u_dent;
 	u.u_count = DIRSIZ+2;
@@ -64,9 +64,8 @@ unlink()
 	writei(pp);
 	ip->i_nlink--;
 	ip->i_flag |= IUPD;
-out:
 	iput(ip);
-out1:
+out:
 	iput(pp);
 }
 
@@ -126,7 +125,7 @@ ssig()
 void
 alarm()
 {
-	register c;
+	register int c;
 	register struct proc *p;
 
 	p = u.u_procp;

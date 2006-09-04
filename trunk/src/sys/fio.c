@@ -111,7 +111,7 @@ access(aip, mode)
 	struct inode *aip;
 {
 	register struct inode *ip;
-	register m;
+	register int m;
 
 	ip = aip;
 	m = mode;
@@ -148,7 +148,7 @@ owner()
 int
 ufalloc()
 {
-	register i;
+	register int i;
 
 	for (i=0; i<NOFILE; i++)
 		if (u.u_ofile[i] == NULL) {
@@ -172,7 +172,7 @@ struct file *
 falloc()
 {
 	register struct file *fp;
-	register i;
+	register int i;
 
 	i = ufalloc();
 	if (i < 0)

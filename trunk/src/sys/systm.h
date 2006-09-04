@@ -22,11 +22,44 @@ struct	mount
 };
 extern struct mount mount[NMOUNT];
 extern int	cpid;		/* current process ID */
+extern int	user;
+#ifdef BGOPTION
+extern int	swflg, swwait;
+#endif
 
 char *copyin();
 char *copyout();
 void *memcpy();
 void memzero();
+void panic();
+void sleep();
+void wakeup();
+void ttread();
+void ttwrite();
+void cinit();
+void binit();
+void iinit();
+void minit();
+void dpadd();
+void suword();
+void savu();
+void retu();
+void idle();
+void rstps();
+void update();
+int lshift();
+int spl0();
+int spl7();
+int fuword();
+int fuiword();
+int fubyte();
+int subyte();
+int cpass();
+int passc();
+int issig();
+int dpcmp();
+int swap();
+int newproc();
 
 /*
  * structure of the system entry table (sysent.c)

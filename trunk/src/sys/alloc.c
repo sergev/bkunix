@@ -156,7 +156,7 @@ ialloc(dev)
 	register struct filsys *fp;
 	register int *bp;
 	register struct inode *ip;
-	int i, j, k, ino;
+	int ino;
 
 	fp = getfs(dev);
 loop:
@@ -221,6 +221,7 @@ getfs(dev)
 			return (struct filsys*) ((p->m_bufp)->b_addr);
 		}
 	panic();
+	return 0;
 }
 
 /*
