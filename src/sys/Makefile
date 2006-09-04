@@ -5,7 +5,7 @@ CC		= pdp11-gcc
 AS		= pdp11-as
 STRIP		= pdp11-strip
 SIZE		= pdp11-size -o
-CFLAGS		= -DKERNEL -I.
+CFLAGS		= -Os -fomit-frame-pointer -DKERNEL -I.
 LDFLAGS		= -nostdlib
 
 ASRCS		= low.s mch.s emul.s
@@ -87,3 +87,6 @@ lsx:		$(OBJS)
 
 count:		$(ASRCS) $(CSRCS)
 		wc $(ASRCS) $(CSRCS)
+
+.c.s:
+		$(CC) $(CFLAGS) -S $<
