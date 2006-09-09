@@ -51,7 +51,6 @@ int lshift();
 int spl0();
 int spl7();
 int fuword();
-int fuiword();
 int fubyte();
 int subyte();
 int cpass();

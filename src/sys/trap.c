@@ -78,7 +78,7 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 	 * will trap on CPUs without 11/45 FPU.
 	 */
 	case 1+USER: /* illegal instruction */
-		if(fuiword(pc-2) == SETD && u.u_signal[SIGINS] == 0)
+		if(fuword(pc-2) == SETD && u.u_signal[SIGINS] == 0)
 			goto out;
 		i = SIGINS;
 		break;
@@ -98,9 +98,9 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 	case 6+USER: /* sys call */
 		u.u_error = 0;
 		ps &= ~EBIT;
-		callp = &sysent[fuiword(pc-2)&077];
+		callp = &sysent[fuword(pc-2)&077];
 		if (callp == sysent) { /* indirect */
-			a = fuiword(pc);
+			a = fuword(pc);
 			pc += 2;
 			i = fuword(a);
 			if ((i & ~077) != SYS)
@@ -110,7 +110,7 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 				u.u_arg[i] = fuword(a += 2);
 		} else {
 			for(i=0; i<callp->count; i++) {
-				u.u_arg[i] = fuiword(pc);
+				u.u_arg[i] = fuword(pc);
 				pc += 2;
 			}
 		}
