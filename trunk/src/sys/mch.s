@@ -252,26 +252,14 @@ _copyin:
 	jsr	pc,copsu
 1:
 	mov	(r0)+,(r1)+
-.if	EIS
 	sob	r2,1b
-.endif
-.if	EIS-1
-	dec	r2
-	bne	1b
-.endif
 	br	2f
 
 _copyout:
 	jsr	pc,copsu
 1:
 	mov	(r0)+,(r1)+
-.if	EIS
 	sob	r2,1b
-.endif
-.if	EIS-1
-	dec	r2
-	bne	1b
-.endif
 2:
 	mov	(sp)+,nofault
 	mov	(sp)+,r2
@@ -397,7 +385,6 @@ start:
 
 	mov	$_u-2,_u
 
-
 / set up previous mode and call main
 / on return, enter user mode at 040000
 
@@ -406,7 +393,6 @@ start:
 	clr	-(sp)
 	mov	$_u+[usize*64],-(sp)
 	rti
-
 
 .globl	_lshift
 _lshift:
