@@ -26,7 +26,6 @@ ASFLAGS		= --defsym EIS=1 \
 		  --defsym PER=0 \
 		  --defsym SYK=0 \
 		  --defsym RF=0 \
-		  --defsym FLTVECT=0 \
 		  --defsym KL=1 \
 		  --defsym TVT=0 \
 		  --defsym CLOCK=1 \

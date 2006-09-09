@@ -7,24 +7,31 @@
 /rti	= 2
 /reset	= 5
 
+	.globl	_u
+_u	= 047000
+usize	= 8
+
+	.comm	nofault, 2
+	.comm	_user, 2
+
 .if BGOPTION
-.globl	_swtch
+	.globl	_swtch
 .endif
 
-.globl	trap, call, _trap
-.globl	emtrap
-
+	.globl	emtrap, call, _trap
+/-----------------------
+	.globl	trap
 trap:
 	mfps	-4(sp)
 	tst	nofault
 	bne	1f
 emtrap:
-	jsr	r0,call1; .word _trap
+	jsr	r0,call1
+	.word _trap
 	/ no return
 1:
 	mov	nofault,(sp)
 	rti
-
 call1:
 	tst	-(sp)
 	clr	-(sp)
@@ -88,11 +95,10 @@ call:
 	mov	(sp)+,r0
 	rti
 
+/-----------------------
 / Character list get/put
-
-.globl	_getc, _putc
-.globl	_cfreelist
-
+	.globl	_getc
+	.globl	_cfreelist
 _getc:
 	mov	2(sp),r1
 	mfps	-(sp)
@@ -130,6 +136,8 @@ _getc:
 	mtps	(sp)+
 	rts	pc
 
+/-----------------------
+	.globl	_putc
 _putc:
 	mov	2(sp),r0
 	mov	4(sp),r1
@@ -171,11 +179,8 @@ _putc:
 	mtps	(sp)+
 	rts	pc
 
-.globl	_fubyte, _subyte
-.globl	_fuibyte, _suibyte
-.globl	_fuword, _suword
-.globl	_fuiword, _suiword
-_fuibyte:
+/-----------------------
+	.globl	_fubyte
 _fubyte:
 	mov	2(sp),r1
 	bic	$1,r1
@@ -187,7 +192,8 @@ _fubyte:
 	bic	$!377,r0
 	rts	pc
 
-_suibyte:
+/-----------------------
+	.globl	_subyte
 _subyte:
 	mov	2(sp),r1
 	bic	$1,r1
@@ -205,7 +211,8 @@ _subyte:
 	clr	r0
 	rts	pc
 
-_fuiword:
+/-----------------------
+	.globl	_fuword
 _fuword:
 	mov	2(sp),r1
 fuword:
@@ -221,7 +228,8 @@ gword:
 	mov	(r1),r0
 	br	1f
 
-_suiword:
+/-----------------------
+	.globl	_suword
 _suword:
 	mov	2(sp),r1
 	mov	4(sp),r0
@@ -247,7 +255,8 @@ err:
 	mov	$-1,r0
 	rts	pc
 
-.globl	_copyin, _copyout
+/-----------------------
+	.globl	_copyin
 _copyin:
 	jsr	pc,copsu
 1:
@@ -255,6 +264,8 @@ _copyin:
 	sob	r2,1b
 	br	2f
 
+/-----------------------
+	.globl	_copyout
 _copyout:
 	jsr	pc,copsu
 1:
@@ -282,7 +293,8 @@ copsu:
 	mov	$-1,r0
 	rts	pc
 
-.globl	_idle
+/-----------------------
+	.globl	_idle
 _idle:
 	mfps	-(sp)
 	clr	-(sp)
@@ -291,7 +303,8 @@ _idle:
 	mtps	(sp)+
 	rts	pc
 
-.globl	_savu, _retu
+/-----------------------
+	.globl	_savu
 _savu:
 	mov	$0340,r0
 	mtps	r0
@@ -303,6 +316,8 @@ _savu:
 	mtps	r0
 	jmp	(r1)
 
+/-----------------------
+	.globl	_retu
 _retu:
 	mov	$0340,r0
 	mtps	r0
@@ -314,33 +329,38 @@ _retu:
 	mtps	r0
 	jmp	(r1)
 
-.globl	_spl0, _spl7
+/-----------------------
+	.globl	_spl0
 _spl0:
 	mfps	r0
 	clr	r1
 	mtps	r1
 	rts	pc
 
+/-----------------------
+	.globl	_spl7
 _spl7:
 	mfps	r0
 	mov	$0340,r1
 	mtps	r1
 	rts	pc
 
-.globl _rstps
-
+/-----------------------
+	.globl _rstps
 _rstps:
 	mtps	2(sp)
 	rts	pc
 
-.globl	_dpadd
+/-----------------------
+	.globl	_dpadd
 _dpadd:
 	mov	2(sp),r0
 	add	4(sp),2(r0)
 	adc	(r0)
 	rts	pc
 
-.globl	_dpcmp
+/-----------------------
+	.globl	_dpcmp
 _dpcmp:
 	mov	2(sp),r0
 	mov	4(sp),r1
@@ -365,7 +385,8 @@ _dpcmp:
 	mov	r1,r0
 	rts	pc
 
-.globl	start, _end, _edata, _unixmain
+/-----------------------
+	.globl	start, _end, _edata, _unixmain
 start:
 	reset
 
@@ -394,7 +415,8 @@ start:
 	mov	$_u+[usize*64],-(sp)
 	rti
 
-.globl	_lshift
+/-----------------------
+	.globl	_lshift
 _lshift:
 	mov	2(sp),r1
 	mov	(r1)+,r0
@@ -403,8 +425,9 @@ _lshift:
 	mov	r1,r0
 	rts	pc
 
-.if 0 / no cvs, cret needed for gcc
-.globl	csv
+/-----------------------
+.if 0 / no csv, cret needed for gcc
+	.globl	csv
 csv:
 	mov	r5,r0
 	mov	sp,r5
@@ -413,7 +436,8 @@ csv:
 	mov	r2,-(sp)
 	jsr	pc,(r0)
 
-.globl cret
+/-----------------------
+	.globl cret
 cret:
 	mov	r5,r1
 	mov	-(r1),r4
@@ -423,12 +447,4 @@ cret:
 	mov	(sp)+,r5
 	rts	pc
 .endif
-
-.globl	_u
-_u	= 047000
-usize	= 8
-
-PS	= 0177776
-
-	.comm	nofault, 2
-	.comm	_user, 2
+/-----------------------

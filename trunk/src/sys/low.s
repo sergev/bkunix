@@ -11,12 +11,7 @@ init:	br	1f
 
 / trap vectors
 	.word	trap, br7+0	/ bus error
-.if	EIS
 	.word	trap, br7+1	/ illegal instruction
-.else
-.globl	trapem
-	.word	trapem, br7+1	/ emulation package
-.endif
 	.word	trap, br7+2	/ bpt-trace trap
 	.word	trap, br7+3	/ iot trap
 	.word	trap, br7+4	/ power fail
@@ -98,9 +93,4 @@ dump:
 .if DEC
 . = init+0264
 	.word	fdintr, br5
-.endif
-
-.if FLTVECT
-. = init+0300
-	. = .+040
 .endif
