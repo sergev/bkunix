@@ -1,7 +1,9 @@
 CC		= gcc -g
 CFLAGS		= -O -Wall
-OBJS		= lsxfs-open.o lsxfs-inode.o lsxfs-create.o lsxfs-check.o
+OBJS		= superblock.o inode.o create.o check.o
 PROGS		= lsx-util
+
+# For Mac OS X
 #LIBS		= -largp
 
 all:		$(PROGS) rxboot rxboot2
