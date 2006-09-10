@@ -9,6 +9,7 @@
 
 int verbose;
 int extract;
+int add;
 int newfs;
 int check;
 int fix;
@@ -26,6 +27,7 @@ const char *argp_program_bug_address = "<vak@cronyx.ru>";
 
 struct argp_option argp_options[] = {
 	{"verbose",	'v', 0,		0,	"Print verbose information" },
+	{"add",		'a', 0,		0,	"Add files to filesystem" },
 	{"extract",	'x', 0,		0,	"Extract all files" },
 	{"check",	'c', 0,		0,	"Check filesystem, use -c -f to fix" },
 	{"fix",		'f', 0,		0,	"Fix bugs in filesystem" },
@@ -44,6 +46,9 @@ int argp_parse_option (int key, char *arg, struct argp_state *state)
 	switch (key) {
 	case 'v':
 		++verbose;
+		break;
+	case 'a':
+		++add;
 		break;
 	case 'x':
 		++extract;
@@ -87,50 +92,50 @@ const struct argp argp_parser = {
 	argp_parse_option,
 
 	/* A description of the arguments we accept. */
-	"infile.dsk",
+	"infile.dsk [files-to-add...]",
 
 	/* Program documentation. */
 	"\nPrint LSX file system information"
 };
 
-void print_file (lsxfs_inode_t *file,
+void print_inode (lsxfs_inode_t *inode,
 	char *dirname, char *filename, FILE *out)
 {
 	fprintf (out, "%s/%s", dirname, filename);
-	switch (file->mode & INODE_MODE_FMT) {
+	switch (inode->mode & INODE_MODE_FMT) {
 	case INODE_MODE_FDIR:
 		fprintf (out, "/\n");
 		break;
 	case INODE_MODE_FCHR:
 		fprintf (out, " - char %d %d\n",
-			file->addr[0] >> 8, file->addr[0] & 0xff);
+			inode->addr[0] >> 8, inode->addr[0] & 0xff);
 		break;
 	case INODE_MODE_FBLK:
 		fprintf (out, " - block %d %d\n",
-			file->addr[0] >> 8, file->addr[0] & 0xff);
+			inode->addr[0] >> 8, inode->addr[0] & 0xff);
 		break;
 	default:
-		fprintf (out, " - %lu bytes\n", file->size);
+		fprintf (out, " - %lu bytes\n", inode->size);
 		break;
 	}
 }
 
-void extract_file (lsxfs_inode_t *file, char *path)
+void extract_inode (lsxfs_inode_t *inode, char *path)
 {
 	int fd, n;
 	unsigned long offset;
 	unsigned char data [512];
 
-	fd = open (path, O_CREAT | O_WRONLY, file->mode & 0x777);
+	fd = open (path, O_CREAT | O_WRONLY, inode->mode & 0x777);
 	if (fd < 0) {
 		perror (path);
 		return;
 	}
-	for (offset = 0; offset < file->size; offset += 512) {
-		n = file->size - offset;
+	for (offset = 0; offset < inode->size; offset += 512) {
+		n = inode->size - offset;
 		if (n > 512)
 			n = 512;
-		if (! lsxfs_file_read (file, offset, data, n)) {
+		if (! lsxfs_inode_read (inode, offset, data, n)) {
 			fprintf (stderr, "%s: read error at offset %ld\n",
 				path, offset);
 			break;
@@ -143,17 +148,17 @@ void extract_file (lsxfs_inode_t *file, char *path)
 	close (fd);
 }
 
-void extractor (lsxfs_inode_t *dir, lsxfs_inode_t *file,
+void extractor (lsxfs_inode_t *dir, lsxfs_inode_t *inode,
 	char *dirname, char *filename, void *arg)
 {
 	FILE *out = arg;
 	char *path;
 
 	if (verbose)
-		print_file (file, dirname, filename, out);
+		print_inode (inode, dirname, filename, out);
 
-	if ((file->mode & INODE_MODE_FMT) != INODE_MODE_FDIR &&
-	    (file->mode & INODE_MODE_FMT) != 0)
+	if ((inode->mode & INODE_MODE_FMT) != INODE_MODE_FDIR &&
+	    (inode->mode & INODE_MODE_FMT) != 0)
 		return;
 
 	path = alloca (strlen (dirname) + strlen (filename) + 2);
@@ -161,36 +166,71 @@ void extractor (lsxfs_inode_t *dir, lsxfs_inode_t *file,
 	strcat (path, "/");
 	strcat (path, filename);
 
-	if ((file->mode & INODE_MODE_FMT) == INODE_MODE_FDIR) {
+	if ((inode->mode & INODE_MODE_FMT) == INODE_MODE_FDIR) {
 		if (mkdir (path, 0775) < 0)
 			perror (path);
 		/* Scan subdirectory. */
-		lsxfs_directory_scan (file, path, extractor, arg);
+		lsxfs_directory_scan (inode, path, extractor, arg);
 	} else {
-		extract_file (file, path);
+		extract_inode (inode, path);
 	}
 }
 
-void scanner (lsxfs_inode_t *dir, lsxfs_inode_t *file,
+void scanner (lsxfs_inode_t *dir, lsxfs_inode_t *inode,
 	char *dirname, char *filename, void *arg)
 {
 	FILE *out = arg;
 	char *path;
 
-	print_file (file, dirname, filename, out);
+	print_inode (inode, dirname, filename, out);
 
 	if (verbose) {
-		lsxfs_inode_print (file, out);
+		lsxfs_inode_print (inode, out);
 		printf ("--------\n");
 	}
-	if ((file->mode & INODE_MODE_FMT) == INODE_MODE_FDIR) {
+	if ((inode->mode & INODE_MODE_FMT) == INODE_MODE_FDIR) {
 		/* Scan subdirectory. */
 		path = alloca (strlen (dirname) + strlen (filename) + 2);
 		strcpy (path, dirname);
 		strcat (path, "/");
 		strcat (path, filename);
-		lsxfs_directory_scan (file, path, scanner, arg);
+		lsxfs_directory_scan (inode, path, scanner, arg);
 	}
+}
+
+void add_file (lsxfs_t *fs, char *name)
+{
+	lsxfs_file_t file;
+	FILE *fd;
+	char data [512];
+	int len;
+
+	if (verbose) {
+		printf ("%s\n", name);
+	}
+	fd = fopen (name, "r");
+	if (! fd) {
+		perror (name);
+		return;
+	}
+	if (! lsxfs_file_create (fs, &file, name, 0777)) {
+		fprintf (stderr, "%s: cannot create\n", name);
+		return;
+	}
+	for (;;) {
+		len = fread (data, 1, sizeof (data), fd);
+printf ("read %d bytes from %s\n", len, name);
+		if (len < 0)
+			perror (name);
+		if (len <= 0)
+			break;
+		if (! lsxfs_file_write (&file, data, len)) {
+			fprintf (stderr, "%s: write error\n", name);
+			break;
+		}
+	}
+	lsxfs_file_close (&file);
+	fclose (fd);
 }
 
 int main (int argc, char **argv)
@@ -200,7 +240,8 @@ int main (int argc, char **argv)
 	lsxfs_inode_t inode;
 
 	argp_parse (&argp_parser, argc, argv, 0, &i, 0);
-	if (i != argc-1 || (extract + newfs + check > 1) ||
+	if ((! add && i != argc-1) || (add && i >= argc-1) ||
+	    (extract + newfs + check + add > 1) ||
 	    (newfs && bytes < 5120)) {
 		argp_help (&argp_parser, stderr, ARGP_HELP_USAGE, argv[0]);
 		return -1;
@@ -237,7 +278,8 @@ int main (int argc, char **argv)
 		return 0;
 	}
 
-	if (! lsxfs_open (&fs, argv[i], 0)) {
+	/* Add or extract or info. */
+	if (! lsxfs_open (&fs, argv[i], (add != 0))) {
 		fprintf (stderr, "%s: cannot open\n", argv[i]);
 		return -1;
 	}
@@ -253,10 +295,23 @@ int main (int argc, char **argv)
 		return 0;
 	}
 
+	if (add) {
+		/* Add files i+1..argc-1 to filesystem. */
+		while (++i < argc)
+			add_file (&fs, argv[i]);
+		lsxfs_sync (&fs, 0);
+		lsxfs_close (&fs);
+		return 0;
+	}
+
 	/* Print the structure of flesystem. */
 	lsxfs_print (&fs, stdout);
 	if (verbose) {
 		printf ("--------\n");
+		if (! lsxfs_inode_get (&fs, &inode, 1)) {
+			fprintf (stderr, "%s: cannot get inode 1\n", argv[i]);
+			return -1;
+		}
 		lsxfs_inode_print (&inode, stdout);
 		if (verbose > 1) {
 			printf ("--------\n");

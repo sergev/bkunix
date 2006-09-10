@@ -63,24 +63,6 @@ failed:		close (fd);
 	return 1;
 }
 
-static int free_block (lsxfs_t *fs, unsigned int bno)
-{
-	int i;
-	unsigned short buf [256];
-
-	if (fs->nfree >= 100) {
-		buf[0] = lsx_short (fs->nfree);
-		for (i=0; i<100; i++)
-			buf[i+1] = lsx_short (fs->free[i]);
-		if (! lsxfs_write_block (fs, bno, (char*) buf))
-			return 0;
-		fs->nfree = 0;
-	}
-	fs->free [fs->nfree] = bno;
-	fs->nfree++;
-	return 1;
-}
-
 static int build_inode_list (lsxfs_t *fs)
 {
 	lsxfs_inode_t inode;
@@ -97,26 +79,6 @@ static int build_inode_list (lsxfs_t *fs)
 		}
 	}
 	return 1;
-}
-
-static unsigned int allocate_block (lsxfs_t *fs)
-{
-	int bno, i;
-	unsigned short buf [256];
-
-	fs->nfree--;
-	bno = fs->free [fs->nfree];
-	fs->free [fs->nfree] = 0;
-	if (bno == 0)
-		return 0;
-	if (fs->nfree <= 0) {
-		if (! lsxfs_read_block (fs, bno, (char*) buf))
-			return 0;
-		fs->nfree = lsx_short (buf[0]);
-		for (i=0; i<100; i++)
-			fs->free[i] = lsx_short (buf[i+1]);
-	}
-	return bno;
 }
 
 static int create_root_directory (lsxfs_t *fs)
@@ -142,7 +104,8 @@ static int create_root_directory (lsxfs_t *fs)
 	inode.nlink = 2;
 	inode.size = 32;
 
-	bno = allocate_block (fs);
+	if (! lsxfs_block_alloc (fs, &bno))
+		return 0;
 	if (! lsxfs_write_block (fs, bno, buf))
 		return 0;
 	inode.addr[0] = bno;
@@ -150,7 +113,7 @@ static int create_root_directory (lsxfs_t *fs)
 	time (&inode.atime);
 	time (&inode.mtime);
 
-	if (! lsxfs_inode_save (&inode))
+	if (! lsxfs_inode_save (&inode, 1))
 		return 0;
 	return 1;
 }
@@ -177,9 +140,9 @@ int lsxfs_create (lsxfs_t *fs, const char *filename, unsigned long bytes)
 		return 0;
 
 	/* build a list of free blocks */
-	free_block (fs, 0);
+	lsxfs_block_free (fs, 0);
 	for (n = fs->fsize - 1; n >= fs->isize + 2; n--)
-		if (! free_block (fs, n))
+		if (! lsxfs_block_free (fs, n))
 			return 0;
 
 	/* initialize inodes */
@@ -199,6 +162,5 @@ int lsxfs_create (lsxfs_t *fs, const char *filename, unsigned long bytes)
 		return 0;
 
 	/* write out super block */
-	time (&fs->time);
 	return lsxfs_sync (fs, 1);
 }

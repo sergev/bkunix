@@ -543,7 +543,7 @@ static int move_to_lost_found (lsxfs_inode_t *inode)
 	if (lost_found.size % LSXFS_BSIZE) {
 		lost_found.size = (lost_found.size + LSXFS_BSIZE - 1) /
 			LSXFS_BSIZE * LSXFS_BSIZE;
-		if (! lsxfs_inode_save (&lost_found)) {
+		if (! lsxfs_inode_save (&lost_found, 1)) {
 			printf ("SORRY. ERROR WRITING lost+found I-NODE\n\n");
 			return 0;
 		}
@@ -564,7 +564,7 @@ static int move_to_lost_found (lsxfs_inode_t *inode)
 		if (lsxfs_inode_get (inode->fs, &lost_found, lost_found_inode)) {
 			lost_found.nlink++;
 			++link_count [lost_found.number];
-			if (! lsxfs_inode_save (&lost_found)) {
+			if (! lsxfs_inode_save (&lost_found, 1)) {
 				printf ("SORRY. ERROR WRITING lost+found I-NODE\n\n");
 				return 0;
 			}
@@ -616,7 +616,7 @@ static void clear_inode (lsxfs_t *fs, unsigned short inum, char *msg)
 		total_files--;
 		scan_inode (&inode, ADDR, pass4, 0);
 		lsxfs_inode_clear (&inode);
-		lsxfs_inode_save (&inode);
+		lsxfs_inode_save (&inode, 1);
 	}
 }
 
@@ -643,7 +643,7 @@ static void adjust_link_count (lsxfs_t *fs, unsigned short inum, short lcnt)
 			inode.nlink, inode.nlink - lcnt);
 		if (fs->writable) {
 			inode.nlink -= lcnt;
-			lsxfs_inode_save (&inode);
+			lsxfs_inode_save (&inode, 1);
 		}
 	}
 }
@@ -741,30 +741,6 @@ static void check_free_inode_list (lsxfs_t *fs)
 }
 
 /*
- * Add a block to free list.
- */
-static int free_block (lsxfs_t *fs, unsigned int bno)
-{
-	int i;
-	unsigned short buf [256];
-
-	if (fs->nfree >= 100) {
-		buf[0] = lsx_short (fs->nfree);
-		for (i=0; i<100; i++)
-			buf[i+1] = lsx_short (fs->free[i]);
-		if (! lsxfs_write_block (fs, bno, (char*) buf)) {
-			print_io_error ("WRITE", bno);
-			return 0;
-		}
-		fs->nfree = 0;
-	}
-	fs->free [fs->nfree] = bno;
-	fs->nfree++;
-	fs->dirty = 1;
-	return 1;
-}
-
-/*
  * Build a free block list from scratch.
  */
 static unsigned short make_free_list (lsxfs_t *fs)
@@ -780,12 +756,12 @@ static unsigned short make_free_list (lsxfs_t *fs)
 	free_blocks = 0;
 
 	/* Build a list of free blocks */
-	free_block (fs, 0);
+	lsxfs_block_free (fs, 0);
 	for (n = fs->fsize - 1; n >= fs->isize + 2; n--) {
 		if (block_is_busy (n))
 			continue;
 		++free_blocks;
-		if (! free_block (fs, n))
+		if (! lsxfs_block_free (fs, n))
 			return 0;
 	}
 	return free_blocks;
@@ -873,8 +849,7 @@ fatal:		if (block_map)
 			if (fs->writable)
 				lsxfs_inode_clear (&inode);
 		}
-		if (inode.dirty && fs->writable)
-			lsxfs_inode_save (&inode);
+		lsxfs_inode_save (&inode, 0);
 	}
 	if (dup_end != &dup_list[0]) {
 		printf ("** Phase 1b - Rescan For More DUPS\n");
@@ -902,7 +877,7 @@ fatal:		if (block_map)
 			goto fatal;
 		inode.mode &= ~INODE_MODE_FMT;
 		inode.mode |= INODE_MODE_FDIR;
-		lsxfs_inode_save (&inode);
+		lsxfs_inode_save (&inode, 1);
 		set_inode_state (LSXFS_ROOT_INODE, DSTATE);
 	case DSTATE:
 		scan_pass2 (fs, LSXFS_ROOT_INODE);

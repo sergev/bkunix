@@ -59,6 +59,12 @@ typedef struct {
 typedef void (*lsxfs_directory_scanner_t) (lsxfs_inode_t *dir,
 	lsxfs_inode_t *file, char *dirname, char *filename, void *arg);
 
+typedef struct {
+	lsxfs_inode_t	inode;
+	int		writable;	/* write allowed */
+	unsigned long	offset;		/* current i/o offset */
+} lsxfs_file_t;
+
 int lsxfs_seek (lsxfs_t *fs, unsigned long offset);
 int lsxfs_read8 (lsxfs_t *fs, unsigned char *val);
 int lsxfs_read16 (lsxfs_t *fs, unsigned short *val);
@@ -67,9 +73,8 @@ int lsxfs_write8 (lsxfs_t *fs, unsigned char val);
 int lsxfs_write16 (lsxfs_t *fs, unsigned short val);
 int lsxfs_write32 (lsxfs_t *fs, unsigned long val);
 
+int lsxfs_read (lsxfs_t *fs, unsigned char *data, int bytes);
 int lsxfs_write (lsxfs_t *fs, unsigned char *data, int bytes);
-int lsxfs_write_block (lsxfs_t *fs, unsigned short bnum, unsigned char *data);
-int lsxfs_read_block (lsxfs_t *fs, unsigned short bnum, unsigned char *data);
 
 int lsxfs_open (lsxfs_t *fs, const char *filename, int writable);
 void lsxfs_close (lsxfs_t *fs);
@@ -81,17 +86,37 @@ int lsxfs_check (lsxfs_t *fs);
 void lsxfs_print (lsxfs_t *fs, FILE *out);
 
 int lsxfs_inode_get (lsxfs_t *fs, lsxfs_inode_t *inode, unsigned short inum);
-int lsxfs_inode_save (lsxfs_inode_t *inode);
+int lsxfs_inode_save (lsxfs_inode_t *inode, int force);
 void lsxfs_inode_clear (lsxfs_inode_t *inode);
+void lsxfs_inode_truncate (lsxfs_inode_t *inode);
 void lsxfs_inode_print (lsxfs_inode_t *inode, FILE *out);
-
-int lsxfs_file_read (lsxfs_inode_t *inode, unsigned long offset,
+int lsxfs_inode_read (lsxfs_inode_t *inode, unsigned long offset,
 	unsigned char *data, unsigned long bytes);
+int lsxfs_inode_write (lsxfs_inode_t *inode, unsigned long offset,
+	unsigned char *data, unsigned long bytes);
+int lsxfs_inode_alloc (lsxfs_t *fs, lsxfs_inode_t *inode);
+int lsxfs_inode_by_name (lsxfs_t *fs, lsxfs_inode_t *inode, char *name,
+	int op, int mode);
+
+int lsxfs_write_block (lsxfs_t *fs, unsigned short bnum, unsigned char *data);
+int lsxfs_read_block (lsxfs_t *fs, unsigned short bnum, unsigned char *data);
+int lsxfs_block_free (lsxfs_t *fs, unsigned int bno);
+int lsxfs_block_alloc (lsxfs_t *fs, unsigned int *bno);
+int lsxfs_indirect_block_free (lsxfs_t *fs, unsigned int bno);
+int lsxfs_double_indirect_block_free (lsxfs_t *fs, unsigned int bno);
 
 void lsxfs_directory_scan (lsxfs_inode_t *inode, char *dirname,
 	lsxfs_directory_scanner_t scanner, void *arg);
 void lsxfs_dirent_pack (unsigned char *data, lsxfs_dirent_t *dirent);
 void lsxfs_dirent_unpack (lsxfs_dirent_t *dirent, unsigned char *data);
+
+int lsxfs_file_create (lsxfs_t *fs, lsxfs_file_t *file, char *name, int mode);
+int lsxfs_file_open (lsxfs_t *fs, lsxfs_file_t *file, char *name, int wflag);
+int lsxfs_file_read (lsxfs_file_t *file, unsigned char *data,
+	unsigned long bytes);
+int lsxfs_file_write (lsxfs_file_t *file, unsigned char *data,
+	unsigned long bytes);
+int lsxfs_file_close (lsxfs_file_t *file);
 
 /* Big endians: Motorola 68000, PowerPC, HP PA, IBM S390. */
 #if defined (__m68k__) || defined (__ppc__) || defined (__hppa__) || \
