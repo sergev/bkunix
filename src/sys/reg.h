@@ -1,3 +1,6 @@
+#ifndef REG_H
+#define REG_H 1
+
 /*
  * Location of the users' stored
  * registers relative to R0.
@@ -14,3 +17,5 @@
 #define	RPS	(2)
 
 #define	TBIT	020		/* PS trace bit */
+
+#endif /* REG_H */

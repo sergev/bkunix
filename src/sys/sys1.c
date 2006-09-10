@@ -155,10 +155,6 @@ exec()
 	u.u_ar0[R4] = 0;
 	u.u_ar0[R5] = 0;
 	u.u_ar0[R7] = TOPSYS;
-#ifndef BGOPTION
-	for(sp = &u.u_fsav[0]; sp < &u.u_fsav[25];)
-		*sp++ = 0;
-#endif
 bad:
 	iput(ip);
 	brelse(bp);

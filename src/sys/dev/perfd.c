@@ -18,7 +18,7 @@
 #define BUSTIME	010000
 #define PARERR	020000
 #define HDERR	040000
-#define DONE	0100000
+#define SDONE	0100000
 
 #define FDVECT	0124
 #define FDPS	0126
@@ -78,7 +78,7 @@ fdstart()
 		FD = FDADR0;
 	else
 		FD = FDADR1;
-	while((FD->fdstat&DONE) == 0);
+	while((FD->fdstat&SDONE) == 0);
 	FD->fdba = bp->b_addr;
 	com = bp->b_blkno;
 	if(bp->b_flags&B_READ)

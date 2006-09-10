@@ -1,3 +1,6 @@
+#ifndef TTY_H
+#define TTY_H 1
+
 /*
  * A clist structure is the head
  * of a linked list queue of characters.
@@ -64,3 +67,5 @@ struct tty
 int getc();
 int putc();
 #endif
+
+#endif /* TTY_H */

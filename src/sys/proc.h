@@ -1,3 +1,6 @@
+#ifndef PROC_H
+#define PROC_H 1
+
 /*
  * One structure allocated per active
  * process. It contains all data needed
@@ -40,3 +43,5 @@ void psig();
 void setrun();
 void pexit();
 #endif
+
+#endif /* PROC_H */

@@ -12,7 +12,7 @@
 #define UNIT2	0202
 #define TERM	0203
 #define	IENABLE	0100
-#define DONE	0200
+#define FDONE	0200
 #define FDWRITE	040
 #define FDREAD	0
 #define BUSY	04
@@ -83,7 +83,7 @@ fdstart()
 	if((bp->b_flags&B_READ) == 0) {
 		cp = bp->b_addr+sect*128;
 		for(i = 0; i < 128; i++) {
-			while((FDADR->flfg&DONE) == 0);
+			while((FDADR->flfg&FDONE) == 0);
 			FDADR->flda = *cp++;
 		}
 	}
@@ -103,7 +103,7 @@ fdintr()
 	if(bp->b_flags&B_READ) {
 		cp = bp->b_addr+sect*128;
 		for(i = 0; i < 128; i++) {
-			while((FDADR->flfg&DONE) == 0);
+			while((FDADR->flfg&FDONE) == 0);
 			*cp++ = FDADR->flda;
 		}
 	}

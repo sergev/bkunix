@@ -35,7 +35,7 @@
 #define	UN2	010000
 #define	UN3	014000
 #define	ERR	0100000
-#define	DONE	0200
+#define	PDONE	0200
 #define	IENB	0100
 #define	IF	0100000
 #define	IX	040000
@@ -97,7 +97,7 @@ fdstart()
 		return;
 	fdtab.d_active++;
 	com=bp->b_dev<<11;
-	while((FDADDR->pstat&DONE)==0);
+	while((FDADDR->pstat&PDONE)==0);
 	FDADDR->badr=bp->b_addr;
 	FDADDR->wcr= -256;
 	FDADDR->sstat=com|CMD1|(bp->b_blkno&017);

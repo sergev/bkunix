@@ -1,3 +1,6 @@
+#ifndef BUF_H
+#define BUF_H 1
+
 /*
  * A buffer is on the available list, and is liable
  * to be reassigned to another disk block, if and only
@@ -65,3 +68,5 @@ void bflush();
 void iowait();
 void fdstrategy();
 #endif
+
+#endif /* BUF_H */

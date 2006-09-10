@@ -1,3 +1,6 @@
+#ifndef SYSTM_H
+#define SYSTM_H 1
+
 /*
  * Random set of variables
  * used by more than one
@@ -105,3 +108,5 @@ void kill();
 void dup();
 void ssig();
 void bground();
+
+#endif /* SYSTM_H */

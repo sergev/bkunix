@@ -5,16 +5,19 @@ CC		= pdp11-gcc -Wall
 AS		= pdp11-as
 LD		= pdp11-ld
 SIZE		= pdp11-size -o
-CFLAGS		= -Os -fomit-frame-pointer -DKERNEL -I.
+CFLAGS		= -Os -DKERNEL -I. -fomit-frame-pointer
 LDFLAGS		= -nostdlib
 
 ASRCS		= low.s mch.s
+ASOBJS		= low.o mch.o
+
 CSRCS		= alloc.c bio.c \
 		  clock.c fio.c iget.c main.c nami.c rdwri.c sig.c slp.c \
 		  subr.c sys1.c sys2.c sys3.c sys4.c sysent.c trap.c
-OBJS		= low.o mch.o alloc.o bio.o \
+COBJS		= alloc.o bio.o \
 		  clock.o fio.o iget.o main.o nami.o rdwri.o sig.o slp.o \
-		  subr.o sys1.o sys2.o sys3.o sys4.o sysent.o trap.o \
+		  subr.o sys1.o sys2.o sys3.o sys4.o sysent.o trap.o
+OBJS		= $(ASOBJS) $(COBJS)
 
 vpath %.c . dev
 
@@ -33,16 +36,22 @@ ASFLAGS		= --defsym EIS=1 \
 CSRCS		+= dev/kl.c dev/decfd.c
 OBJS		+= kl.o decfd.o
 
-all:		lsx
+all:		lsx lsx1
 		@echo "Warning: For 10K LSX system, size must be less than 046000"
 		@echo "         for 8k lsx system size must be less than 036500"
-		$(SIZE) lsx
+		$(SIZE) lsx lsx1
 
 clean:
 		rm -f *~ dev/*~ *.o lsx a.out
 
 lsx:		$(OBJS)
 		$(LD) -o $@ $(OBJS)
+
+lsx1:		$(ASOBJS) $(CSRCS)
+		cat $(CSRCS) > kernel.c
+		$(CC) $(CFLAGS) -c kernel.c
+		$(LD) -o $@ $(ASOBJS) kernel.o
+		@rm -f kernel.c
 
 count:		$(ASRCS) $(CSRCS)
 		wc $(ASRCS) $(CSRCS)

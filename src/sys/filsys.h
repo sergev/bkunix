@@ -1,3 +1,6 @@
+#ifndef FILSYS_H
+#define FILSYS_H 1
+
 /*
  * Definition of the unix super block.
  * The root super block is allocated and
@@ -27,3 +30,5 @@ struct	filsys
 #ifdef KERNEL
 struct filsys *getfs();
 #endif
+
+#endif /* FILSYS_H */
