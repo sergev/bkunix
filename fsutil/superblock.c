@@ -120,20 +120,19 @@ int lsxfs_write32 (lsxfs_t *fs, unsigned long val)
 	return 1;
 }
 
-int lsxfs_read_block (lsxfs_t *fs, unsigned short bnum, unsigned char *data)
+int lsxfs_read (lsxfs_t *fs, unsigned char *data, int bytes)
 {
-	int i;
+	int len;
 
-/*	printf ("read block %d\n", bnum);*/
-	if (bnum <= fs->isize + 1)
-		return 0;
-	if (! lsxfs_seek (fs, bnum * 512L))
-		return 0;
-	for (i=0; i<4; ++i) {
-		if (read (fs->fd, data, 128) != 128)
+	while (bytes > 0) {
+		len = bytes;
+		if (len > 128)
+			len = 128;
+		if (read (fs->fd, data, len) != len)
 			return 0;
-		update_seek (fs, 128);
-		data += 128;
+		update_seek (fs, len);
+		data += len;
+		bytes -= len;
 	}
 	return 1;
 }
@@ -154,19 +153,6 @@ int lsxfs_write (lsxfs_t *fs, unsigned char *data, int bytes)
 		data += len;
 		bytes -= len;
 	}
-	return 1;
-}
-
-int lsxfs_write_block (lsxfs_t *fs, unsigned short bnum, unsigned char *data)
-{
-/*	printf ("write block %d\n", bnum);*/
-	if (! fs->writable || bnum <= fs->isize + 1)
-		return 0;
-	if (! lsxfs_seek (fs, bnum * 512L))
-		return 0;
-	if (! lsxfs_write (fs, data, 512))
-		return 0;
-	fs->modified = 1;
 	return 1;
 }
 
@@ -223,6 +209,8 @@ int lsxfs_sync (lsxfs_t *fs, int force)
 		return 0;
 	if (! force && ! fs->dirty)
 		return 1;
+
+	time (&fs->time);
 	if (! lsxfs_seek (fs, 512))
 		return 0;
 

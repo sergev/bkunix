@@ -55,6 +55,38 @@ int lsxfs_inode_get (lsxfs_t *fs, lsxfs_inode_t *inode, unsigned short inum)
 	return 1;
 }
 
+/*
+ * Free all the disk blocks associated
+ * with the specified inode structure.
+ * The blocks of the file are removed
+ * in reverse order. This FILO
+ * algorithm will tend to maintain
+ * a contiguous free list much longer
+ * than FIFO.
+ */
+void lsxfs_inode_truncate (lsxfs_inode_t *inode)
+{
+	unsigned short *blk;
+
+	if (inode->mode & (INODE_MODE_FCHR | INODE_MODE_FBLK))
+		return;
+
+	for (blk = &inode->addr[7]; blk >= &inode->addr[0]; --blk) {
+		if (*blk == 0)
+			continue;
+
+		if (! (inode->mode & INODE_MODE_LARG))
+			lsxfs_block_free (inode->fs, *blk);
+		else if (blk == &inode->addr[7])
+			lsxfs_double_indirect_block_free (inode->fs, *blk);
+		else
+			lsxfs_indirect_block_free (inode->fs, *blk);
+
+		*blk = 0;
+	}
+	inode->dirty = 1;
+}
+
 void lsxfs_inode_clear (lsxfs_inode_t *inode)
 {
 	inode->dirty = 1;
@@ -68,14 +100,21 @@ void lsxfs_inode_clear (lsxfs_inode_t *inode)
 	inode->mtime = 0;
 }
 
-int lsxfs_inode_save (lsxfs_inode_t *inode)
+int lsxfs_inode_save (lsxfs_inode_t *inode, int force)
 {
 	unsigned long offset;
 	int i;
 
+	if (! inode->fs->writable)
+		return 0;
+	if (! force && ! inode->dirty)
+		return 1;
 	if (inode->number == 0 || inode->number > inode->fs->isize*16)
 		return 0;
 	offset = (inode->number + 31) * 32;
+
+	time (&inode->atime);
+	time (&inode->mtime);
 
 	if (! lsxfs_seek (inode->fs, offset))
 		return 0;
@@ -156,7 +195,7 @@ void lsxfs_directory_scan (lsxfs_inode_t *dir, char *dirname,
 
 	/* 16 bytes per file */
 	for (offset = 0; dir->size - offset >= 16; offset += 16) {
-		if (! lsxfs_file_read (dir, offset, data, 16)) {
+		if (! lsxfs_inode_read (dir, offset, data, 16)) {
 			fprintf (stderr, "%s: read error at offset %ld\n",
 				dirname[0] ? dirname : "/", offset);
 			return;
@@ -224,7 +263,101 @@ static unsigned short map_block (lsxfs_inode_t *inode, unsigned short lbn)
 	return nb;
 }
 
-int lsxfs_file_read (lsxfs_inode_t *inode, unsigned long offset,
+/*
+ * Bmap defines the structure of file system storage
+ * by returning the physical block number on a device given the
+ * inode and the logical block number in a file.
+ */
+static unsigned short map_block_write (lsxfs_inode_t *inode, unsigned short lbn)
+{
+	unsigned char block [512];
+	unsigned int nb, ib, i;
+
+	if (lbn > 0x7fff) {
+		/* block number too large */
+		return 0;
+	}
+	if (! (inode->mode & INODE_MODE_LARG)) {
+		/* small file algorithm */
+		if (lbn > 7) {
+			/* convert small to large */
+			if (! lsxfs_block_alloc (inode->fs, &nb))
+				return 0;
+			if (! lsxfs_read_block (inode->fs, nb, block))
+				return 0;
+			for (i=0; i<8; i++) {
+				block[i+i] = inode->addr[i];
+				block[i+i+1] = inode->addr[i] >> 8;
+				inode->addr[i] = 0;
+			}
+			inode->addr[0] = nb;
+			if (! lsxfs_write_block (inode->fs, nb, block))
+				return 0;
+			inode->mode |= INODE_MODE_LARG;
+			inode->dirty = 1;
+			goto large;
+		}
+		nb = inode->addr[lbn];
+		if (nb != 0)
+			return nb;
+
+		/* allocate new block */
+		if (! lsxfs_block_alloc (inode->fs, &nb))
+			return 0;
+		inode->addr[lbn] = nb;
+		inode->dirty = 1;
+		return nb;
+	}
+
+	/* large file algorithm */
+large:	i = lbn >> 8;
+	if (i > 7)
+		i = 7;
+	ib = inode->addr[i];
+	if (ib == 0) {
+		if (! lsxfs_block_alloc (inode->fs, &ib))
+			return 0;
+		inode->addr[i] = ib;
+		inode->dirty = 1;
+	}
+	if (! lsxfs_read_block (inode->fs, ib, block))
+		return 0;
+
+	/* "huge" fetch of double indirect block */
+	if (i == 7) {
+		i = ((lbn >> 8) - 7) * 2;
+		nb = block [i+1] << 8 | block [i];
+		if (nb == 0) {
+			/* allocate new block */
+			if (! lsxfs_block_alloc (inode->fs, &nb))
+				return 0;
+			block[i+i] = nb;
+			block[i+i+1] = nb >> 8;
+			if (! lsxfs_write_block (inode->fs, ib, block))
+				return 0;
+		}
+		if (! lsxfs_read_block (inode->fs, nb, block))
+			return 0;
+		ib = nb;
+	}
+
+	/* normal indirect fetch */
+	i = lbn & 0377;
+	nb = block [i+i+1] << 8 | block [i+i];
+	if (nb != 0)
+		return nb;
+
+	/* allocate new block */
+	if (! lsxfs_block_alloc (inode->fs, &nb))
+		return 0;
+	block[i+i] = nb;
+	block[i+i+1] = nb >> 8;
+	if (! lsxfs_write_block (inode->fs, ib, block))
+		return 0;
+	return nb;
+}
+
+int lsxfs_inode_read (lsxfs_inode_t *inode, unsigned long offset,
 	unsigned char *data, unsigned long bytes)
 {
 	unsigned char block [512];
@@ -246,6 +379,45 @@ int lsxfs_file_read (lsxfs_inode_t *inode, unsigned long offset,
 		if (! lsxfs_read_block (inode->fs, bn, block))
 			return 0;
 		memcpy (data, block + inblock_offset, n);
+		offset += n;
+		bytes -= n;
+	}
+	return 1;
+}
+
+int lsxfs_inode_write (lsxfs_inode_t *inode, unsigned long offset,
+	unsigned char *data, unsigned long bytes)
+{
+	unsigned char block [512];
+	unsigned long n;
+	unsigned int bn, inblock_offset;
+
+	while (bytes != 0) {
+		inblock_offset = offset % 512;
+		n = 512 - inblock_offset;
+		if (n > bytes)
+			n = bytes;
+
+		bn = map_block_write (inode, offset / 512);
+		if (bn == 0)
+			return 0;
+		if (inode->size < offset + n) {
+			/* Increase file size. */
+			inode->size = offset + n;
+			inode->dirty = 1;
+		}
+printf ("inode %d: write %ld bytes to block %d\n", inode->number, n, bn);
+
+		if (n == 512) {
+			if (! lsxfs_write_block (inode->fs, bn, data))
+				return 0;
+		} else {
+			if (! lsxfs_read_block (inode->fs, bn, block))
+				return 0;
+			memcpy (block + inblock_offset, data, n);
+			if (! lsxfs_write_block (inode->fs, bn, block))
+				return 0;
+		}
 		offset += n;
 		bytes -= n;
 	}
@@ -279,4 +451,179 @@ void lsxfs_dirent_unpack (lsxfs_dirent_t *dirent, unsigned char *data)
 	for (i=0; i<14; ++i)
 		dirent->name[i] = *data++;
 	dirent->name[14] = 0;
+}
+
+/*
+ * Convert a pathname into a pointer to
+ * an inode. Note that the inode is locked.
+ *
+ * flag = 0 if name is saught
+ *	1 if name is to be created
+ *	2 if name is to be deleted
+ */
+int lsxfs_inode_by_name (lsxfs_t *fs, lsxfs_inode_t *inode, char *name,
+	int op, int mode)
+{
+	int c;
+	char *cp;
+	char dbuf [14];
+	unsigned long offset;
+	unsigned char data [16];
+	unsigned int inum;
+	lsxfs_inode_t dir;
+
+	/* Start from root. */
+	if (! lsxfs_inode_get (fs, inode, LSXFS_ROOT_INODE)) {
+		fprintf (stderr, "inode_open(): cannot get root\n");
+		return 0;
+	}
+	c = *name++;
+	while (c == '/')
+		c = *name++;
+	if (! c && op != 0) {
+		/* Cannot write or delete root directory. */
+		return 0;
+	}
+cloop:
+	/* Here inode contains pointer
+	 * to last component matched. */
+	if (! c)
+		return 1;
+
+	/* If there is another component,
+	 * inode must be a directory. */
+	if ((inode->mode & INODE_MODE_FMT) != INODE_MODE_FDIR) {
+		return 0;
+	}
+
+	/* Gather up dir name into buffer. */
+	cp = &dbuf[0];
+	while (c && c != '/') {
+		if (cp < dbuf + sizeof(dbuf))
+			*cp++ = c;
+		c = *name++;
+	}
+	while (cp < dbuf + sizeof(dbuf))
+		*cp++ = 0;
+	while (c == '/')
+		c = *name++;
+
+	/* Search a directory, 16 bytes per file */
+	for (offset = 0; inode->size - offset >= 16; offset += 16) {
+		if (! lsxfs_inode_read (inode, offset, data, 16)) {
+			fprintf (stderr, "inode %d: read error at offset %ld\n",
+				inode->number, offset);
+			return 0;
+		}
+		inum = data [1] << 8 | data [0];
+		if (inum == 0)
+			continue;
+		if (strncmp (dbuf, data+2, 14) == 0) {
+			/* Here a component matched in a directory.
+			 * If there is more pathname, go back to
+			 * cloop, otherwise return. */
+			if (op == 2 && ! c) {
+				goto delete_file;
+			}
+			if (! lsxfs_inode_get (fs, inode, inum)) {
+				fprintf (stderr, "inode_open(): cannot get inode %d\n", inum);
+				return 0;
+			}
+			goto cloop;
+		}
+	}
+	/* If at the end of the directory,
+	 * the search failed. Report what
+	 * is appropriate as per flag. */
+	if (op == 1 && ! c)
+		goto create_file;
+	return 0;
+
+	/*
+	 * Make a new file.
+	 */
+create_file:
+	dir = *inode;
+	if (! lsxfs_inode_alloc (fs, inode)) {
+		fprintf (stderr, "%s: cannot allocate inode\n", name);
+		return 0;
+	}
+	inode->dirty = 1;
+	inode->mode = (mode & 07777) | INODE_MODE_ALLOC;
+	inode->nlink = 1;
+	inode->uid = 0;
+	inode->gid = 0;
+
+	/* Write a directory entry. */
+	data[0] = inode->number;
+	data[1] = inode->number >> 8;
+	memcpy (data+2, dbuf, 14);
+write_back:
+	if (! lsxfs_inode_write (&dir, offset, data, 16)) {
+		fprintf (stderr, "inode %d: write error at offset %ld\n",
+			inode->number, offset);
+		return 0;
+	}
+	if (! lsxfs_inode_save (&dir, 0)) {
+		fprintf (stderr, "%s: cannot save directory inode\n", name);
+		return 0;
+	}
+	if (! lsxfs_inode_save (inode, 0)) {
+		fprintf (stderr, "%s: cannot save file inode\n", name);
+		return 0;
+	}
+	return 1;
+
+	/*
+	 * Delete file.
+	 */
+delete_file:
+	dir = *inode;
+	if (! lsxfs_inode_get (fs, inode, inum)) {
+		fprintf (stderr, "%s: cannot get inode %d\n", name, inum);
+		return 0;
+	}
+	inode->dirty = 1;
+	inode->nlink--;
+	if (inode->nlink <= 0) {
+		lsxfs_inode_truncate (inode);
+		lsxfs_inode_clear (inode);
+		if (inode->fs->ninode < 100) {
+			inode->fs->inode [inode->fs->ninode++] = inum;
+			inode->fs->dirty = 1;
+		}
+	}
+	memset (data, 0, 16);
+	goto write_back;
+}
+
+/*
+ * Allocate an unused I node
+ * on the specified device.
+ * Used with file creation.
+ * The algorithm keeps up to
+ * 100 spare I nodes in the
+ * super block. When this runs out,
+ * a linear search through the
+ * I list is instituted to pick
+ * up 100 more.
+ */
+int lsxfs_inode_alloc (lsxfs_t *fs, lsxfs_inode_t *inode)
+{
+	int ino;
+
+	for (;;) {
+		if (fs->ninode <= 0) {
+			return 0;
+		}
+		ino = fs->inode[--fs->ninode];
+		if (! lsxfs_inode_get (fs, inode, ino)) {
+			fprintf (stderr, "inode_alloc: cannot get inode %d\n", ino);
+			return 0;
+		}
+		if (inode->mode == 0) {
+			lsxfs_inode_clear (inode);
+			return 1;
+		}
+	}
 }
