@@ -1,3 +1,6 @@
+#ifndef USER_H
+#define USER_H 1
+
 /*
  * The user structure.
  * One allocated per process.
@@ -20,10 +23,7 @@ struct user
 	int	u_cstime[2];		/* sum of childs' stimes */
 	int	u_signal[NSIG];		/* disposition of signals */
 #endif
-#ifndef BGOPTION
-	int	u_fsav[25];		/* save fp registers */
-#endif
-					/* rsav and fsav must be first in structure */
+					/* rsav must be first in structure */
 	char	u_segflg;		/* flag for IO; user or kernel space */
 	char	u_error;		/* return error code */
 	char	u_uid;			/* effective user id */
@@ -106,3 +106,5 @@ extern struct user u;
 #define	EROFS	30
 #define	EMLINK	31
 #define	EPIPE	32
+
+#endif /* USER_H */

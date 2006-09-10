@@ -1,3 +1,6 @@
+#ifndef INODE_H
+#define INODE_H 1
+
 /*
  * The I node is the focus of all
  * file activity in unix. There is a unique
@@ -59,3 +62,5 @@ void wdir();
 int bmap();
 int access();
 #endif
+
+#endif /* INODE_H */

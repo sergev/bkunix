@@ -12,7 +12,7 @@
 #define	INIT	040000
 #define TR	0200
 #define	IENABLE	0100
-#define DONE	040
+#define CSDONE	040
 #define	UNIT	020
 #define	FILLBUF	0
 #define	EMPBUF	02
@@ -61,7 +61,7 @@ fdstart()
 	if((bp->b_flags&B_READ) == 0) {
 		cp = bp->b_addr + (sect << 7);
 		FD->rxcs = FILLBUF | GO;
-		while((FD->rxcs&DONE) == 0) {
+		while((FD->rxcs&CSDONE) == 0) {
 			if(FD->rxcs&TR)
 				FD->rxdb = *cp++;
 		}
@@ -69,7 +69,7 @@ fdstart()
 			panic();
 		}
 	}
-	while((FD->rxcs&DONE) == 0);
+	while((FD->rxcs&CSDONE) == 0);
 	FD->rxcs = (bp->b_dev<<4) | IENABLE | ((bp->b_flags&B_READ)?FDREAD:FDWRITE) | GO;
 	while((FD->rxcs&TR) == 0);
 
@@ -139,7 +139,7 @@ fdintr()
 	if(bp->b_flags&B_READ) {
 		cp = bp->b_addr + (sect << 7);
 		FD->rxcs = EMPBUF | GO;
-		while((FD->rxcs&DONE) == 0) {
+		while((FD->rxcs&CSDONE) == 0) {
 			if(FD->rxcs&TR)
 				*cp++ = FD->rxdb;
 		}

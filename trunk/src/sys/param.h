@@ -1,3 +1,6 @@
+#ifndef PARAM_H
+#define PARAM_H 1
+
 /* comment out EIS if no EIS chip on machine */
 #define EIS		1
 
@@ -109,3 +112,5 @@
 
 void *memcpy();
 void *memset();
+
+#endif /* PARAM_H */

@@ -1,3 +1,6 @@
+#ifndef FILE_H
+#define FILE_H 1
+
 /*
  * One file structure is allocated
  * for each open/creat/pipe call.
@@ -27,3 +30,5 @@ void klopen();
 void klclose();
 void klsgtty();
 #endif
+
+#endif /* FILE_H */
