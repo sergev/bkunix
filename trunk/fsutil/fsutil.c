@@ -120,6 +120,70 @@ void print_inode (lsxfs_inode_t *inode,
 	}
 }
 
+void print_indirect_block (lsxfs_t *fs, unsigned int bno, FILE *out)
+{
+	unsigned short nb;
+	unsigned char data [LSXFS_BSIZE];
+	int i;
+
+	fprintf (out, " [%d]", bno);
+	if (! lsxfs_read_block (fs, bno, data)) {
+		fprintf (stderr, "read error at block %d\n", bno);
+		return;
+	}
+	for (i=0; i<LSXFS_BSIZE-2; i+=2) {
+		nb = data [i+1] << 8 | data [i];
+		if (nb)
+			fprintf (out, " %d", nb);
+	}
+}
+
+void print_double_indirect_block (lsxfs_t *fs, unsigned int bno, FILE *out)
+{
+	unsigned short nb;
+	unsigned char data [LSXFS_BSIZE];
+	int i;
+
+	fprintf (out, " [%d]", bno);
+	if (! lsxfs_read_block (fs, bno, data)) {
+		fprintf (stderr, "read error at block %d\n", bno);
+		return;
+	}
+	for (i=0; i<LSXFS_BSIZE-2; i+=2) {
+		nb = data [i+1] << 8 | data [i];
+		if (nb)
+			print_indirect_block (fs, nb, out);
+	}
+}
+
+void print_inode_blocks (lsxfs_inode_t *inode, FILE *out)
+{
+	int i;
+
+	if ((inode->mode & INODE_MODE_FMT) == INODE_MODE_FCHR ||
+	    (inode->mode & INODE_MODE_FMT) == INODE_MODE_FBLK)
+		return;
+
+	fprintf (out, "    ");
+	if (inode->mode & INODE_MODE_LARG) {
+		for (i=0; i<7; ++i) {
+			if (inode->addr[i] == 0)
+				continue;
+			print_indirect_block (inode->fs, inode->addr[i], out);
+		}
+		if (inode->addr[7] != 0)
+			print_double_indirect_block (inode->fs,
+				inode->addr[7], out);
+	} else {
+		for (i=0; i<8; ++i) {
+			if (inode->addr[i] == 0)
+				continue;
+			fprintf (out, " %d", inode->addr[i]);
+		}
+	}
+	fprintf (out, "\n");
+}
+
 void extract_inode (lsxfs_inode_t *inode, char *path)
 {
 	int fd, n;
@@ -185,8 +249,10 @@ void scanner (lsxfs_inode_t *dir, lsxfs_inode_t *inode,
 	print_inode (inode, dirname, filename, out);
 
 	if (verbose) {
-		lsxfs_inode_print (inode, out);
-		printf ("--------\n");
+		/* Print a list of blocks. */
+		print_inode_blocks (inode, out);
+		/*lsxfs_inode_print (inode, out);*/
+		/*printf ("--------\n");*/
 	}
 	if ((inode->mode & INODE_MODE_FMT) == INODE_MODE_FDIR) {
 		/* Scan subdirectory. */
@@ -219,7 +285,7 @@ void add_file (lsxfs_t *fs, char *name)
 	}
 	for (;;) {
 		len = fread (data, 1, sizeof (data), fd);
-printf ("read %d bytes from %s\n", len, name);
+/*		printf ("read %d bytes from %s\n", len, name);*/
 		if (len < 0)
 			perror (name);
 		if (len <= 0)
@@ -315,6 +381,8 @@ int main (int argc, char **argv)
 		lsxfs_inode_print (&inode, stdout);
 		if (verbose > 1) {
 			printf ("--------\n");
+			printf ("/\n");
+			print_inode_blocks (&inode, stdout);
 			lsxfs_directory_scan (&inode, "", scanner, (void*) stdout);
 		}
 	}

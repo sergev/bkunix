@@ -37,6 +37,7 @@ int lsxfs_block_free (lsxfs_t *fs, unsigned int bno)
 	int i;
 	unsigned short buf [256];
 
+/*	printf ("free block %d, total %d\n", bno, fs->nfree);*/
 	if (fs->nfree >= 100) {
 		buf[0] = lsx_short (fs->nfree);
 		for (i=0; i<100; i++)
@@ -109,6 +110,7 @@ again:
 		return 0;
 	fs->nfree--;
 	*bno = fs->free [fs->nfree];
+/*	printf ("allocate new block %d from slot %d\n", *bno, fs->nfree);*/
 	fs->free [fs->nfree] = 0;
 	fs->dirty = 1;
 	if (fs->nfree <= 0) {
