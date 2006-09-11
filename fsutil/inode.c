@@ -68,7 +68,8 @@ void lsxfs_inode_truncate (lsxfs_inode_t *inode)
 {
 	unsigned short *blk;
 
-	if (inode->mode & (INODE_MODE_FCHR | INODE_MODE_FBLK))
+	if ((inode->mode & INODE_MODE_FMT) == INODE_MODE_FCHR ||
+	    (inode->mode & INODE_MODE_FMT) == INODE_MODE_FBLK)
 		return;
 
 	for (blk = &inode->addr[7]; blk >= &inode->addr[0]; --blk) {
@@ -84,6 +85,8 @@ void lsxfs_inode_truncate (lsxfs_inode_t *inode)
 
 		*blk = 0;
 	}
+	inode->mode &= ~INODE_MODE_LARG;
+	inode->size = 0;
 	inode->dirty = 1;
 }
 
@@ -283,8 +286,7 @@ static unsigned short map_block_write (lsxfs_inode_t *inode, unsigned short lbn)
 			/* convert small to large */
 			if (! lsxfs_block_alloc (inode->fs, &nb))
 				return 0;
-			if (! lsxfs_read_block (inode->fs, nb, block))
-				return 0;
+			memset (block, 0, 512);
 			for (i=0; i<8; i++) {
 				block[i+i] = inode->addr[i];
 				block[i+i+1] = inode->addr[i] >> 8;
@@ -298,8 +300,10 @@ static unsigned short map_block_write (lsxfs_inode_t *inode, unsigned short lbn)
 			goto large;
 		}
 		nb = inode->addr[lbn];
-		if (nb != 0)
+		if (nb != 0) {
+/*			printf ("map logical block %d to physical %d\n", lbn, nb);*/
 			return nb;
+		}
 
 		/* allocate new block */
 		if (! lsxfs_block_alloc (inode->fs, &nb))
@@ -308,36 +312,40 @@ static unsigned short map_block_write (lsxfs_inode_t *inode, unsigned short lbn)
 		inode->dirty = 1;
 		return nb;
 	}
-
+large:
 	/* large file algorithm */
-large:	i = lbn >> 8;
+	i = lbn >> 8;
 	if (i > 7)
 		i = 7;
 	ib = inode->addr[i];
-	if (ib == 0) {
+	if (ib != 0) {
+		if (! lsxfs_read_block (inode->fs, ib, block))
+			return 0;
+	} else {
 		if (! lsxfs_block_alloc (inode->fs, &ib))
 			return 0;
+		memset (block, 0, 512);
 		inode->addr[i] = ib;
 		inode->dirty = 1;
 	}
-	if (! lsxfs_read_block (inode->fs, ib, block))
-		return 0;
 
 	/* "huge" fetch of double indirect block */
 	if (i == 7) {
 		i = ((lbn >> 8) - 7) * 2;
 		nb = block [i+1] << 8 | block [i];
-		if (nb == 0) {
+		if (nb != 0) {
+			if (! lsxfs_read_block (inode->fs, nb, block))
+				return 0;
+		} else {
 			/* allocate new block */
 			if (! lsxfs_block_alloc (inode->fs, &nb))
 				return 0;
+			memset (block, 0, 512);
 			block[i+i] = nb;
 			block[i+i+1] = nb >> 8;
 			if (! lsxfs_write_block (inode->fs, ib, block))
 				return 0;
 		}
-		if (! lsxfs_read_block (inode->fs, nb, block))
-			return 0;
 		ib = nb;
 	}
 
@@ -350,6 +358,7 @@ large:	i = lbn >> 8;
 	/* allocate new block */
 	if (! lsxfs_block_alloc (inode->fs, &nb))
 		return 0;
+/*	printf ("inode %d: allocate new block %d\n", inode->number, nb);*/
 	block[i+i] = nb;
 	block[i+i+1] = nb >> 8;
 	if (! lsxfs_write_block (inode->fs, ib, block))
@@ -406,7 +415,9 @@ int lsxfs_inode_write (lsxfs_inode_t *inode, unsigned long offset,
 			inode->size = offset + n;
 			inode->dirty = 1;
 		}
-printf ("inode %d: write %ld bytes to block %d\n", inode->number, n, bn);
+		if (verbose)
+			printf ("inode %d offset %ld: write %ld bytes to block %d\n",
+				inode->number, offset, n, bn);
 
 		if (n == 512) {
 			if (! lsxfs_write_block (inode->fs, bn, data))

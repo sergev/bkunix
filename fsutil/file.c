@@ -15,6 +15,7 @@ int lsxfs_file_create (lsxfs_t *fs, lsxfs_file_t *file, char *name, int mode)
 		return 0;
 	}
 	lsxfs_inode_truncate (&file->inode);
+	lsxfs_inode_save (&file->inode, 0);
 	file->writable = 1;
 	file->offset = 0;
 	return 1;
