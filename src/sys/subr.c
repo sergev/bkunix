@@ -134,3 +134,36 @@ cpass()
 	u.u_base++;
 	return(c&0377);
 }
+
+void *
+memcpy (pto, pfrom, nbytes)
+	void *pto, *pfrom;
+	unsigned int nbytes;
+{
+	register char *to, *from;
+	register unsigned int bytes;
+
+	if (nbytes == 0)
+		return pto;
+	to = (char*) pto;
+	from = (char*) pfrom;
+	bytes = nbytes;
+
+	if ((int) to & 1) {
+		/* In case of non-even destination - move one byte. */
+		*to++ = *from++;
+		--bytes;
+	}
+	if (! ((int) from & 1)) {
+		/* Both pointers are even - move words. */
+		while (bytes > 1) {
+			*((int*)to) = *((int*)from);
+			to += 2;
+			from += 2;
+			bytes -= 2;
+		}
+	}
+	while (bytes-- > 0)
+		*to++ = *from++;
+	return pto;
+}

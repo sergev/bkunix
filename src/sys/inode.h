@@ -48,7 +48,6 @@ extern struct inode inode[NINODE];
 struct inode *ialloc();
 struct inode *namei();
 struct inode *iget();
-struct inode *owner();
 struct inode *maknode();
 void ifree();
 void openi();

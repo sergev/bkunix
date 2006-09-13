@@ -30,9 +30,8 @@ extern int	user;
 extern int	swflg, swwait;
 #endif
 
-char *copyin();
-char *copyout();
 void *memcpy();
+void *memset();
 void memzero();
 void panic();
 void sleep();

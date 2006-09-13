@@ -1,31 +1,32 @@
 / Copyright 1975 Bell Telephone Laboratories Inc
-/ machine language assist
-/ for LSI-11
+/ machine language assist for LSI-11
 
-/ non-UNIX instructions
-/wait	= 1
-/rti	= 2
-/reset	= 5
+#include "param.h"
 
 	.globl	_u
-_u	= 047000
+
+#if TOPSYS > 040000
 usize	= 8
+#else
+usize	= 3
+#endif
+
+_u	= TOPSYS - usize*64
 
 	.comm	nofault, 2
 	.comm	_user, 2
 
-.if BGOPTION
+#ifdef BGOPTION
 	.globl	_swtch
-.endif
+#endif
+	.globl	_trap
 
-	.globl	emtrap, call, _trap
 /-----------------------
 	.globl	trap
 trap:
 	mfps	-4(sp)
 	tst	nofault
 	bne	1f
-emtrap:
 	jsr	r0,call1
 	.word _trap
 	/ no return
@@ -38,6 +39,8 @@ call1:
 	mtps	(sp)+
 	br	1f
 
+/-----------------------
+	.globl	call
 call:
 	mfps	-(sp)
 1:
@@ -60,22 +63,22 @@ call:
 	mov	-(r1),-(sp)
 	mov	-(r1),-(sp)
 	jsr	pc,*(r0)+
-.if BGOPTION
+#ifdef BGOPTION
 	clr	-(sp)
 	jsr	pc,*$_swtch
 	tst	(sp)+
-.endif
+#endif
 	mov	$0340,-(sp)
 	mtps	(sp)+
 	br	2f
 1:
 	clr	_user
 	jsr	pc,*(r0)+
-.if BGOPTION
+#ifdef BGOPTION
 	clr	-(sp)
 	jsr	pc,*$_swtch
 	tst	(sp)+
-.endif
+#endif
 2:
 	tst	(sp)+
 	mov	(sp)+,r1	/ new user stack pointer
@@ -256,44 +259,6 @@ err:
 	rts	pc
 
 /-----------------------
-	.globl	_copyin
-_copyin:
-	jsr	pc,copsu
-1:
-	mov	(r0)+,(r1)+
-	sob	r2,1b
-	br	2f
-
-/-----------------------
-	.globl	_copyout
-_copyout:
-	jsr	pc,copsu
-1:
-	mov	(r0)+,(r1)+
-	sob	r2,1b
-2:
-	mov	(sp)+,nofault
-	mov	(sp)+,r2
-	clr	r0
-	rts	pc
-copsu:
-	mov	(sp)+,r0
-	mov	r2,-(sp)
-	mov	nofault,-(sp)
-	mov	r0,-(sp)
-	mov	10(sp),r0
-	mov	12(sp),r1
-	mov	14(sp),r2
-	asr	r2
-	mov	$1f,nofault
-	rts	pc
-1:
-	mov	(sp)+,nofault
-	mov	(sp)+,r2
-	mov	$-1,r0
-	rts	pc
-
-/-----------------------
 	.globl	_idle
 _idle:
 	mfps	-(sp)
@@ -424,27 +389,3 @@ _lshift:
 	ashc	4(sp),r0
 	mov	r1,r0
 	rts	pc
-
-/-----------------------
-.if 0 / no csv, cret needed for gcc
-	.globl	csv
-csv:
-	mov	r5,r0
-	mov	sp,r5
-	mov	r4,-(sp)
-	mov	r3,-(sp)
-	mov	r2,-(sp)
-	jsr	pc,(r0)
-
-/-----------------------
-	.globl cret
-cret:
-	mov	r5,r1
-	mov	-(r1),r4
-	mov	-(r1),r3
-	mov	-(r1),r2
-	mov	r5,sp
-	mov	(sp)+,r5
-	rts	pc
-.endif
-/-----------------------
