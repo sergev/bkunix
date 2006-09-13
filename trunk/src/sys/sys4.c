@@ -94,7 +94,8 @@ chmod()
 {
 	register struct inode *ip;
 
-	if ((ip = owner()) == NULL)
+	ip = namei(0);
+	if (ip == NULL)
 		return;
 	ip->i_mode &= ~07777;
 	ip->i_mode |= u.u_arg[1]&07777;

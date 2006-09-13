@@ -41,6 +41,30 @@ int	icode[] = {
 	0000164,
 };
 
+#define TP_STATUS	(*(volatile unsigned char*) 0177564)
+#define TP_BYTE		(*(volatile unsigned char*) 0177566)
+
+void
+debug_putc (int c)
+{
+again:
+	while (! (TP_STATUS & 0x80))
+		continue;
+	TP_BYTE = c;
+
+	if (c == '\n') {
+		c = '\r';
+		goto again;
+	}
+}
+
+void
+debug_puts (char *s)
+{
+	while (*s)
+		debug_putc (*s++);
+}
+
 /*
  * Initialization code.
  * Called from mch.s as
@@ -83,7 +107,9 @@ unixmain()
 	 * make init process
 	 * with system process
 	 */
-	copyout(icode, TOPSYS, sizeof icode);
+debug_puts ("before memcpy\n");
+	memcpy(TOPSYS, icode, sizeof icode);
+debug_puts ("after memcpy\n");
 	/*
 	 * Return goes to loc. 0 of user init
 	 * code just copied out.

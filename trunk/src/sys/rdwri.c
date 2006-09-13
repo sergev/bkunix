@@ -36,38 +36,25 @@ min(a, b)
  * cpass and passc.
  */
 void
-iomove(bp, o, an, flag)
-struct buf *bp;
+iomove(kdata, an, flag)
+	char *kdata;
+	int an, flag;
 {
-	register char *cp;
-	register int n, t;
+	register int n;
 
 	n = an;
-	cp = bp->b_addr + o;
-	if(((n | (int)cp | (int)u.u_base)&01) == 0) {
-		if (flag==B_WRITE)
-			cp = copyin(u.u_base, cp, n);
-		else
-			cp = copyout(cp, u.u_base, n);
-		if (cp) {
-			u.u_error = EFAULT;
-			return;
-		}
-		u.u_base += n;
-		dpadd(u.u_offset, n);
-		u.u_count -= n;
+	if (u.u_base < (char*) TOPSYS ||
+	    (u.u_base + n) > (char*) TOPUSR) {
+		u.u_error = EFAULT;
 		return;
 	}
-	if (flag==B_WRITE) {
-		while(n--) {
-			if ((t = cpass()) < 0)
-				return;
-			*cp++ = t;
-		}
-	} else
-		while (n--)
-			if(passc(*cp++) < 0)
-				return;
+	if (flag==B_WRITE)
+		memcpy (kdata, u.u_base, n);
+	else
+		memcpy (u.u_base, kdata, n);
+	u.u_base += n;
+	dpadd(u.u_offset, n);
+	u.u_count -= n;
 }
 
 /*
@@ -113,7 +100,7 @@ readi(aip)
 			dn = ip->i_addr[0];
 		}
 		bp = bread(dn, bn);
-		iomove(bp, on, n, B_READ);
+		iomove(bp->b_addr + on, n, B_READ);
 		brelse(bp);
 	} while(u.u_error==0 && u.u_count!=0);
 }
@@ -157,7 +144,7 @@ writei(aip)
 		if(n == 512)
 			bp = getblk(dn, bn); else
 			bp = bread(dn, bn);
-		iomove(bp, on, n, B_WRITE);
+		iomove(bp->b_addr + on, n, B_WRITE);
 		if(u.u_error != 0)
 			brelse(bp); else
 		if ((u.u_offset[1]&0777)==0)

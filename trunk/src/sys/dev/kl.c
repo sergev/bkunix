@@ -12,8 +12,8 @@
 #include "tty.h"
 #include "proc.h"
 
-/* base address */
-#define	KLADDR	((struct klregs*) 0177560)	/* console */
+/* console base address */
+#define	KLADDR	((volatile struct klregs*) 0177560)
 #define	NKL11	1
 #define DSRDY	02
 #define	RDRENB	01

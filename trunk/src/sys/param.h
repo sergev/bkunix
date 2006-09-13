@@ -17,7 +17,7 @@
  */
 #define	NPROC	3	/* max number of processes */
 #define	NBLKS	500	/* 256-word blocks per diskette */
-#define	SYSSIZ	8 	/* system size in 1K words */
+#define	SYSSIZ	10 	/* system size in 1K words */
 #define	USRSIZ	12	/* user program size in 1K words */
 #define UCORE	(USRSIZ*32)
 #define TOPSYS	(SYSSIZ*2048)
@@ -87,30 +87,10 @@
 #define	DIRSIZ	14		/* max characters per directory */
 
 /*
- * Certain processor registers
- */
-#define PS	0177776
-#define KL	0177560
-#define SW	0177570
-
-/*
- * Comment out the definition of CLOCK for LSI-11;
- * otherwise, set CLOCK to be 0177546 or 0172540 for the line
- * frequency or programmable clock, respectively.
- * Then recompile main.c and clock.c
- */
-/*
-#define CLOCK	0177546
-*/
-
-/*
  * configuration dependent variables
  */
 #define ROOTDEV 0
 #define SWAPDEV 1
 #define MNTDEV  1
-
-void *memcpy();
-void *memset();
 
 #endif /* PARAM_H */

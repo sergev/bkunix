@@ -5,8 +5,8 @@ CC		= pdp11-gcc -Wall
 AS		= pdp11-as
 LD		= pdp11-ld
 SIZE		= pdp11-size -o
-CFLAGS		= -Os -DKERNEL -I. -fomit-frame-pointer
-LDFLAGS		= -nostdlib
+CFLAGS		= -Os -fomit-frame-pointer -fno-builtin -I. -DKERNEL
+LDFLAGS		= --omagic -e0 -Tpdp11.x
 
 ASRCS		= low.s mch.s
 ASOBJS		= low.o mch.o
@@ -21,36 +21,42 @@ OBJS		= $(ASOBJS) $(COBJS)
 
 vpath %.c . dev
 
-# Parameter settings for for DEC RX11 floppy disks and LSI-11 processor.
-ASFLAGS		= --defsym EIS=1 \
-		  --defsym AED=0 \
-		  --defsym DEC=1 \
-		  --defsym IBMS=1 \
-		  --defsym PER=0 \
-		  --defsym SYK=0 \
-		  --defsym RF=0 \
-		  --defsym KL=1 \
-		  --defsym TVT=0 \
-		  --defsym CLOCK=1 \
-		  --defsym BGOPTION=0
+# System configuration.
+# -DBGOPTION  - background processes
+# -DCLOCK     - set to be 0177546 or 0172540 for the line
+#		frequency or programmable clock, respectively.
+#
+#CPPFLAGS	+= -DCLOCK=0177540
+
+# Configuration of device drivers.
+# -DAED	 - AED 6200lp floppy
+# -DDEC  - DEC floppy
+# -DPER  - PER floppy
+# -DSYK  - Sykes floppy
+# -DRF   - RF floppy
+# -DKL   - KL/DL-11 console
+# -DTVT  - TV terminal
+#
+CPPFLAGS	+= -DDEC -DKL
 CSRCS		+= dev/kl.c dev/decfd.c
 OBJS		+= kl.o decfd.o
 
-all:		lsx lsx1
+all:		lsx #lsx1
 		@echo "Warning: For 10K LSX system, size must be less than 046000"
 		@echo "         for 8k lsx system size must be less than 036500"
-		$(SIZE) lsx lsx1
+		$(SIZE) lsx #lsx1
 
 clean:
-		rm -f *~ dev/*~ *.o lsx a.out
+		rm -f *~ dev/*~ *.o *.s lsx lsx1 a.out lsx.dis
 
 lsx:		$(OBJS)
-		$(LD) -o $@ $(OBJS)
+		$(LD) $(LDFLAGS) -o $@ $(OBJS)
+		pdp11-objdump -D $@ > $@.dis
 
 lsx1:		$(ASOBJS) $(CSRCS)
 		cat $(CSRCS) > kernel.c
-		$(CC) $(CFLAGS) -c kernel.c
-		$(LD) -o $@ $(ASOBJS) kernel.o
+		$(CC) $(CFLAGS) $(CPPFLAGS) -c kernel.c
+		$(LD) $(LDFLAGS) -o $@ $(ASOBJS) kernel.o
 		@rm -f kernel.c
 
 count:		$(ASRCS) $(CSRCS)
@@ -66,6 +72,7 @@ clock.o: clock.c param.h systm.h user.h proc.h
 fio.o: fio.c param.h user.h filsys.h file.h inode.h reg.h
 iget.o: iget.c param.h systm.h user.h inode.h filsys.h buf.h
 main.o: main.c param.h user.h systm.h proc.h inode.h
+mch.s: mch.S param.h
 nami.o: nami.c param.h inode.h user.h systm.h buf.h
 rdwri.o: rdwri.c param.h inode.h user.h buf.h systm.h
 sig.o: sig.c param.h systm.h user.h proc.h inode.h reg.h

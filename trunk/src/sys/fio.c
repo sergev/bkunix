@@ -125,24 +125,6 @@ bad:
 }
 
 /*
- * Look up a pathname and test if
- * the resultant inode is owned by the
- * current user.
- * If not, try for super-user.
- * If permission is granted,
- * return inode pointer.
- */
-struct inode *
-owner()
-{
-	register struct inode *ip;
-
-	if ((ip = namei(0)) == NULL)
-		return(NULL);
-	return(ip);
-}
-
-/*
  * Allocate a user file descriptor.
  */
 int
