@@ -420,13 +420,13 @@ register struct sw *p;
 {
 	register int q;
 
-	q = pselect(m);
+	q = hselect(m);
 	heapsw[n] = p[q];
 	if( q>1 ) makeheap(p, q-1, 2*n);
 	if( q<m ) makeheap(p+q, m-q, 2*n+1);
 }
 
-pselect(m) {
+hselect(m) {
 	register int l,i,k;
 
 	for(i=1; ; i*=2)
