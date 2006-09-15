@@ -17,22 +17,22 @@
 static void
 stat1(ip, ub)
 	struct inode *ip;
-	int ub;
+	int *ub;
 {
 	register int i, *cp;
 	register struct buf *bp;
 
+	if (bad_user_address (ub) || bad_user_address (ub + 18))
+		return;
 	iupdat(ip);
 	bp = bread(ip->i_dev, (ip->i_number + 31) / 16);
 	cp = &(ip->i_dev);
 	for(i=0; i<14; i++) {
-		suword(ub, *cp++);
-		ub += 2;
+		*ub++ = *cp++;
 	}
 	cp = (int*) (bp->b_addr + 32 * ((ip->i_number + 31) & 017) + 24);
 	for(i=0; i<4; i++) {
-		suword(ub, *cp++);
-		ub += 2;
+		*ub++ = *cp++;
 	}
 	brelse(bp);
 }

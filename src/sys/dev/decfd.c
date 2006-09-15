@@ -51,13 +51,13 @@ void
 fdstart()
 {
 	register struct buf *bp;
-	register volatile struct fdregs *FD;
+	register struct fdregs *FD;
 	register char *cp;
 
 	if ((bp = fdtab.d_actf) == 0)
 		return;
 	fdtab.d_active++;
-	FD = (volatile struct fdregs*) FDADR;
+	FD = (struct fdregs*) FDADR;
 	if((bp->b_flags&B_READ) == 0) {
 		cp = bp->b_addr + (sect << 7);
 		FD->rxcs = FILLBUF | GO;
@@ -115,14 +115,14 @@ void
 fdintr()
 {
 	register struct buf *bp;
-	register volatile struct fdregs *FD;
+	register struct fdregs *FD;
 	register char *cp;
 
 	if (fdtab.d_active == 0)
 		return;
 	bp = fdtab.d_actf;
 	fdtab.d_active = 0;
-	FD = (volatile struct fdregs*) FDADR;
+	FD = (struct fdregs*) FDADR;
 	if(FD->rxcs&ERR) {
 /*
 		*hp++ = FD->rxdb;

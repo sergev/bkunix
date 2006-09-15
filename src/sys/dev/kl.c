@@ -13,7 +13,7 @@
 #include "proc.h"
 
 /* console base address */
-#define	KLADDR	((volatile struct klregs*) 0177560)
+#define	KLADDR	((struct klregs*) 0177560)
 #define	NKL11	1
 #define DSRDY	02
 #define	RDRENB	01
@@ -268,10 +268,12 @@ klsgtty(f)
 	a = (int*) u.u_arg[0];
 	a += 2;
 	wflushtty(tp);
+	if (bad_user_address (a))
+		return;
 	if(f)
-		tp->t_flags = fuword(a);
+		tp->t_flags = *a;
 	else
-		suword(a,tp->t_flags);
+		*a = tp->t_flags;
 }
 
 /*

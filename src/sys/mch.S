@@ -3,17 +3,14 @@
 
 #include "param.h"
 
-	.globl	_u
-
 #if TOPSYS > 040000
-usize	= 8
+usize	= 01000
 #else
-usize	= 3
+usize	= 0300
 #endif
+	.globl	_u
+_u	= TOPSYS - usize
 
-_u	= TOPSYS - usize*64
-
-	.comm	nofault, 2
 	.comm	_user, 2
 
 #ifdef BGOPTION
@@ -25,14 +22,9 @@ _u	= TOPSYS - usize*64
 	.globl	trap
 trap:
 	mfps	-4(sp)
-	tst	nofault
-	bne	1f
 	jsr	r0,call1
 	.word _trap
 	/ no return
-1:
-	mov	nofault,(sp)
-	rti
 call1:
 	tst	-(sp)
 	clr	-(sp)
@@ -45,16 +37,16 @@ call:
 	mfps	-(sp)
 1:
 	mov	r1,-(sp)
-	mov	sp,r1	/get stack pointer at trap
+	mov	sp,r1		/ get stack pointer at trap
 	mov	r1,-(sp)
 	add	$10,(sp)
 	mov	4(sp),-(sp)
-	bic	$!37,(sp)	/ trap type
-	cmp	10(sp),$_u+[usize*64]
-	blo	1f	/ trap from system
+	bic	$0340,(sp)	/ trap type
+	cmp	10(sp),$TOPSYS
+	blo	1f		/ trap from system
 	inc	_user
 	mov	2(sp),r1	/ trap from user, get user stack
-	mov	$_u+[usize*64],sp
+	mov	$TOPSYS,sp
 	mov	-(r1),-(sp)	/ copy user stack to system stack
 	mov	-(r1),-(sp)
 	mov	-(r1),-(sp)
@@ -82,16 +74,16 @@ call:
 2:
 	tst	(sp)+
 	mov	(sp)+,r1	/ new user stack pointer
-	cmp	6(sp),$_u+[usize*64]
-	blo	1f	/ return from system trap
-	sub	$10,r1	/ begin. of system stack to be copied to user stack
+	cmp	6(sp),$TOPSYS
+	blo	1f		/ return from system trap
+	sub	$10,r1		/ begin. of system stack to be copied to user stack
 	mov	(sp)+,(r1)+	/ copy system stack to user stack
 	mov	(sp)+,(r1)+
 	mov	(sp)+,(r1)+
 	mov	(sp)+,(r1)+
 	mov	(sp)+,(r1)+
 	sub	$10,r1
-	mov	r1,sp	/ switch to user stack
+	mov	r1,sp		/ switch to user stack
 1:
 	mov	(sp)+,r1
 	tst	(sp)+
@@ -111,7 +103,7 @@ _getc:
 	mov	2(r1),r2	/ first ptr
 	beq	9f		/ empty
 	movb	(r2)+,r0	/ character
-	bic	$!377,r0
+	bic	$0xff00,r0
 	mov	r2,2(r1)
 	dec	(r1)+		/ count
 	bne	1f
@@ -180,82 +172,6 @@ _putc:
 	mov	(sp)+,r3
 	mov	(sp)+,r2
 	mtps	(sp)+
-	rts	pc
-
-/-----------------------
-	.globl	_fubyte
-_fubyte:
-	mov	2(sp),r1
-	bic	$1,r1
-	jsr	pc,gword
-	cmp	r1,2(sp)
-	beq	1f
-	swab	r0
-1:
-	bic	$!377,r0
-	rts	pc
-
-/-----------------------
-	.globl	_subyte
-_subyte:
-	mov	2(sp),r1
-	bic	$1,r1
-	jsr	pc,gword
-	mov	r0,-(sp)
-	cmp	r1,4(sp)
-	beq	1f
-	movb	6(sp),1(sp)
-	br	2f
-1:
-	movb	6(sp),(sp)
-2:
-	mov	(sp)+,r0
-	jsr	pc,pword
-	clr	r0
-	rts	pc
-
-/-----------------------
-	.globl	_fuword
-_fuword:
-	mov	2(sp),r1
-fuword:
-	jsr	pc,gword
-	rts	pc
-
-gword:
-	mfps	-(sp)
-	mov	$0340,-(sp)
-	mtps	(sp)+
-	mov	nofault,-(sp)
-	mov	$err,nofault
-	mov	(r1),r0
-	br	1f
-
-/-----------------------
-	.globl	_suword
-_suword:
-	mov	2(sp),r1
-	mov	4(sp),r0
-suword:
-	jsr	pc,pword
-	rts	pc
-
-pword:
-	mfps	-(sp)
-	mov	$0340,-(sp)
-	mtps	(sp)+
-	mov	nofault,-(sp)
-	mov	$err,nofault
-	mov	r0,(r1)
-1:
-	mov	(sp)+,nofault
-	mtps	(sp)+
-	rts	pc
-err:
-	mov	(sp)+,nofault
-	mtps	(sp)+
-	tst	(sp)+
-	mov	$-1,r0
 	rts	pc
 
 /-----------------------
@@ -360,7 +276,7 @@ start:
 	mov	$_edata,r0
 1:
 	clr	(r0)+
-	cmp	r0,$_u+[usize*64]
+	cmp	r0,$TOPSYS
 	blo	1b
 
 / set up stack pointer
@@ -375,9 +291,9 @@ start:
 / on return, enter user mode at 040000
 
 	jsr	pc,_unixmain
-	mov	$_u+[usize*64]+8192,sp	/ set stack at first 4K of user space
+	mov	$TOPSYS+8192,sp	/ set stack at first 8kbytes of user space
 	clr	-(sp)
-	mov	$_u+[usize*64],-(sp)
+	mov	$TOPSYS,-(sp)
 	rti
 
 /-----------------------

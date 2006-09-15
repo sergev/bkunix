@@ -136,7 +136,7 @@ getblk(dev, blkno)
 		}
 	}
 	if(bdp == NULL)
-		panic();
+		panic("getblk failed");
 	bp = *bdp;
 	if(bp->b_flags&B_DELWRI)
 		bwrite(bp);
@@ -247,17 +247,20 @@ swap(rdflg)
 	int rdflg;
 {
 	register struct proc *p;
-	register int *p1, *p2;
+	register int p1;
+	register int *p2;
 
 	p = &proc[cpid];
 	if(rdflg == B_WRITE) {
-		p1 = *(int**) USTACK;
-		p2 = (int*) (TOPSYS + (u.u_dsize<<6) + ((int) p1 & 077));
-		if(p2 <= p1) {
+		p1 = *(int*) USTACK;
+		p2 = (int*) (TOPSYS + (u.u_dsize<<6) + (p1 & 077));
+		if(p2 <= (int*) p1) {
 			p->p_size = u.u_dsize + USIZE +
-			    ((TOPUSR >> 6) & 01777) - (((int) p1 >> 6) & 01777);
-			while(p1 < (int*) TOPUSR)
-				*p2++ = *p1++;
+			    ((TOPUSR >> 6) & 01777) - ((p1 >> 6) & 01777);
+			while(p1 < TOPUSR) {
+				*p2++ = *((int*)p1);
+				p1 += 2;
+			}
 		} else
 			p->p_size = SWPSIZ<<3;
 	}
@@ -272,11 +275,13 @@ swap(rdflg)
 		sleep(&swbuf, PSWP);
 	spl0();
 	if(rdflg == B_READ) {
-		p1 = (int*) TOPUSR;
+		p1 = TOPUSR;
 		p2 = (p->p_size<<6) + (int*) TOPSYS - (USIZE<<6);
-		if(p2 <= p1)
-			while(p1 >= (int*) USTACK)
-				*--p1 = *--p2;
+		if(p2 <= (int*) p1)
+			while(p1 >= USTACK) {
+				p1 -= 2;
+				*((int*)p1) = *--p2;
+			}
 	}
 	return(swbuf.b_flags&B_ERROR);
 }

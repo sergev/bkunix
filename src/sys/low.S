@@ -71,9 +71,6 @@ kwlp:	jsr	r0,call
 fdintr:	jsr	r0,call
 	.word	_fdintr
 
-	.globl	_panic
-_panic:	halt
-
 /-----------------------
 #ifdef AED
 	.=	init+0170	/ AED 6200lp floppy interrupt handler
