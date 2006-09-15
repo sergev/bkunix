@@ -18,7 +18,7 @@ branch( n ){
 	if( n == retlab && !strftn ){
 		putstr( "	jmp	cret\n" );
 		}
-	else printf( "	jbr	L%d\n", n );
+	else printf( "	br	L%d\n", n );
 	}
 
 int lastloc = { -1 };
@@ -40,6 +40,7 @@ locctr( l ){
 
 	case PROG:
 		putstr( "	.text\n" );
+		putstr( "	.align	2\n" );
 		psline();
 		break;
 
@@ -50,6 +51,7 @@ locctr( l ){
 
 	case STRNG:
 	case ISTRNG:
+		putstr( "	.data\n" );
 		break;
 
 	case STAB:
@@ -93,12 +95,12 @@ efcode(){
 		i = getlab();	/* label for return area */
 #ifndef LCOMM
 		putstr("	.bss\n" );
-		printf("L%d: .=.+%d.\n", i, tsize(t, p->dimoff, p->sizoff)/SZCHAR );
+		printf("L%d: .=.+%d\n", i, tsize(t, p->dimoff, p->sizoff)/SZCHAR );
 		putstr("	.text\n" );
 #else
 		{ int sz = tsize(t, p->dimoff, p->sizoff) / SZCHAR;
-		if (sz % sizeof (int))
-			sz += sizeof (int) - (sz % sizeof (int));
+		if (sz % SIZEOF_INT)
+			sz += SIZEOF_INT - (sz % SIZEOF_INT);
 		printf("	.lcomm	L%d,%d\n", i, sz);
 		}
 #endif
@@ -154,7 +156,7 @@ bfcode( a, n ) int a[]; {
 
 	printf( "	jsr	r5,csv\n" );
 	/* adjust stack for autos */
-	printf( "	sub	$.F%d,sp\n", ftnno );
+	printf( "	sub	$LF%d,sp\n", ftnno );
 
 	off = ARGINIT;
 
@@ -165,7 +167,7 @@ bfcode( a, n ) int a[]; {
 			p->sclass = PARAM;  /* forget that it is a register */
 			p->offset = NOOFFSET;
 			oalloc( p, &off );
-		printf( "	mov	%d.(r5),r%d\n", p->offset/SZCHAR, temp);
+		printf( "	mov	%d(r5),r%d\n", p->offset/SZCHAR, temp);
 			p->offset = temp;  /* remember register number */
 			p->sclass = REGISTER;   /* remember that it is a register */
 			}
@@ -263,7 +265,7 @@ static	int	lastoctal = 0;
 			printf("\"\n\t.ascii\t\"%c", t );
 		}
 		else
-		{	
+		{
 			lastoctal = 0;
 			putchar(t);
 		}
@@ -291,13 +293,14 @@ zecode( n ){
 	register i;
 
 	if( n <= 0 ) return;
-	printf( "	" );
+	printf( "	.word	0" );
 	for( i=1; i<n; i++ ) {
 		if( i%8 == 0 )
-			printf( "\n	" );
-		printf( "0; " );
+			printf( "\n	.word	0" );
+		else
+			printf( ", 0" );
 		}
-	printf( "0\n" );
+	printf( "\n" );
 	temp = n;
 	inoff += temp*SZINT;
 	}
@@ -348,14 +351,14 @@ genswitch(p,n) register struct sw *p;{
 		if( p[1].sval ){
 			printf( "	sub	$" );
 			printf( CONFMT, p[1].sval );
-			printf( ".,r0\n" );
+			printf( ",r0\n" );
 			}
 
 		/* note that this is a cl; it thus checks
 		   for numbers below range as well as out of range.
 		   */
-		printf( "	cmp	r0,$%ld.\n", range );
-		printf( "	jhi	L%d\n", dlab );
+		printf( "	cmp	r0,$%ld\n", range );
+		printf( "	bhi	L%d\n", dlab );
 
 		printf( "	asl	r0\n" );
 		printf( "	jmp	*L%d(r0)\n", swlab );
@@ -368,7 +371,7 @@ genswitch(p,n) register struct sw *p;{
 
 		for( i=1,j=p[1].sval; i<=n; ++j ){
 
-			printf( "	L%d\n", ( j == p[i].sval ) ?
+			printf( "	.word	L%d\n", ( j == p[i].sval ) ?
 				p[i++].slab : dlab );
 			}
 
@@ -406,7 +409,7 @@ genswitch(p,n) register struct sw *p;{
 
 		putstr( "	cmp	r0,$" );
 		printf( CONFMT, p[i].sval );
-		printf( ".\n	jeq	L%d\n", p[i].slab );
+		printf( "\n	beq	L%d\n", p[i].slab );
 		}
 
 	if( p->slab>=0 ) branch( p->slab );
@@ -417,13 +420,13 @@ register struct sw *p;
 {
 	register int q;
 
-	q = select(m);
+	q = pselect(m);
 	heapsw[n] = p[q];
 	if( q>1 ) makeheap(p, q-1, 2*n);
 	if( q<m ) makeheap(p+q, m-q, 2*n+1);
 }
 
-select(m) {
+pselect(m) {
 	register int l,i,k;
 
 	for(i=1; ; i*=2)
@@ -438,17 +441,17 @@ walkheap(start, limit)
 
 
 	if( start > limit ) return;
-	printf("	cmp	r0,$%d.\n",  heapsw[start].sval);
-	printf("	jeq	L%d\n", heapsw[start].slab);
+	printf("	cmp	r0,$%d\n",  heapsw[start].sval);
+	printf("	beq	L%d\n", heapsw[start].slab);
 	if( (2*start) > limit ) {
-		printf("	jbr 	L%d\n", heapsw[0].slab);
+		printf("	br 	L%d\n", heapsw[0].slab);
 		return;
 	}
 	if( (2*start+1) <= limit ) {
 		label = getlab();
-		printf("	jgt	L%d\n", label);
+		printf("	bgt	L%d\n", label);
 	} else
-		printf("	jgt	L%d\n", heapsw[0].slab);
+		printf("	bgt	L%d\n", heapsw[0].slab);
 	walkheap( 2*start, limit);
 	if( (2*start+1) <= limit ) {
 		printf("L%d:\n", label);

@@ -1,6 +1,6 @@
 #if	!defined(lint) && defined(DOSCCS)
 static char *sccsid ="@(#)pftn.c	1.12.1 (2.11BSD GTE) 1/17/95";
-#endif lint
+#endif
 
 # include "pass1.h"
 
@@ -695,7 +695,7 @@ talign( ty, s) register unsigned ty; register s; {
 	/* compute the alignment of an object with type ty, sizeoff index s */
 
 	register i;
-	if( s<0 && ty!=INT && ty!=CHAR && ty!=SHORT && ty!=UNSIGNED && ty!=UCHAR && ty!=USHORT 
+	if( s<0 && ty!=INT && ty!=CHAR && ty!=SHORT && ty!=UNSIGNED && ty!=UCHAR && ty!=USHORT
 #ifdef LONGFIELDS
 		&& ty!=LONG && ty!=ULONG
 #endif
@@ -1059,7 +1059,7 @@ doinit( p ) register NODE *p; {
 		}
 
 	if( iclass == AUTO || iclass == REGISTER ){
-		/* do the initialization and get out, without regard 
+		/* do the initialization and get out, without regard
 		    for filing out the variable with zeros, etc. */
 		bccode();
 		idname = pstk->in_id;
@@ -1141,7 +1141,7 @@ gotscal(){
 		if( pstk->in_fl ) ++ibseen;
 
 		--pstk;
-		
+
 		t = pstk->in_t;
 
 		if( t == STRTY ){
@@ -1400,10 +1400,10 @@ nidcl( p ) NODE *p; { /* handle unitialized declarations */
 		register struct symtab *s = &stab[p->tn.rval];
 		extern int stabLCSYM;
 		int sz = tsize(s->stype, s->dimoff, s->sizoff)/SZCHAR;
-		
+
 		stabLCSYM = 0;
-		if (sz % sizeof (int))
-			sz += sizeof (int) - (sz % sizeof (int));
+		if (sz % SIZEOF_INT)
+			sz += SIZEOF_INT - (sz % SIZEOF_INT);
 		if (s->slevel > 1)
 			printf("	.lcomm	L%d,%d\n", s->offset, sz);
 		else
@@ -1738,7 +1738,7 @@ mknonuniq(idindex) int *idindex; {/* locate a symbol table entry for */
 	return ( sp );
 	}
 
-lookup( name, s) char *name; { 
+lookup( name, s) char *name; {
 	/* look up name: must agree with s w.r.t. STAG, SMOS and SHIDDEN */
 
 	register char *p, *q;

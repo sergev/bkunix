@@ -4,11 +4,6 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifdef LIBC_SCCS
-	<@(#)udiv.s	2.3 (Berkeley) 1/28/87\0>
-	.even
-#endif LIBC_SCCS
-
 /*
  * udiv(lhs::r0, rhs::r1)
  *	unsigned	lhs, rhs;

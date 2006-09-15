@@ -4,11 +4,6 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifdef LIBC_SCCS
-	<@(#)almul.s	2.3 (Berkeley) 1/28/87\0>
-	.even
-#endif LIBC_SCCS
-
 /*
  * almul(lhs, rhs)
  *	long	*lhs, rhs;
@@ -24,13 +19,13 @@ ASENTRY(almul)
 	mov	r2,-(sp)	/ save r2-4
 	mov	r3,-(sp)
 	mov	r4,-(sp)
-	mov	8.(sp),r4	/ r4 = lhs
+	mov	8(sp),r4	/ r4 = lhs
 	mov	2(r4),r2	/ r2 = loint(*lhs)
 	sxt	r1		/ r1 = sxt(loint(*lhs)) - hiint(*lhs)
 	sub	(r4),r1
-	mov	12.(sp),r0	/ r0 = loint(rhs)
+	mov	12(sp),r0	/ r0 = loint(rhs)
 	sxt	r3		/ r3 = sxt(loint(rhs)) - hiint(rhs)
-	sub	10.(sp),r3
+	sub	10(sp),r3
 	mul	r0,r1		/ MAGIC = loint(rhs) * hiint(*lhs)'
 	mul	r2,r3		/       + loint(*lhs) * hiint(rhs)'
 	add	r1,r3

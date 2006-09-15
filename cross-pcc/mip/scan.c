@@ -1,6 +1,6 @@
 #if	!defined(lint) && defined(DOSCCS)
 static char *sccsid ="@(#)scan.c	2.1.1 (2.11BSD GTE) 1/17/95";
-#endif lint
+#endif
 
 # include "pass1.h"
 # include <a.out.h>
@@ -63,7 +63,7 @@ char * lxgcp;
 
 extern int proflg;
 extern int gdebug;
-extern int fpe();
+extern void fpe();
 struct sigvec fpe_sigvec;
 int oldway;		/* allocate storage so lint will compile as well */
 #ifndef LINT
@@ -161,7 +161,7 @@ mainp1( argc, argv ) int argc; char *argv[]; {  /* control multiple files */
 
 	/* dimension table initialization */
 
-	dimtab[NULL] = 0;
+	dimtab[0] = 0;
 	dimtab[CHAR] = SZCHAR;
 	dimtab[INT] = SZINT;
 	dimtab[FLOAT] = SZFLOAT;
@@ -1031,7 +1031,7 @@ lxtitle(){
 			if (ititle[0] == '\0') {
 				cp = ftitle;
 				cq = ititle;
-				while ( *cp )  
+				while ( *cp )
 					*cq++ = *cp++;
 				*cq = '\0';
 				*--cq = '\0';

@@ -1,78 +1,61 @@
 #
-# Copyright (c) 1987 Regents of the University of California.
-# All rights reserved.  The Berkeley software License Agreement
-# specifies the terms and conditions for redistribution.
+# Compile PCC run time library.
 #
-#	@(#)Makefile	5.7.1 (2.11BSD GTE) 4/9/94
-#
-#
-SRCS=	aldiv.s almul.s alrem.s csv.s ldiv.s lmul.s lrem.s udiv.s \
-	uldiv.s ulrem.s ulsh.s ultof.s
-OBJS=	aldiv.o almul.o alrem.o csv.o ldiv.o lmul.o lrem.o udiv.o \
-	uldiv.o ulrem.o ulsh.o ultof.o
+DESTDIR		= /usr/local/lib/pdp11
+CC		= pdp11-pcc
+AS		= pdp11-as
+STRIP		= pdp11-strip
+RANLIB		= pdp11-ranlib
+CPP		= cpp
+CFLAGS		= -O
+CPPFLAGS	=
 
-CFLAGS=	-O ${DEFS}
-TAGSFILE=tags
+SRCS		= aldiv.S almul.S alrem.S csv.S ldiv.S lmul.S lrem.S udiv.S \
+		  uldiv.S ulrem.S ulsh.S
+OBJS		= aldiv.o csv.o almul.o alrem.o ldiv.o lmul.o lrem.o udiv.o \
+		  uldiv.o ulrem.o ulsh.o
 
-.s.o:
-	/lib/cpp -E -DPROF ${DEFS} $< | sed -e 's;^#;/;' | as -V -o $@
-	-ld -X -r $*.o
-	mv a.out profiled/$*.o
-	/lib/cpp -E ${DEFS} $< | sed -e 's;^#;/;' | as -V -o $@
-	-ld -x -r $*.o
-	mv a.out $*.o
+all:		libpcc.a
 
-.c.o:
-	cc -p -c ${CFLAGS} $*.c
-	-ld -X -r $*.o
-	mv a.out profiled/$*.o
-	cc -c ${CFLAGS} $*.c
-	-ld -x -r $*.o
-	mv a.out $*.o
-
-crtlib crtlib_p: ${OBJS}
-	@echo "building profiled crtlib"
-	@cd profiled; ar cru ../crtlib_p ${OBJS}
-	@echo "building normal crtlib"
-	@ar cru crtlib ${OBJS}
-
-tags:
+install:	all
+		[ -d ${DESTDIR} ] || install -d ${DESTDIR}
+		install libpcc.a ${DESTDIR}/libpcc.a
+		${RANLIB} ${DESTDIR}/libpcc.a
 
 clean:
-	rm -f *.o profiled/*.o errs a.out core crtlib crtlib_p \
-		tags Makefile.bak
+		rm -f *~ *.o a.out core libpcc.a
+
+
+libpcc.a:	${OBJS}
+		ar cru libpcc.a ${OBJS}
+
+.S.o:
+		${CPP} -E ${CPPFLAGS} $< | $(AS) -o $@
+		@${STRIP} -x $*.o
 
 depend:
-	for i in ${SRCS}; do \
-	    cc -M ${CFLAGS} $$i | awk ' { if ($$1 != prev) \
-		{ if (rec != "") print rec; rec = $$0; prev = $$1; } \
-		else { if (length(rec $$2) > 78) { print rec; rec = $$0; } \
-		else rec = rec " " $$2 } } \
-		END { print rec } ' >> makedep; done
-	echo '/^# DO NOT DELETE THIS LINE/+2,$$d' >eddep
-	echo '$$r makedep' >>eddep
-	echo 'w' >>eddep
-	cp Makefile Makefile.bak
-	ed - Makefile < eddep
-	rm eddep makedep
-	echo '# DEPENDENCIES MUST END AT END OF FILE' >> Makefile
-	echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY' >> Makefile
-	echo '# see make depend above' >> Makefile
+		@cp Makefile Makefile~~
+		(sed '/^### DO NOT DELETE THIS LINE/,$$d' Makefile;\
+		echo '### DO NOT DELETE THIS LINE';\
+		gcc -MM $(CPPFLAGS) *.S |\
+		sed ':1;/\.o: .* \\/{;N;s/ *\\\n */ /;};s/ \/[^ ]*h */ /;t1';\
+		echo '# DEPENDENCIES MUST END AT END OF FILE';\
+		echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY';\
+		echo '# see make depend above') > Makefile~ &&\
+		mv Makefile~ Makefile
 
-# DO NOT DELETE THIS LINE -- make depend uses it
-
-aldiv.o: aldiv.s ./DEFS.h
-almul.o: almul.s ./DEFS.h
-alrem.o: alrem.s ./DEFS.h
-csv.o: csv.s ./DEFS.h
-ldiv.o: ldiv.s ./DEFS.h
-lmul.o: lmul.s ./DEFS.h
-lrem.o: lrem.s ./DEFS.h
-udiv.o: udiv.s ./DEFS.h
-uldiv.o: uldiv.s ./DEFS.h
-ulrem.o: ulrem.s ./DEFS.h
-ulsh.o: ulsh.s ./DEFS.h
-ultof.o: ultof.s ./DEFS.h
+### DO NOT DELETE THIS LINE
+aldiv.o: aldiv.S DEFS.h
+almul.o: almul.S DEFS.h
+alrem.o: alrem.S DEFS.h
+csv.o: csv.S DEFS.h
+ldiv.o: ldiv.S DEFS.h
+lmul.o: lmul.S DEFS.h
+lrem.o: lrem.S DEFS.h
+udiv.o: udiv.S DEFS.h
+uldiv.o: uldiv.S DEFS.h
+ulrem.o: ulrem.S DEFS.h
+ulsh.o: ulsh.S DEFS.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
 # see make depend above

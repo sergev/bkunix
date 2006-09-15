@@ -1,6 +1,6 @@
 #if	!defined(lint) && defined(DOSCCS)
 static char *sccsid ="@(#)xdefs.c	4.3 (Berkeley) 3/19/85";
-#endif lint
+#endif
 
 # include "pass1.h"
 
@@ -29,7 +29,7 @@ int	curclass,	  /* current storage class */
 	stwart,		/* for accessing names which are structure members or names */
 	blevel,		/* block level: 0 for extern, 1 for ftn args, >=2 inside function */
 	curdim;		/* current offset into the dimension table */
-	
+
 OFFSZ	dimtab[ DIMTABSZ ];	/* same comments as below.  bit addressing
 				 * everything forces this to be large.
 				*/

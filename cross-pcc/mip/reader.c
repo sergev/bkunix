@@ -1,6 +1,6 @@
 #if	!defined(lint) && defined(DOSCCS)
 static char *sccsid ="@(#)reader.c	4.4.1 (2.11BSD GTE) 1/17/94";
-#endif lint
+#endif
 
 # include "pass2.h"
 
@@ -544,7 +544,7 @@ order(p,cook) NODE *p; {
 	p1 = p->in.left;
 	if( ty == BITYPE ) p2 = p->in.right;
 	else p2 = NIL;
-	
+
 # ifndef BUG4
 	if( odebug ){
 		printf( "order( %o, ", p );
@@ -1330,4 +1330,3 @@ canon(p) NODE *p; {
 	walkf( p, sucomp );  /* do the Sethi-Ullman computation */
 
 	}
-

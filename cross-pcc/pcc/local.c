@@ -141,7 +141,7 @@ clocal(p) NODE *p; {
 				if( ml==LONG || ml==ULONG ) break;
 				}
 			else if( m==INT || m==UNSIGNED ){
-				if( ml==LONG || ml==ULONG ) break;
+				if( ml==LONG || ml==ULONG || (ml & TMASK)) break;
 				}
 			else if( m==LONG || m==ULONG ){
 				if( ml!=LONG && ml!= ULONG ) break;
@@ -191,7 +191,7 @@ clocal(p) NODE *p; {
 
 		if( p->in.left->in.op == UNARY MUL
 				&& (r=p->in.left->in.left)->in.op == PCONV)
-			if( r->in.left->in.op == PLUS || r->in.left->in.op == MINUS ) 
+			if( r->in.left->in.op == PLUS || r->in.left->in.op == MINUS )
 				if( ISPTR(r->in.type) ) {
 					if( ISUNSIGNED(p->in.left->in.type) )
 						p->in.left->in.type = UCHAR;
@@ -262,7 +262,7 @@ incode( p, sz ) register NODE *p; {
 	inwd += sz;
 	inoff += sz;
 	if(inoff%SZINT == 0) {
-		printf( "	%o\n", word);
+		printf( "	.word	%d\n", word);
 		word = inwd = 0;
 		}
 	}
@@ -276,9 +276,9 @@ fincode( d, sz ) double d; {
 	register int *mi = (int *)&d;
 
 	if( sz==SZDOUBLE )
-		printf( "	%o; %o; %o; %o\n", mi[0], mi[1], mi[2], mi[3] );
+		printf( "	.word	%d, %d, %d, %d\n", mi[0], mi[1], mi[2], mi[3] );
 	else
-		printf( "	%o; %o\n", mi[0], mi[1] );
+		printf( "	.word	%d, %d\n", mi[0], mi[1] );
 	inoff += sz;
 	}
 
@@ -322,7 +322,7 @@ vfdzero( n ){ /* define n bits of zeros in a vfd */
 	inwd += n;
 	inoff += n;
 	if( inoff%ALINT ==0 ) {
-		printf( "	%o\n", word );
+		printf( "	.word	%d\n", word );
 		word = inwd = 0;
 		}
 	}
@@ -384,7 +384,7 @@ commdec( id ){ /* make a common declaration for id, if reasonable */
 	printf( "	.comm	%s,", exname( q->sname ) );
 	off = tsize( q->stype, q->dimoff, q->sizoff );
 	printf( CONFMT, off/SZCHAR );
-	printf( ".\n" );
+	printf( "\n" );
 	}
 
 isitlong( cb, ce ){ /* is lastcon to be long or short */
@@ -421,13 +421,13 @@ ecode( p ) NODE *p; {
 	}
 
 #ifndef ONEPASS
-tlen(p) NODE *p; 
+tlen(p) NODE *p;
 {
 	switch(p->in.type) {
 		case CHAR:
 		case UCHAR:
 			return(1);
-			
+
 		case LONG:
 		case ULONG:
 		case FLOAT:
@@ -435,7 +435,7 @@ tlen(p) NODE *p;
 
 		case DOUBLE:
 			return(8);
-			
+
 		default:
 			return(2);
 		}

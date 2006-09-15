@@ -113,7 +113,7 @@
 # define	PCC_INLINE	61	/* inline function */
 /* no ASG */
 # define	PCC_UINLINE	63	/* inline with no arguments */
-# endif INLINE
+# endif /* INLINE */
 
 /*
  * Referencing and dereferencing.
@@ -179,7 +179,7 @@
 # define	PCCF_FARIF	156	/* not implemented */
 # define	PCCF_FLABEL	157	/* an f77 label */
 
-# endif	PCC_TOKENS
+# endif	/* PCC_TOKENS */
 
 
 /*

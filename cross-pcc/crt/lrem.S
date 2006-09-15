@@ -4,11 +4,6 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifdef LIBC_SCCS
-	<@(#)lrem.s	2.4 (GTE) 12/26/92\0>
-	.even
-#endif LIBC_SCCS
-
 /*
  * lrem(lhs, rhs)
  *	long	lhs, rhs;
@@ -18,37 +13,6 @@
  */
 #include "DEFS.h"
 
-#if !defined(KERNEL)
-/*
- * Lrem for floating point hardware.  Check for divide by zero.  Don't want
- * floating point divide trap in integer math.
- */
-
-#define	one	040200
-
-ASENTRY(lrem)
-	tst	6(sp)		/ divide by zero check
-	bne	1f
-	tst	8.(sp)
-	bne	1f
-	mov	2(sp),r0
-	mov	4(sp),r1	/ return lhs
-	rts	pc
-1:
-	setl
-	movif	2(sp),fr0	/ fr0 = lhs
-	movf	fr0,fr2		/ fr2 = lhs
-	movif	6(sp),fr3	/ fr3 = rhs
-	divf	fr3,fr0		/ fr0 = lhs/rhs
-	modf	$one,fr0	/ fr0 = integer((lhs/rhs) * 1.0)
-	mulf	fr3,fr1		/ fr0 = integer(lhs/rhs) * rhs
-	subf	fr1,fr2		/ fr2 = lhs - (integer(*lhs/rhs) * rhs)
-	movfi	fr2,-(sp)	/ (result)
-	mov	(sp)+,r0
-	mov	(sp)+,r1
-	seti
-	rts	pc
-#else
 /*
  * Lrem for fixed point hardware.
  */
@@ -60,16 +24,16 @@ ASENTRY(lrem)
 	mov	r2,-(sp)	/ faster than csv/cret ...
 	mov	r3,-(sp)
 	mov	r4,-(sp)
-	mov	14.(sp),r3	/ r3 = loint(rhs)
+	mov	14(sp),r3	/ r3 = loint(rhs)
 	sxt	r4		/ r4 = sign(rhs)
 	bpl	1f		/ if (int)loint(rhs) < 0
 	neg	r3		/   r3 = asb(loint(rhs))
 1:
-	cmp	r4,12.(sp)	/ hiint(rhs) all sign bits?
+	cmp	r4,12(sp)	/ hiint(rhs) all sign bits?
 	bne	hardlrem	/   no, rhs >= 2^15
 
-	mov	10.(sp),r2	/ r2 = loint(lhs)
-	mov	8.(sp),r1	/ r1 = hiint(lhs)
+	mov	10(sp),r2	/ r2 = loint(lhs)
+	mov	8(sp),r1	/ r1 = hiint(lhs)
 	bge	2f		/ if lhs < 0
 	negl(r1, r2)		/   r1:r2 = abs(lhs)
 2:
@@ -125,7 +89,7 @@ ASENTRY(lrem)
 	beq	4f		/   otherwise add loint(rhs)
 	add	r3,r1
 3:
-	tst	8.(sp)		/ if lhs < 0  (result always sign of lhs)
+	tst	8(sp)		/ if lhs < 0  (result always sign of lhs)
 	bpl	4f		/   rem = -rem
 	neg	r1
 4:
@@ -165,17 +129,17 @@ ret:
  * r1:r2 ...
  */
 hardlrem:
-	mov	10.(sp),r2	/ r2 = loint(lhs)
-	mov	8.(sp),r1	/ r1 = hiint(lhs)
+	mov	10(sp),r2	/ r2 = loint(lhs)
+	mov	8(sp),r1	/ r1 = hiint(lhs)
 	bpl	1f		/ if lhs < 0
 	negl(r1, r2)		/   r1:r2 = abs(lhs)
 1:
-	mov	12.(sp),r3	/ r3 = hiint(rhs)
+	mov	12(sp),r3	/ r3 = hiint(rhs)
 	bge	2f		/ if rhs < 0
-	negl(r3, 14.(sp))	/   rhs = -rhs (r3:loint(rhs))
+	negl(r3, 14(sp))	/   rhs = -rhs (r3:loint(rhs))
 2:
 	clr	r0		/ clear top of shift register
-	mov	$16.,r4		/ loop 16 times
+	mov	$16,r4		/ loop 16 times
 3:
 	clc			/ shift combined shift register and quotient
 	rol	r2		/   left one place
@@ -184,13 +148,13 @@ hardlrem:
 	cmp	r3,r0		/ How do r0:r1 (hi_sreg) and rhs compare?
 	bgt	4f
 	blt	5f
-	cmp	14.(sp),r1
+	cmp	14(sp),r1
 	blos	5f
 4:
 	sob	r4,3b		/ r0:r1 (hi_sreg) < rhs:
 	br	6f		/   just loop
 5:
-	sub	14.(sp),r1	/ r0:r1 (hi_sreg) >= rhs
+	sub	14(sp),r1	/ r0:r1 (hi_sreg) >= rhs
 	sbc	r0		/   subtract rhs from r0:r1 (hi_sreg)
 	sub	r3,r0
 	sob	r4,3b		/   and loop
@@ -199,4 +163,3 @@ hardlrem:
 	bge	ret		/   return immediately
 	negl(r0, r1)		/ else negate answer before returning
 	br	ret
-#endif
