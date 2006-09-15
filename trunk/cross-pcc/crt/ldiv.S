@@ -4,11 +4,6 @@
  * specifies the terms and conditions for redistribution.
  */
 
-#ifdef LIBC_SCCS
-	<@(#)ldiv.s	2.4 (GTE) 12/26/92\0>
-	.even
-#endif LIBC_SCCS
-
 /*
  * ldiv(lhs, rhs)
  *	long	lhs, rhs;
@@ -18,30 +13,6 @@
  */
 #include "DEFS.h"
 
-#if !defined(KERNEL)
-/*
- * Ldiv for floating point hardware.  Check for divide by zero.  Don't want
- * floating divide trap in integer math.
- */
-ASENTRY(ldiv)
-	tst	6(sp)		/ divide by zero check
-	bne	1f
-	tst	8.(sp)
-	bne	1f
-	mov	2(sp),r0
-	mov	4(sp),r1	/ return lhs
-	rts	pc
-1:
-	setl
-	movif	2(sp),fr0	/ fr0 = lhs
-	movif	6(sp),fr1	/ fr1 = rhs
-	divf	fr1,fr0		/ fr0 /= rhs
-	movfi	fr0,-(sp)
-	mov	(sp)+,r0	/ return result
-	mov	(sp)+,r1
-	seti
-	rts	pc
-#else
 /*
  * Ldiv for fixed point hardware.
  */
@@ -53,16 +24,16 @@ ASENTRY(ldiv)
 	mov	r2,-(sp)	/ faster than csv/cret ...
 	mov	r3,-(sp)
 	mov	r4,-(sp)
-	mov	14.(sp),r3	/ r3 = loint(rhs)
+	mov	14(sp),r3	/ r3 = loint(rhs)
 	sxt	r4		/ r4 = sign(rhs)
 	bpl	1f		/ if (int)loint(rhs) < 0
 	neg	r3		/   r3 = asb(loint(rhs))
 1:
-	cmp	r4,12.(sp)	/ hiint(rhs) all sign bits?
+	cmp	r4,12(sp)	/ hiint(rhs) all sign bits?
 	bne	hardldiv	/   no, rhs >= 2^15
 
-	mov	10.(sp),r2	/ r2 = loint(lhs)
-	mov	8.(sp),r1	/ r1 = hiint(lhs)
+	mov	10(sp),r2	/ r2 = loint(lhs)
+	mov	8(sp),r1	/ r1 = hiint(lhs)
 	bge	2f		/ if lhs < 0
 	negl(r1, r2)		/   r1:r2 = abs(lhs)
 	com	r4		/   invert sign of result
@@ -177,19 +148,19 @@ ret:
  * after the shift in the loop) ...
  */
 hardldiv:
-	mov	10.(sp),r1	/ r1 = loint(lhs)
-	mov	8.(sp),r0	/ r0 = hiint(lhs)
+	mov	10(sp),r1	/ r1 = loint(lhs)
+	mov	8(sp),r0	/ r0 = hiint(lhs)
 	sxt	-(sp)		/ flag = sign(lhs)
 	bpl	1f		/ if lhs < 0
 	negl(r0, r1)		/   r0:r1 = abs(lhs)
 1:
-	mov	14.(sp),r3	/ r3 = hiint(rhs)
+	mov	14(sp),r3	/ r3 = hiint(rhs)
 	bge	2f		/ if rhs < 0
-	negl(r3, 16.(sp))	/   rhs = -rhs (r3:loint(rhs))
+	negl(r3, 16(sp))	/   rhs = -rhs (r3:loint(rhs))
 	com	(sp)		/   flag = !flag
 2:
 	clr	r2		/ clear top of shift register
-	mov	$16.,r4		/ loop 16 times
+	mov	$16,r4		/ loop 16 times
 3:
 	clc			/ shift combined shift register and quotient
 	rol	r1		/   left one place
@@ -198,13 +169,13 @@ hardldiv:
 	cmp	r3,r2		/ How do r2:r0 (hi_sreg) and rhs compare?
 	bgt	4f
 	blt	5f
-	cmp	16.(sp),r0
+	cmp	16(sp),r0
 	blos	5f
 4:
 	sob	r4,3b		/ r2:r0 (hi_sreg) < rhs:
 	br	6f		/   just loop
 5:
-	sub	16.(sp),r0	/ r2:r0 (hi_sreg) >= rhs
+	sub	16(sp),r0	/ r2:r0 (hi_sreg) >= rhs
 	sbc	r2		/   subtract rhs from r2:r0 (hi_sreg)
 	sub	r3,r2
 	inc	r1		/   set bit in quotient
@@ -214,4 +185,3 @@ hardldiv:
 	tst	(sp)+		/ test negative flag
 	bge	ret		/   and head off to the appropriate return
 	br	negret
-#endif

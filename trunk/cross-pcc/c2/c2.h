@@ -7,6 +7,8 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define	MAXCPS	32
 
@@ -89,7 +91,7 @@ struct node {
 	int	refc;
 };
 
-struct optab {
+extern struct optab {
 	char	*opstring;
 	int	opcode;
 } optab[];
@@ -123,7 +125,7 @@ char	*lastr;
 char	*alasta;
 char	*alastr;
 char	*firstr;
-char	revbr[];
+extern char	revbr[];
 char	regs[12][MAXCPS + 1];
 char	conloc[MAXCPS + 1];
 char	conval[MAXCPS + 1];
@@ -145,3 +147,10 @@ struct	node *insertl();
 struct	node *codemove();
 char	*sbrk();
 char	*alloc();
+void	movedat();
+void	clearreg();
+void	rmove();
+int	jumpsw();
+void	addsob();
+void	decref();
+int	equop();

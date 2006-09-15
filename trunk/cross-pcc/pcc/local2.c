@@ -21,7 +21,7 @@ eobl2(){
 	if( spoff >= AUTOINIT ) spoff -= AUTOINIT;
 	spoff /= SZCHAR;
 	SETOFF(spoff,2);
-	printf( "	.F%d = %ld.\n", ftnno, spoff );
+	printf( "	LF%d = %ld\n", ftnno, spoff );
 	if( fltused ) {
 		fltused = 0;
 		printf( "	.globl	fltused\n" );
@@ -78,13 +78,13 @@ int rstatus[] = {
 	SBREG, SBREG,
 	};
 
-tlen(p) NODE *p; 
+tlen(p) NODE *p;
 {
 	switch(p->in.type) {
 		case CHAR:
 		case UCHAR:
 			return(1);
-			
+
 		case LONG:
 		case ULONG:
 		case FLOAT:
@@ -92,7 +92,7 @@ tlen(p) NODE *p;
 
 		case DOUBLE:
 			return(8);
-			
+
 		default:
 			return(2);
 		}
@@ -173,7 +173,7 @@ zzzcode( p, c ) NODE *p; {
 					m = 0100000;
 					m >>= s;  /* sign extends... */
 					m <<= 1;
-					printf( "	bic	$%o,r%d\n", m, r );
+					printf( "	bic	$%d,r%d\n", m, r );
 					}
 				return;
 				}
@@ -191,7 +191,7 @@ zzzcode( p, c ) NODE *p; {
 
 			printf( "	mov	$100000,r%d\n", r );
 			if( l ) printf( "	clr	r%d\n", r+1 );
-			
+
 			/* shift (arithmetically ) */
 			if( l ) expand( q, RNOP, "	ashc	AR" );
 			else expand( q, RNOP, "	ash	AR" );
@@ -255,7 +255,7 @@ zzzcode( p, c ) NODE *p; {
 			unsigned hi, lo;
 			lo = p->in.left->tn.lval & BITMASK(SZINT);
 			hi = ( p->in.left->tn.lval >> SZINT ) & BITMASK(SZINT);
-			printf( "	%o; %o\n", hi, lo );
+			printf( "	.word	%d, %d\n", hi, lo );
 			return;
 		}
 
@@ -347,7 +347,8 @@ zzzcode( p, c ) NODE *p; {
 	}
 
 rmove( rt, rs, t ) TWORD t; {
-	printf( "	%s	%s,%s\n", (t==FLOAT||t==DOUBLE)?"movf":"mov", rnames[rs], rnames[rt] );
+	printf( "	%s	%s,%s\n",
+		(t==FLOAT||t==DOUBLE)?"movf":"mov", rnames[rs], rnames[rt] );
 	}
 
 struct respref
@@ -565,7 +566,7 @@ adrput( p ) register NODE *p; {
 		if( p->tn.rval == R5 ){  /* in the argument region */
 			if( p->in.name[0] != '\0' ) werror( "bad arg temp" );
 			printf( CONFMT, p->tn.lval );
-			putstr( ".(r5)" );
+			putstr( "(r5)" );
 			return;
 			}
 		if( p->tn.lval != 0 || p->in.name[0] != '\0' ) acon( p );
@@ -621,7 +622,6 @@ acon( p ) register NODE *p; { /* print out a constant */
 
 	if( p->in.name[0] == '\0' ){	/* constant only */
 		printf( CONFMT, p->tn.lval);
-		printf( "." );
 		}
 	else if( p->tn.lval == 0 ) {	/* name only */
 #ifndef FLEXNAMES
@@ -635,9 +635,9 @@ acon( p ) register NODE *p; { /* print out a constant */
 		printf( "%.8s+", p->in.name );
 #else
 		putstr( p->in.name );
+		putstr( "+" );
 #endif
 		printf( CONFMT, p->tn.lval );
-		printf( "." );
 		}
 	}
 
@@ -683,22 +683,22 @@ popargs( size ) register size; {
 		printf( "	cmp	(sp)+,(sp)+\n" );
 		break;
 	default:
-		printf( "	add	$%d.,sp\n", size);
+		printf( "	add	$%d,sp\n", size);
 		}
 	}
 
 char *
 ccbranches[] = {
-	"	jeq	L%d\n",
-	"	jne	L%d\n",
-	"	jle	L%d\n",
-	"	jlt	L%d\n",
-	"	jge	L%d\n",
-	"	jgt	L%d\n",
-	"	jlos	L%d\n",
-	"	jlo	L%d\n",
-	"	jhis	L%d\n",
-	"	jhi	L%d\n",
+	"	beq	L%d\n",
+	"	bne	L%d\n",
+	"	ble	L%d\n",
+	"	blt	L%d\n",
+	"	bge	L%d\n",
+	"	bgt	L%d\n",
+	"	blos	L%d\n",
+	"	blo	L%d\n",
+	"	bhis	L%d\n",
+	"	bhi	L%d\n",
 	};
 
 /*	long branch table
@@ -740,7 +740,7 @@ cbgen( o, lab, mode ) { /*   printf conditional and unconditional branches */
 	register *plb;
 	int lab1f;
 
-	if( o == 0 ) printf( "	jbr	L%d\n", lab );
+	if( o == 0 ) printf( "	br	L%d\n", lab );
 	else	if( o > UGT ) cerror( "bad conditional branch: %s", opst[o] );
 	else {
 		switch( brcase ) {

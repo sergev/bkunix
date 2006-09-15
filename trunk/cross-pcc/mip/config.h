@@ -36,6 +36,6 @@
 
 /* in case anyone still uses fixed length names */
 #ifndef FLEXNAMES
-#define	NCHNAM		8		/* significant chars of identifier */
+#define	NCHNAM		32		/* significant chars of identifier */
 #endif
 #endif

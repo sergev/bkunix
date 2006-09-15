@@ -7,62 +7,63 @@
 #include "c2.h"
 
 struct optab optab[] = {
-	"jbr",	JBR,
-	"jeq",	CBR | JEQ<<8,
-	"jne",	CBR | JNE<<8,
-	"jle",	CBR | JLE<<8,
-	"jge",	CBR | JGE<<8,
-	"jlt",	CBR | JLT<<8,
-	"jgt",	CBR | JGT<<8,
-	"jlo",	CBR | JLO<<8,
-	"jhi",	CBR | JHI<<8,
-	"jlos",	CBR | JLOS<<8,
-	"jhis",	CBR | JHIS<<8,
-	"jpl",	CBR | JPL << 8,
-	"jmi",	CBR | JMI << 8,
-	"jmp",	JMP,
-	".globl",EROU,
-	"mov",	MOV,
-	"clr",	CLR,
-	"com",	COM,
-	"inc",	INC,
-	"dec",	DEC,
-	"neg",	NEG,
-	"tst",	TST,
-	"asr",	ASR,
-	"asl",	ASL,
-	"sxt",	SXT,
-	"cmp",	CMP,
-	"add",	ADD,
-	"sub",	SUB,
-	"bit",	BIT,
-	"bic",	BIC,
-	"bis",	BIS,
-	"mul",	MUL,
-	"div",	DIV,
-	"ash",	ASH,
-	"xor",	XOR,
-	".text",TEXT,
-	".data",DATA,
-	".bss",	BSS,
-	".even",EVEN,
-	"movf",	MOVF,
-	"movof",MOVOF,
-	"movfo",MOVFO,
-	"addf",	ADDF,
-	"subf",	SUBF,
-	"divf",	DIVF,
-	"mulf",	MULF,
-	"clrf",	CLRF,
-	"cmpf",	CMPF,
-	"negf",	NEGF,
-	"tstf",	TSTF,
-	"cfcc",	CFCC,
-	"sob",	SOB,
-	"jsr",	JSR,
-	"swab",	SWAB,
-	".end",	END,
-	0,	0};
+	{ "br",		JBR, },
+	{ "beq",	CBR | JEQ<<8, },
+	{ "bne",	CBR | JNE<<8, },
+	{ "ble",	CBR | JLE<<8, },
+	{ "bge",	CBR | JGE<<8, },
+	{ "blt",	CBR | JLT<<8, },
+	{ "bgt",	CBR | JGT<<8, },
+	{ "blo",	CBR | JLO<<8, },
+	{ "bhi",	CBR | JHI<<8, },
+	{ "blos",	CBR | JLOS<<8, },
+	{ "bhis",	CBR | JHIS<<8, },
+	{ "bpl",	CBR | JPL << 8, },
+	{ "bmi",	CBR | JMI << 8, },
+	{ "jmp",	JMP, },
+	{ ".globl",	EROU, },
+	{ "mov",	MOV, },
+	{ "clr",	CLR, },
+	{ "com",	COM, },
+	{ "inc",	INC, },
+	{ "dec",	DEC, },
+	{ "neg",	NEG, },
+	{ "tst",	TST, },
+	{ "asr",	ASR, },
+	{ "asl",	ASL, },
+	{ "sxt",	SXT, },
+	{ "cmp",	CMP, },
+	{ "add",	ADD, },
+	{ "sub",	SUB, },
+	{ "bit",	BIT, },
+	{ "bic",	BIC, },
+	{ "bis",	BIS, },
+	{ "mul",	MUL, },
+	{ "div",	DIV, },
+	{ "ash",	ASH, },
+	{ "xor",	XOR, },
+	{ ".text",	TEXT, },
+	{ ".data",	DATA, },
+	{ ".bss",	BSS, },
+	{ ".even",	EVEN, },
+	{ "movf",	MOVF, },
+	{ "movof",	MOVOF, },
+	{ "movfo",	MOVFO, },
+	{ "addf",	ADDF, },
+	{ "subf",	SUBF, },
+	{ "divf",	DIVF, },
+	{ "mulf",	MULF, },
+	{ "clrf",	CLRF, },
+	{ "cmpf",	CMPF, },
+	{ "negf",	NEGF, },
+	{ "tstf",	TSTF, },
+	{ "cfcc",	CFCC, },
+	{ "sob",	SOB, },
+	{ "jsr",	JSR, },
+	{ "swab",	SWAB, },
+	{ ".end",	END, },
+	{ 0,		0, },
+};
 
 char revbr[] = {JNE, JEQ, JGT, JLT, JGE, JLE, JHIS, JLOS, JHI, JLO, JMI, JPL};
 int	isn	= 20000;
@@ -70,11 +71,23 @@ int	lastseg	= -1;
 
 #define	NSTK	5000
 
-main(argc, argv)
+void	opsetup();
+int	input();
+void	refcount();
+void	iterate();
+void	comjump();
+void	output();
+int	getline();
+int	getnum();
+int	oplook();
+void	reducelit();
+void	xjump();
+void	backjmp();
+
+int main(argc, argv)
 char **argv;
 {
 	register int niter, maxiter, isend;
-	extern end;
 	int nflag;
 	char	stspace[NSTK],
 		buf1[BUFSIZ],
@@ -112,8 +125,8 @@ char **argv;
 	maxiter = 0;
 	opsetup();
 	do {
-	alasta = stspace;
-	alastr = &stspace[NSTK];
+		alasta = stspace;
+		alastr = &stspace[NSTK];
 		isend = input();
 		movedat();
 		niter = 0;
@@ -156,7 +169,7 @@ char **argv;
 	exit(0);
 }
 
-input()
+int input()
 {
 	register struct node *p, *lastp;
 	register int oper;
@@ -217,10 +230,10 @@ input()
 	}
 }
 
-getline()
+int getline()
 {
 	register char *lp;
-	register c;
+	register int c;
 
 	lp = line;
 	while ((c = getchar())==' ' || c=='\t')
@@ -244,11 +257,11 @@ getline()
 	return(END);
 }
 
-getnum(ap)
+int getnum(ap)
 char *ap;
 {
 	register char *p;
-	register n, c;
+	register int n, c;
 
 	p = ap;
 	n = 0;
@@ -259,14 +272,14 @@ char *ap;
 	return(n);
 }
 
-output()
+void output()
 {
 	register struct node *t;
 	register struct optab *oper;
 	register int byte;
 
 	t = &first;
-	while (t = t->forw) switch (t->op) {
+	while ((t = t->forw) != 0) switch (t->op) {
 
 	case END:
 		return;
@@ -287,7 +300,7 @@ output()
 	default:
 		if ((byte = t->subop) == BYTE)
 			t->subop = 0;
-		for (oper = optab; oper->opstring!=0; oper++) 
+		for (oper = optab; oper->opstring!=0; oper++)
 			if ((oper->opcode&0377) == t->op
 			 && (oper->opcode>>8) == t->subop) {
 				printf("%s", oper->opstring);
@@ -329,7 +342,7 @@ output()
  * and replace them with (pc),xx(r)
  *     -- Thanx and a tip of the Hatlo hat to Bliss-11.
  */
-reducelit(at)
+void reducelit(at)
 struct node *at;
 {
 	register char *c1, *c2;
@@ -361,7 +374,7 @@ char *ap;
 {
 	register char *p, *np;
 	char *onp;
-	register n;
+	register int n;
 
 	p = ap;
 	n = 0;
@@ -377,22 +390,22 @@ char *ap;
 	}
 	onp = np = alloc(n);
 	p = ap;
-	while (*np++ = *p++)
+	while ((*np++ = *p++) != 0)
 		;
 	if (na>1) {
 		p = (&ap)[1];
 		np--;
-		while (*np++ = *p++);
+		while ((*np++ = *p++) != 0);
 	}
 	return(onp);
 }
 
-opsetup()
+void opsetup()
 {
 	register struct optab *optp, **ophp;
 	register char *p;
 
-	for (optp = optab; p = optp->opstring; optp++) {
+	for (optp = optab; (p = optp->opstring) != 0; optp++) {
 		ophp = &ophash[(((p[0]<<3)+(p[1]<<1)+p[2])&077777) % OPHS];
 		while (*ophp++)
 			if (ophp > &ophash[OPHS])
@@ -401,7 +414,7 @@ opsetup()
 	}
 }
 
-oplook()
+int oplook()
 {
 	register struct optab *optp;
 	register char *lp, *np;
@@ -420,7 +433,7 @@ oplook()
 		lp++;
 	curlp = lp;
 	ophp = &ophash[(((tmpop[0]<<3)+(tmpop[1]<<1)+tmpop[2])&077777) % OPHS];
-	while (optp = *ophp) {
+	while ((optp = *ophp) != 0) {
 		np = optp->opstring;
 		lp = tmpop;
 		while (*lp == *np++)
@@ -432,7 +445,7 @@ oplook()
 		if (ophp >= &ophash[OPHS])
 			ophp = ophash;
 	}
-	if (line[0]=='L') {
+	if (line[0]=='L' && line[1]!='F') {
 		lp = &line[1];
 		while (*lp)
 			if (*lp<'0' || *lp++>'9')
@@ -444,7 +457,7 @@ oplook()
 	return(0);
 }
 
-refcount()
+void refcount()
 {
 	register struct node *p, *lp;
 	static struct node *labhash[LABHS];
@@ -483,7 +496,7 @@ refcount()
 			decref(p);
 }
 
-iterate()
+void iterate()
 {
 	register struct node *p, *rp, *p1;
 
@@ -513,7 +526,7 @@ iterate()
 				p->labno = p1->labno;
 				p1->forw->back = p;
 				p->forw = p1->forw;
-				p->subop = revbr[p->subop];
+				p->subop = revbr [(int) p->subop];
 				nchange++;
 				CHECK(2);
 				nskip++;
@@ -560,7 +573,7 @@ iterate()
 	}
 }
 
-xjump(p1)
+void xjump(p1)
 register struct node *p1;
 {
 	register struct node *p2, *p3;
@@ -663,13 +676,13 @@ ivloop:
 		if ((p3 = p3->forw) == 0 || p3==p1 || --n==0)
 			return(p1);
 	} while (p3->op!=CBR || p3->labno!=p1->forw->labno);
-	do 
+	do
 		if ((p1 = p1->back) == 0)
 			return(p);
 	while (p1!=p3);
 	p1 = p;
 	tl = insertl(p1);
-	p3->subop = revbr[p3->subop];
+	p3->subop = revbr [(int) p3->subop];
 	decref(p3->ref);
 	p2->back->forw = p1;
 	p3->forw->back = p1;
@@ -693,7 +706,7 @@ ivloop:
 	return(p3);
 }
 
-comjump()
+void comjump()
 {
 	register struct node *p1, *p2, *p3;
 
@@ -704,7 +717,7 @@ comjump()
 					backjmp(p1, p3);
 }
 
-backjmp(ap1, ap2)
+void backjmp(ap1, ap2)
 struct node *ap1, *ap2;
 {
 	register struct node *p1, *p2, *p3;

@@ -1,6 +1,6 @@
 #if	!defined(lint) && defined(DOSCCS)
 static char *sccsid ="@(#)optim.c	4.7 (Berkeley) 1/8/86";
-#endif lint
+#endif
 
 # include "pass1.h"
 

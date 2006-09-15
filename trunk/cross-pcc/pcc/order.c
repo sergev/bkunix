@@ -348,7 +348,7 @@ rallo( p, down ) register NODE *p; {
 		++fltused;
 		}
 	else switch( o ) {
-	case ASSIGN:	
+	case ASSIGN:
 		down1 = NOPREF;
 		down2 = down;
 		break;
@@ -405,7 +405,7 @@ rallo( p, down ) register NODE *p; {
 		down1 = NOPREF;
 		break;
 
-	case FORCE:	
+	case FORCE:
 		down1 = R0|MUSTDO;
 		break;
 
@@ -425,22 +425,22 @@ offstar( p ) register NODE *p; {
 			order( p->in.right, INTAREG|INAREG );
 			return;
 		}
-		if( p->in.left->in.op==LS && 
-		  (p->in.left->in.left->in.op!=REG || tlen(p->in.left->in.left)!=sizeof(int) ) ) {
+		if( p->in.left->in.op==LS &&
+		  (p->in.left->in.left->in.op!=REG || tlen(p->in.left->in.left)!=SIZEOF_INT ) ) {
 			order( p->in.left->in.left, INTAREG|INAREG );
 			return;
 		}
 		if( p->in.right->in.op==LS &&
-		  (p->in.right->in.left->in.op!=REG || tlen(p->in.right->in.left)!=sizeof(int) ) ) {
+		  (p->in.right->in.left->in.op!=REG || tlen(p->in.right->in.left)!=SIZEOF_INT ) ) {
 			order( p->in.right->in.left, INTAREG|INAREG );
 			return;
 		}
 		if( p->in.type == (PTR|CHAR) || p->in.type == (PTR|UCHAR) ) {
-			if( p->in.left->in.op!=REG || tlen(p->in.left)!=sizeof(int) ) {
+			if( p->in.left->in.op!=REG || tlen(p->in.left)!=SIZEOF_INT ) {
 				order( p->in.left, INTAREG|INAREG );
 				return;
 			}
-			else if( p->in.right->in.op!=REG || tlen(p->in.right)!=sizeof(int) ) {
+			else if( p->in.right->in.op!=REG || tlen(p->in.right)!=SIZEOF_INT ) {
 				order(p->in.right, INTAREG|INAREG);
 				return;
 			}

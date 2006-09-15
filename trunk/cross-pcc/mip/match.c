@@ -1,6 +1,6 @@
 #if	!defined(lint) && defined(DOSCCS)
 static char *sccsid ="@(#)match.c	4.4.1 (2.11BSD GTE) 1/17/95";
-#endif lint
+#endif
 
 # include "pass2.h"
 
@@ -575,7 +575,7 @@ mlmatch( subtree, target, subtarget ) NODE * subtree; int target,subtarget;{
 			else {
 				register opmtemp;
 				if((opmtemp=mamask[n->op-OPSIMP])&SPFLG){
-					if(st->op!=NAME && st->op!=ICON && st->op!=OREG && 
+					if(st->op!=NAME && st->op!=ICON && st->op!=OREG &&
 						! shltype(st->op,st)) break;
 					}
 				else if((dope[st->op]&(opmtemp|ASGFLG))!=opmtemp) break;

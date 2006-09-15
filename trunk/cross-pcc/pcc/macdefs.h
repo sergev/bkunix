@@ -1,10 +1,10 @@
 #ifndef _MACDEFS_
 #define	_MACDEFS_
 
-#define makecc(val,i)  lastcon = i ? (val<<8)|lastcon : val  
+#define makecc(val,i)  lastcon = i ? (val<<8)|lastcon : val
 
-#define ARGINIT		32 
-#define AUTOINIT	0 
+#define ARGINIT		32
+#define AUTOINIT	0
 
 /*
  * Storage space requirements
@@ -16,6 +16,8 @@
 #define SZLONG		32
 #define SZSHORT		16
 #define SZPOINT		16
+
+#define SIZEOF_INT	(SZINT / SZCHAR)
 
 /*
  * Alignment constraints

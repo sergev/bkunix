@@ -5,100 +5,121 @@
 
 #include "c2.h"
 
-rmove()
+void	dualop();
+int	findrand();
+int	isreg();
+int	equstr();
+void	repladdr();
+void	dest();
+void	savereg();
+void	setcon();
+int	source();
+void	setcc();
+int	xnatural();
+int	natural();
+void	singop();
+int	not_sp();
+int	compare();
+void	fixupbr();
+void	redunbr();
+int	toofar();
+int	ilen();
+int	adrlen();
+
+void rmove()
 {
 	register struct node *p;
 	register int r;
-	register  r1, flt;
+	register int r1, flt;
 
 	for (p=first.forw; p!=0; p = p->forw) {
-	flt = 0;
-	switch (p->op) {
+		flt = 0;
+		switch (p->op) {
 
-	case MOVF:
-	case MOVFO:
-	case MOVOF:
-		flt = NREG;
+		case MOVF:
+		case MOVFO:
+		case MOVOF:
+			flt = NREG;
 
-	case MOV:
-		if (p->subop==BYTE)
+		case MOV:
+			if (p->subop==BYTE)
+				goto dble;
+			dualop(p);
+			if ((r = findrand(regs[RT1], flt)) >= 0) {
+				if (r == flt+isreg(regs[RT2]) && p->forw->op!=CBR
+				   && p->forw->op!=SXT
+				   && p->forw->op!=CFCC) {
+					p->forw->back = p->back;
+					p->back->forw = p->forw;
+					redunm++;
+					nchange++;
+					continue;
+				}
+			}
+			if (equstr(regs[RT1], "$0")) {
+				p->op = CLR;
+				strcpy(regs[RT1], regs[RT2]);
+				regs[RT2][0] = 0;
+				p->code = copy(1, regs[RT1]);
+				nchange++;
+				goto sngl;
+			}
+			repladdr(p, 0, flt);
+			r = isreg(regs[RT1]);
+			r1 = isreg(regs[RT2]);
+			dest(regs[RT2], flt);
+			if (r >= 0)
+				if (r1 >= 0)
+					savereg(r1+flt, regs[r+flt]);
+				else
+					savereg(r+flt, regs[RT2]);
+			else
+				if (r1 >= 0)
+					savereg(r1+flt, regs[RT1]);
+				else
+					setcon(regs[RT1], regs[RT2]);
+			source(regs[RT1]);
+			setcc(regs[RT2]);
+			continue;
+
+		case ADDF:
+		case SUBF:
+		case DIVF:
+		case MULF:
+			flt = NREG;
 			goto dble;
-		dualop(p);
-		if ((r = findrand(regs[RT1], flt)) >= 0) {
-			if (r == flt+isreg(regs[RT2]) && p->forw->op!=CBR
-			   && p->forw->op!=SXT
-			   && p->forw->op!=CFCC) {
-				p->forw->back = p->back;
-				p->back->forw = p->forw;
-				redunm++;
-				nchange++;
-				continue;
-			}
-		}
-		if (equstr(regs[RT1], "$0")) {
-			p->op = CLR;
-			strcpy(regs[RT1], regs[RT2]);
-			regs[RT2][0] = 0;
-			p->code = copy(1, regs[RT1]);
-			nchange++;
-			goto sngl;
-		}
-		repladdr(p, 0, flt);
-		r = isreg(regs[RT1]);
-		r1 = isreg(regs[RT2]);
-		dest(regs[RT2], flt);
-		if (r >= 0)
-			if (r1 >= 0)
-				savereg(r1+flt, regs[r+flt]);
-			else
-				savereg(r+flt, regs[RT2]);
-		else
-			if (r1 >= 0)
-				savereg(r1+flt, regs[RT1]);
-			else
-				setcon(regs[RT1], regs[RT2]);
-		source(regs[RT1]);
-		setcc(regs[RT2]);
-		continue;
 
-	case ADDF:
-	case SUBF:
-	case DIVF:
-	case MULF:
-		flt = NREG;
-		goto dble;
-
-	case ADD:
-	case SUB:
-	case BIC:
-	case BIS:
-	case MUL:
-	case DIV:
-	case ASH:
-	dble:
-		dualop(p);
-		if (p->op==BIC && (equstr(regs[RT1], "$-1") || equstr(regs[RT1], "$177777"))) {
-			p->op = CLR;
-			strcpy(regs[RT1], regs[RT2]);
-			regs[RT2][0] = 0;
-			p->code = copy(1, regs[RT1]);
-			nchange++;
-			goto sngl;
-		}
-		if ((p->op==BIC || p->op==BIS) && equstr(regs[RT1], "$0")) {
-			if (p->forw->op!=CBR) {
-				p->back->forw = p->forw;
-				p->forw->back = p->back;
+		case ADD:
+		case SUB:
+		case BIC:
+		case BIS:
+		case MUL:
+		case DIV:
+		case ASH:
+dble:
+			dualop(p);
+			if (p->op==BIC && (equstr(regs[RT1], "$-1") || equstr(regs[RT1], "$177777"))) {
+				p->op = CLR;
+				strcpy(regs[RT1], regs[RT2]);
+				regs[RT2][0] = 0;
+				p->code = copy(1, regs[RT1]);
 				nchange++;
-				continue;
+				goto sngl;
 			}
-		}
+			if ((p->op==BIC || p->op==BIS) && equstr(regs[RT1], "$0")) {
+				if (p->forw->op!=CBR) {
+					p->back->forw = p->forw;
+					p->forw->back = p->back;
+					nchange++;
+					continue;
+				}
+			}
 /*
  * the next block of code looks for the sequences (which extract the
  * high byte of a word or the low byte respectively):
  *	ash $-10,r
  *	bic $-400,r
- * or 
+ * or
  *	mov natural,r
  *	bic $-400,r
  * and transforms them into:
@@ -107,293 +128,293 @@ rmove()
  * or
  *	clr r
  *	bisb natural,r
- * These constructs occur often enough in the kernel (dealing with major/minor 
+ * These constructs occur often enough in the kernel (dealing with major/minor
  * device numbers, etc) it's worth a little extra work at compile time.
-*/
-		if (p->op == BIC && (equstr(regs[RT1],"$-400") || 
-			 equstr(regs[RT1],"$-177400"))) {
-			if (p->back->op == ASH) {
-				r = isreg(regs[RT2]);
-				dualop(p->back);
-				if ((equstr(regs[RT1], "$-10") || 
-				     equstr(regs[RT1], "$177770")) && 
-				    r == isreg(regs[RT2])) {
-					strcpy(regs[RT1], regs[RT2]);
-					regs[RT2][0] = 0;
-					p->back->op = CLR;
-					p->back->subop = BYTE;
-					p->back->code = copy(1, regs[RT1]);
-					p->op = SWAB;
-					p->code = copy(1, regs[RT1]);
-					nchange++;
-					goto sngl;
+ */
+			if (p->op == BIC && (equstr(regs[RT1],"$-400") ||
+				 equstr(regs[RT1],"$-177400"))) {
+				if (p->back->op == ASH) {
+					r = isreg(regs[RT2]);
+					dualop(p->back);
+					if ((equstr(regs[RT1], "$-10") ||
+					     equstr(regs[RT1], "$177770")) &&
+					    r == isreg(regs[RT2])) {
+						strcpy(regs[RT1], regs[RT2]);
+						regs[RT2][0] = 0;
+						p->back->op = CLR;
+						p->back->subop = BYTE;
+						p->back->code = copy(1, regs[RT1]);
+						p->op = SWAB;
+						p->code = copy(1, regs[RT1]);
+						nchange++;
+						goto sngl;
+					}
 				}
-			}
-			else if (p->back->op == MOV && p->forw->op != CBR) {
-				char temp[50];
+				else if (p->back->op == MOV && p->forw->op != CBR) {
+					char temp[50];
 
-				r = isreg(regs[RT2]);
-				if (r < 0 && !xnatural(regs[RT2]))
-					goto out;
-				strcpy(temp, regs[RT2]);
-				dualop(p->back);
-				if (isreg(regs[RT2]) == r && natural(regs[RT1])) {
-			 	    if (r < 0 && (!xnatural(regs[RT2]) || !equstr(temp, regs[RT2])))
-					goto out;
+					r = isreg(regs[RT2]);
+					if (r < 0 && !xnatural(regs[RT2]))
+						goto out;
+					strcpy(temp, regs[RT2]);
+					dualop(p->back);
+					if (isreg(regs[RT2]) == r && natural(regs[RT1])) {
+					    if (r < 0 && (!xnatural(regs[RT2]) || !equstr(temp, regs[RT2])))
+						goto out;
 /*
  * XXX - the sequence "movb rN,rN; bic $-400,rN" can not be transformed
- * because the 'clr' would lose all information about 'rN'.  The best that can 
+ * because the 'clr' would lose all information about 'rN'.  The best that can
  * be done is to remove the 'movb' instruction and leave the 'bic'.
-*/
-				    if (isreg(regs[RT1]) == r && r >= 0) {
-					    p = p->back;
-					    p->forw->back = p->back;
-					    p->back->forw = p->forw;
+ */
+					    if (isreg(regs[RT1]) == r && r >= 0) {
+						    p = p->back;
+						    p->forw->back = p->back;
+						    p->back->forw = p->forw;
+						    nchange++;
+						    continue;
+					    }
+					    dest(regs[RT1], flt);
+					    p->back->op = CLR;
+					    p->back->subop = 0;
+					    p->back->code = copy(1, regs[RT2]);
+					    p->op = BIS;
+					    p->subop = BYTE;
+					    strcat(regs[RT1], ",");
+					    p->code = copy(2, regs[RT1], regs[RT2]);
 					    nchange++;
-					    continue;
-				    }
-				    dest(regs[RT1], flt);
-				    p->back->op = CLR;
-				    p->back->subop = 0;
-				    p->back->code = copy(1, regs[RT2]);
-				    p->op = BIS;
-				    p->subop = BYTE;
-				    strcat(regs[RT1], ",");
-				    p->code = copy(2, regs[RT1], regs[RT2]);
-				    nchange++;
+					}
 				}
+out:				dualop(p);	/* restore banged up parsed operands */
 			}
-out:		dualop(p);	/* restore banged up parsed operands */
-		}
-		repladdr(p, 0, flt);
-		source(regs[RT1]);
-		dest(regs[RT2], flt);
-		if (p->op==DIV && (r = isreg(regs[RT2]))>=0)
-			regs[r|1][0] = 0;
-		switch	(p->op)
-			{
-			case	ADD:
-			case	SUB:
-			case	BIC:
-			case	BIS:
-			case	ASH:
-				setcc(regs[RT2]);
-				break;
-			default:
-				ccloc[0] = 0;
-			}
-		continue;
-
-	case SXT:
-		singop(p);
-		if (p->forw->op == CLR && p->forw->subop != BYTE &&
-			xnatural(regs[RT1]) && !strcmp(p->code, p->forw->code)){
-			p->forw->back = p->back;
-			p->back->forw = p->forw;
-			nchange++;
+			repladdr(p, 0, flt);
+			source(regs[RT1]);
+			dest(regs[RT2], flt);
+			if (p->op==DIV && (r = isreg(regs[RT2]))>=0)
+				regs[r|1][0] = 0;
+			switch	(p->op)
+				{
+				case	ADD:
+				case	SUB:
+				case	BIC:
+				case	BIS:
+				case	ASH:
+					setcc(regs[RT2]);
+					break;
+				default:
+					ccloc[0] = 0;
+				}
 			continue;
-		}
-		goto sngl;
-	case CLRF:
-	case NEGF:
-		flt = NREG;
 
-	case CLR:
-	case COM:
-	case INC:
-	case DEC:
-	case NEG:
-	case ASR:
-	case ASL:
-	case SWAB:
-		singop(p);
-	sngl:
-		dest(regs[RT1], flt);
-		if (p->op==CLR && flt==0)
-			{
-			if ((r = isreg(regs[RT1])) >= 0)
-				savereg(r, "$0");
-			else
-				setcon("$0", regs[RT1]);
-			ccloc[0] = 0;
-			}
-		else
-			setcc(regs[RT1]);
-		continue;
-
-	case TSTF:
-		flt = NREG;
-
-	case TST:
-		singop(p);
-		repladdr(p, 0, flt);
-		source(regs[RT1]);
-		if (p->back->op == TST && !flt && not_sp(regs[RT1])) {
-			char rt1[MAXCPS + 2];
-			strcpy(rt1, regs[RT1]);
-			singop(p->back);
-			if (!strcmp("(sp)+", regs[RT1])) {
-				p->back->subop = p->subop;
-				p->back->forw = p->forw;
+		case SXT:
+			singop(p);
+			if (p->forw->op == CLR && p->forw->subop != BYTE &&
+				xnatural(regs[RT1]) && !strcmp(p->code, p->forw->code)){
 				p->forw->back = p->back;
-				p = p->back;
-				p->op = MOV;
-				p->code = copy(2, rt1, ",(sp)+");
-				nrtst++;
+				p->back->forw = p->forw;
 				nchange++;
 				continue;
 			}
-		singop(p);
-		}
-		if (p->back->op == MOV && p->back->subop == BYTE) {
-			dualop(p->back);
-			setcc(regs[RT2]);
+			goto sngl;
+		case CLRF:
+		case NEGF:
+			flt = NREG;
+
+		case CLR:
+		case COM:
+		case INC:
+		case DEC:
+		case NEG:
+		case ASR:
+		case ASL:
+		case SWAB:
 			singop(p);
-		}
-		if (equstr(regs[RT1], ccloc) && p->subop == p->back->subop) {
-			p->back->forw = p->forw;
-			p->forw->back = p->back;
-			p = p->back;
-			nrtst++;
-			nchange++;
-		}
-		else
-			setcc(regs[RT1]); /* XXX - double TST in a row */
-		continue;
-
-	case CMPF:
-		flt = NREG;
-
-	case CMP:
-	case BIT:
-		dualop(p);
-		source(regs[RT1]);
-		source(regs[RT2]);
-		if(p->op==BIT) {
-			if (equstr(regs[RT1], "$-1") || equstr(regs[RT1], "$177777")) {
-				p->op = TST;
-				strcpy(regs[RT1], regs[RT2]);
-				regs[RT2][0] = 0;
-				p->code = copy(1, regs[RT1]);
-				nchange++;
-				nsaddr++;
-			} else if (equstr(regs[RT2], "$-1") || equstr(regs[RT2], "$177777")) {
-				p->op = TST;
-				regs[RT2][0] = 0;
-				p->code = copy(1, regs[RT1]);
-				nchange++;
-				nsaddr++;
-			}
-			if (equstr(regs[RT1], "$0")) {
-				p->op = TST;
-				regs[RT2][0] = 0;
-				p->code = copy(1, regs[RT1]);
-				nchange++;
-				nsaddr++;
-			} else if (equstr(regs[RT2], "$0")) {
-				p->op = TST;
-				strcpy(regs[RT1], regs[RT2]);
-				regs[RT2][0] = 0;
-				p->code = copy(1, regs[RT1]);
-				nchange++;
-				nsaddr++;
-			}
-		}
-		repladdr(p, 1, flt);
-		ccloc[0] = 0;
-		continue;
-
-	case CBR:
-		r = -1;
-		if (p->back->op==TST || p->back->op==CMP) {
-			if (p->back->op==TST) {
-				singop(p->back);
-				savereg(RT2, "$0");
-			} else
-				dualop(p->back);
-			if (equstr(regs[RT1], regs[RT2])
-			 && natural(regs[RT1]) && natural(regs[RT2]))
-				r = compare(p->subop, "$1", "$1");
+		sngl:
+			dest(regs[RT1], flt);
+			if (p->op==CLR && flt==0)
+				{
+				if ((r = isreg(regs[RT1])) >= 0)
+					savereg(r, "$0");
+				else
+					setcon("$0", regs[RT1]);
+				ccloc[0] = 0;
+				}
 			else
-				r = compare(p->subop, findcon(RT1), findcon(RT2));
-			if (r==0) {
-				if (p->forw->op==CBR
-				  || p->forw->op==SXT
-				  || p->forw->op==CFCC) {
+				setcc(regs[RT1]);
+			continue;
+
+		case TSTF:
+			flt = NREG;
+
+		case TST:
+			singop(p);
+			repladdr(p, 0, flt);
+			source(regs[RT1]);
+			if (p->back->op == TST && !flt && not_sp(regs[RT1])) {
+				char rt1[MAXCPS + 2];
+				strcpy(rt1, regs[RT1]);
+				singop(p->back);
+				if (!strcmp("(sp)+", regs[RT1])) {
+					p->back->subop = p->subop;
 					p->back->forw = p->forw;
 					p->forw->back = p->back;
-				} else {
-					p->back->back->forw = p->forw;
-					p->forw->back = p->back->back;
+					p = p->back;
+					p->op = MOV;
+					p->code = copy(2, rt1, ",(sp)+");
+					nrtst++;
+					nchange++;
+					continue;
 				}
-				decref(p->ref);
-				p = p->back->back;
-				nchange++;
-			} else if (r>0) {
-				p->op = JBR;
-				p->subop = 0;
-				p->back->back->forw = p;
-				p->back = p->back->back;
+				singop(p);
+			}
+			if (p->back->op == MOV && p->back->subop == BYTE) {
+				dualop(p->back);
+				setcc(regs[RT2]);
+				singop(p);
+			}
+			if (equstr(regs[RT1], ccloc) && p->subop == p->back->subop) {
+				p->back->forw = p->forw;
+				p->forw->back = p->back;
 				p = p->back;
+				nrtst++;
 				nchange++;
 			}
+			else
+				setcc(regs[RT1]); /* XXX - double TST in a row */
+			continue;
+
+		case CMPF:
+			flt = NREG;
+
+		case CMP:
+		case BIT:
+			dualop(p);
+			source(regs[RT1]);
+			source(regs[RT2]);
+			if(p->op==BIT) {
+				if (equstr(regs[RT1], "$-1") || equstr(regs[RT1], "$177777")) {
+					p->op = TST;
+					strcpy(regs[RT1], regs[RT2]);
+					regs[RT2][0] = 0;
+					p->code = copy(1, regs[RT1]);
+					nchange++;
+					nsaddr++;
+				} else if (equstr(regs[RT2], "$-1") || equstr(regs[RT2], "$177777")) {
+					p->op = TST;
+					regs[RT2][0] = 0;
+					p->code = copy(1, regs[RT1]);
+					nchange++;
+					nsaddr++;
+				}
+				if (equstr(regs[RT1], "$0")) {
+					p->op = TST;
+					regs[RT2][0] = 0;
+					p->code = copy(1, regs[RT1]);
+					nchange++;
+					nsaddr++;
+				} else if (equstr(regs[RT2], "$0")) {
+					p->op = TST;
+					strcpy(regs[RT1], regs[RT2]);
+					regs[RT2][0] = 0;
+					p->code = copy(1, regs[RT1]);
+					nchange++;
+					nsaddr++;
+				}
+			}
+			repladdr(p, 1, flt);
+			ccloc[0] = 0;
+			continue;
+
+		case CBR:
+			r = -1;
+			if (p->back->op==TST || p->back->op==CMP) {
+				if (p->back->op==TST) {
+					singop(p->back);
+					savereg(RT2, "$0");
+				} else
+					dualop(p->back);
+				if (equstr(regs[RT1], regs[RT2])
+				 && natural(regs[RT1]) && natural(regs[RT2]))
+					r = compare(p->subop, "$1", "$1");
+				else
+					r = compare(p->subop, findcon(RT1), findcon(RT2));
+				if (r==0) {
+					if (p->forw->op==CBR
+					  || p->forw->op==SXT
+					  || p->forw->op==CFCC) {
+						p->back->forw = p->forw;
+						p->forw->back = p->back;
+					} else {
+						p->back->back->forw = p->forw;
+						p->forw->back = p->back->back;
+					}
+					decref(p->ref);
+					p = p->back->back;
+					nchange++;
+				} else if (r>0) {
+					p->op = JBR;
+					p->subop = 0;
+					p->back->back->forw = p;
+					p->back = p->back->back;
+					p = p->back;
+					nchange++;
+				}
 /*
  * If the instruction prior to the conditional branch was a 'tst' then
  * save the condition code status.  The C construct:
- * 		if (x) 
+ * 		if (x)
  *		   if (x > 0)
  * generates "tst _x; jeq ...; tst _x; jmi ...;jeq ...".  The code below removes
  * the second "tst _x", leaving "tst _x; jeq ...;jmi ...; jeq ...".
-*/
-			if (p->back->op == TST) {
-				singop(p->back);
-				setcc(regs[RT1]);
-				break;
+ */
+				if (p->back->op == TST) {
+					singop(p->back);
+					setcc(regs[RT1]);
+					break;
+				}
 			}
-		}
 /*
  * If the previous instruction was also a conditional branch then
  * attempt to merge the two into a single branch.
-*/
-		if (p->back->op == CBR)
-			fixupbr(p);
-	case CFCC:
-		ccloc[0] = 0;
-		continue;
+ */
+			if (p->back->op == CBR)
+				fixupbr(p);
+		case CFCC:
+			ccloc[0] = 0;
+			continue;
 
 /*
  * Unrecognized (unparsed) instructions, assignments (~foo=r2), and
  * data arrive here.  In order to prevent throwing away information
  * about register contents just because a local assignment is done
  * we check for the first character being a tilde.
-*/
-	case 0:
-		if (p->code[0] != '~')
+ */
+		case 0:
+			if (! p->code || p->code[0] != '~')
+				clearreg();
+			continue;
+
+		case JBR:
+			redunbr(p);
+
+		default:
 			clearreg();
-		continue;
-
-	case JBR:
-		redunbr(p);
-
-	default:
-		clearreg();
-	}
+		}
 	}
 }
 
 /*
- * This table is used to convert two branches to the same label after a 
+ * This table is used to convert two branches to the same label after a
  * 'tst' (which clears the C and V condition codes) into a single branch.
- * Entries which translate to JBR could eventually cause the 'tst' instruction 
+ * Entries which translate to JBR could eventually cause the 'tst' instruction
  * to be eliminated as well, but that can wait for now.  There are unused or
  * impossible combinations ('tst' followed by 'jlo' for example.  since
- * 'tst' clears C it makes little sense to 'jlo/bcs') in the table, it 
+ * 'tst' clears C it makes little sense to 'jlo/bcs') in the table, it
  * would have cost more in code to remove them than the entries themselves.
  *
  * Example:  "tst _x; jmi L3; jeq L3".  Find the row for 'jmi', then look
  * at the column for 'jeq', the resulting "opcode" is 'jle'.
 */
-	char	brtable[12][12] = {
+char	brtable[12][12] = {
 	/* jeq  jne  jle  jge  jlt  jgt  jlo  jhi  jlos jhis jpl  jmi */
 /* jeq */ {JEQ ,JBR ,JLE ,JGE ,JLE ,JGE ,JEQ ,JBR ,JEQ ,JBR ,JGE ,JLE},
 /* jne */ {JBR ,JNE ,JBR ,JBR ,JNE ,JNE ,JNE ,JNE ,JBR ,JBR ,JBR ,JNE},
@@ -407,13 +428,12 @@ out:		dualop(p);	/* restore banged up parsed operands */
 /* jhis*/ {JBR ,JBR ,JBR ,JBR ,JBR ,JBR ,JBR ,JBR ,JBR ,JBR ,JBR ,JBR},
 /* jpl */ {JGE ,JBR ,JBR ,JGE ,JBR ,JGE ,JGE ,JBR ,JGE ,JBR ,JGE ,JBR},
 /* jmi */ {JLE ,JNE ,JLE ,JBR ,JLT ,JNE ,JLT ,JNE ,JLE ,JLT ,JBR ,JLT}
-	  };
+  };
 
-fixupbr(p)
-	register struct node *p;
+void fixupbr(p)
+register struct node *p;
 {
 	register struct node *p1, *p2;
-	int op;
 
 	p1 = p->back;
 	p2 = p1->back;
@@ -424,17 +444,17 @@ fixupbr(p)
 			goto ok;
 		return;
 	}
-ok:	p->subop = brtable[p->subop][p1->subop];
+ok:	p->subop = brtable [(int) p->subop] [(int) p1->subop];
 	nchange++;
 	nredunj++;
 	p2->forw = p;
 	p->back = p1->back;
-	}
+}
 
-jumpsw()
+int jumpsw()
 {
 	register struct node *p, *p1;
-	register t;
+	register int t;
 	register struct node *tp;
 	int nj;
 
@@ -448,7 +468,7 @@ jumpsw()
 		 && abs(p->refc - p->ref->refc) > abs(p1->refc - p1->ref->refc)) {
 			if (p->ref==p1->ref)
 				continue;
-			p->subop = revbr[p->subop];
+			p->subop = revbr [(int) p->subop];
 			tp = p1->ref;
 			p1->ref = p->ref;
 			p->ref = tp;
@@ -462,7 +482,7 @@ jumpsw()
 	return(nj);
 }
 
-addsob()
+void addsob()
 {
 	register struct node *p, *p1;
 
@@ -483,7 +503,7 @@ addsob()
 	}
 }
 
-toofar(p)
+int toofar(p)
 struct node *p;
 {
 	register struct node *p1;
@@ -497,7 +517,7 @@ struct node *p;
 	return(1);
 }
 
-ilen(p)
+int ilen(p)
 register struct node *p;
 {
 
@@ -518,7 +538,7 @@ register struct node *p;
 	}
 }
 
-adrlen(s)
+int adrlen(s)
 register char *s;
 {
 	if (*s == 0)
@@ -532,13 +552,13 @@ register char *s;
 	return(2);
 }
 
-abs(x)
+int abs(x)
 register int x;
 {
 	return(x<0? -x: x);
 }
 
-equop(ap1, p2)
+int equop(ap1, p2)
 struct node *ap1, *p2;
 {
 	register char *cp1, *cp2;
@@ -561,7 +581,7 @@ struct node *ap1, *p2;
 	return(0);
 }
 
-decref(p)
+void decref(p)
 register struct node *p;
 {
 	if (--p->refc <= 0) {
@@ -583,7 +603,7 @@ register struct node *p;
 
 char *
 alloc(n)
-register n;
+register int n;
 {
 	register char *p;
 
@@ -606,7 +626,7 @@ register n;
 	return(p);
 }
 
-clearreg()
+void clearreg()
 {
 	register int i;
 
@@ -616,7 +636,7 @@ clearreg()
 	ccloc[0] = 0;
 }
 
-savereg(ai, as)
+void savereg(ai, as)
 char *as;
 {
 	register char *p, *s, *sp;
@@ -625,7 +645,7 @@ char *as;
 	s = as;
 	if (source(s))
 		return;
-	while (*p++ = *s) {
+	while ((*p++ = *s) != 0) {
 		if (s[0]=='(' && s[1]=='r' && s[2]<'5') {
 			*sp = 0;
 			return;
@@ -636,7 +656,7 @@ char *as;
 	*--p = '\0';
 }
 
-dest(as, flt)
+void dest(as, flt)
 char *as;
 {
 	register char *s;
@@ -671,19 +691,19 @@ char *as;
 	}
 }
 
-singop(ap)
+void singop(ap)
 struct node *ap;
 {
 	register char *p1, *p2;
 
 	p1 = ap->code;
 	p2 = regs[RT1];
-	while (*p2++ = *p1++);
+	while ((*p2++ = *p1++) != 0);
 	regs[RT2][0] = 0;
 }
 
 
-dualop(ap)
+void dualop(ap)
 struct node *ap;
 {
 	register char *p1, *p2;
@@ -701,11 +721,11 @@ struct node *ap;
 		return;
 	while (*p1==' ' || *p1=='\t')
 		p1++;
-	while (*p2++ = *p1++)
+	while ((*p2++ = *p1++) != 0)
 		;
 }
 
-findrand(as, flt)
+int findrand(as, flt)
 char *as;
 {
 	register int i;
@@ -716,7 +736,7 @@ char *as;
 	return(-1);
 }
 
-isreg(as)
+int isreg(as)
 char *as;
 {
 	register char *s;
@@ -727,23 +747,23 @@ char *as;
 	return(-1);
 }
 
-check()
+void check()
 {
 	register struct node *p, *lp;
-	register count;
+	register int count;
 
 	lp = &first;
 	count = 0;
 	for (p=first.forw; p!=0; p = p->forw) {
 		if (++count > 10000)
-			abort(0);
+			abort();
 		if (p->back != lp)
-			abort(1);
+			abort();
 		lp = p;
 	}
 }
 
-source(ap)
+int source(ap)
 char *ap;
 {
 	register char *p1, *p2;
@@ -753,8 +773,8 @@ char *ap;
 	if (*p1==0)
 		return(0);
 	while (*p2++);
-	if (*p1=='-' && *(p1+1)=='('
-	 || *p1=='*' && *(p1+1)=='-' && *(p1+2)=='('
+	if ((*p1=='-' && *(p1+1)=='(')
+	 || (*p1=='*' && *(p1+1)=='-' && *(p1+2)=='(')
 	 || *(p2-2)=='+') {
 		while (*p1 && *p1++!='r');
 		if (*p1>='0' && *p1<='4')
@@ -764,10 +784,10 @@ char *ap;
 	return(0);
 }
 
-repladdr(p, f, flt)
+void repladdr(p, f, flt)
 struct node *p;
 {
-	register r;
+	register int r;
 	int r1;
 	register char *p1, *p2;
 	static char rt1[50], rt2[50];
@@ -783,11 +803,11 @@ struct node *p;
 		r -= NREG;
 	if (r>=0 || r1>=0) {
 		p2 = regs[RT1];
-		for (p1 = rt1; *p1++ = *p2++;);
+		for (p1 = rt1; (*p1++ = *p2++) != 0; );
 		if (regs[RT2][0]) {
 			p1 = rt2;
 			*p1++ = ',';
-			for (p2 = regs[RT2]; *p1++ = *p2++;);
+			for (p2 = regs[RT2]; (*p1++ = *p2++) != 0; );
 		} else
 			rt2[0] = 0;
 		if (r>=0) {
@@ -808,11 +828,11 @@ struct node *p;
 	}
 }
 
-movedat()
+void movedat()
 {
 	register struct node *p1, *p2;
 	struct node *p3;
-	register seg;
+	register int seg;
 	struct node data;
 	struct node *datp;
 
@@ -855,11 +875,11 @@ movedat()
 	seg = lastseg;
 	for (p1 = first.forw; p1!=0; p1 = p1->forw) {
 		if (p1->op==TEXT||p1->op==DATA||p1->op==BSS) {
-			if (p2 = p1->forw) {
+			if ((p2 = p1->forw) != 0) {
 				if (p2->op==TEXT||p2->op==DATA||p2->op==BSS)
 					p1->op  = p2->op;
 			}
-			if (p1->op == seg || p1->forw&&p1->forw->op==seg) {
+			if (p1->op == seg || (p1->forw && p1->forw->op==seg)) {
 				p1->back->forw = p1->forw;
 				p1->forw->back = p1->back;
 				p1 = p1->back;
@@ -870,7 +890,7 @@ movedat()
 	}
 }
 
-redunbr(p)
+void redunbr(p)
 register struct node *p;
 {
 	register struct node *p1;
@@ -906,7 +926,7 @@ char *
 findcon(i)
 {
 	register char *p;
-	register r;
+	register int r;
 
 	p = regs[i];
 	if (*p=='$')
@@ -918,7 +938,7 @@ findcon(i)
 	return(p);
 }
 
-compare(oper, cp1, cp2)
+int compare(oper, cp1, cp2)
 register char *cp1, *cp2;
 {
 	register unsigned n1, n2;
@@ -970,7 +990,7 @@ register char *cp1, *cp2;
 	return(-1);
 }
 
-setcon(ar1, ar2)
+void setcon(ar1, ar2)
 char *ar1, *ar2;
 {
 	register char *cl, *cv, *p;
@@ -982,12 +1002,12 @@ char *ar1, *ar2;
 	if (!natural(cl))
 		return;
 	p = conloc;
-	while (*p++ = *cl++);
+	while ((*p++ = *cl++) != 0);
 	p = conval;
-	while (*p++ = *cv++);
+	while ((*p++ = *cv++) != 0);
 }
 
-equstr(ap1, ap2)
+int equstr(ap1, ap2)
 char *ap1, *ap2;
 {
 	register char *p1, *p2;
@@ -1001,7 +1021,7 @@ char *ap1, *ap2;
 	return(1);
 }
 
-setcc(ap)
+void setcc(ap)
 char *ap;
 {
 	register char *p, *p1;
@@ -1012,38 +1032,39 @@ char *ap;
 		return;
 	}
 	p1 = ccloc;
-	while (*p1++ = *p++);
+	while ((*p1++ = *p++) != 0);
 }
 
-natural(ap)
+int natural(ap)
 char *ap;
 {
 	register char *p;
 
 	p = ap;
-	if (*p=='*' || *p=='(' || *p=='-'&&*(p+1)=='(')
+	if (*p=='*' || *p=='(' || (*p=='-' && *(p+1)=='('))
 		return(0);
 	while (*p++);
 	p--;
-	if (*--p == '+' || *p ==')' && *--p != '5')
+	if (*--p == '+' || (*p ==')' && *--p != '5'))
 		return(0);
 	return(1);
 }
 
-xnatural(ap)
-	char *ap;
+int xnatural(ap)
+char *ap;
 {
 	if (natural(ap))
 		return(1);
 	return(equstr("(sp)", ap));
 }
 
-not_sp(ap)
-	register char *ap;
+int not_sp(ap)
+register char *ap;
 {
 	char c;
 
-	while (c = *ap++)
-		if (c == '(') return(*ap == 's' && ap[1] == 'p');
+	while ((c = *ap++) != 0)
+		if (c == '(')
+			return (*ap == 's' && ap[1] == 'p');
 	return(1);
 }

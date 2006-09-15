@@ -32,7 +32,7 @@
 # define	PCC_LC		110	/* { */
 # define	PCC_RC		111	/* } */
 
-# endif	_PASS1_
+# endif	/* _PASS1_ */
 
 /*
  * C keywords.
@@ -52,4 +52,4 @@
 # define	PCC_ENUM	124
 # define	PCC_SM		125
 
-# endif	PCC_LOCALTOKENS
+# endif	/* PCC_LOCALTOKENS */

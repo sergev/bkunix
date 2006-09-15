@@ -1,7 +1,5 @@
 /*	common.c	4.2.1	95/01/17	*/
 
-static	char	*StringFile = STRINGFILE; /* From Makefile -DSTRINGFILE= ... */
-
 #ifdef PASS1COMMON
 #include "pass1.h"
 #else
@@ -22,7 +20,7 @@ int nerrors = 0;  /* number of errors */
 
 extern OFFSZ offsz;
 
-/* 
+/*
  * this strangeness is due to offsets being measured in terms of bits
  * rather than bytes.  normally "i=16" and "off=0100000" are returned,
  * but this is not enough to measure structures/arrays greater than
@@ -39,7 +37,7 @@ OFFSZ caloff(){
 	do {
 		temp <<= 1;
 		++i;
-		} while( temp != 0 );
+		} while( temp > 0 );
 	off = 1 << (i-1);
 #else
 	off = 02000000L;		/* enough for 64kb */
@@ -50,18 +48,15 @@ OFFSZ caloff(){
 NODE *lastfree;  /* pointer to last free node; (for allocator) */
 
 	/* VARARGS1 */
-uerror(s, a )
-	unsigned short s;
+uerror(msg, a )
+	char *msg;
 	void *a;
 	{ /* nonfatal error message */
-	char	msg[256];
-
 	/* the routine 'where' is different for pass 1 and pass 2;
 	/*  it tells where the error took place */
 
 	++nerrors;
 	where('u');
-	errprep(s, msg);
 	fprintf(stderr, msg, a );
 	fprintf(stderr, "\n" );
 #ifdef BUFSTDERR
@@ -71,14 +66,11 @@ uerror(s, a )
 	}
 
 	/* VARARGS1 */
-cerror(s, a, b, c )
-	unsigned short s;	/* stringfile offset */
+cerror(msg, a, b, c )
+	char *msg;
 	void *a, *b, *c;
 	{ /* compiler error: die */
-	char	msg[256];
-
 	where('c');
-	errprep(s, msg);
 	fprintf(stderr, "compiler error: " );
 	fprintf(stderr, msg, a, b, c );
 	fprintf(stderr, "\n" );
@@ -94,41 +86,18 @@ cerror(s, a, b, c )
 int Wflag = 0; /* Non-zero means do not print warnings */
 
 	/* VARARGS1 */
-werror(s, a, b )
-	unsigned short s;
+werror(msg, a, b )
+	char *msg;
 	void *a, *b;
 	{  /* warning */
-	char	msg[256];
-
 	if (Wflag) return;
 	where('w');
-	errprep(s, msg);
 	fprintf(stderr, "warning: " );
 	fprintf(stderr, msg, a, b );
 	fprintf(stderr, "\n" );
 #ifdef BUFSTDERR
 	fflush(stderr);
 #endif
-	}
-
-errprep(soff, buf)
-	unsigned short soff;
-	char	*buf;
-	{
-	static	int	errfd = -1;
-
-	if	(errfd < 0)
-		{
-		errfd = open(StringFile, O_RDONLY, 0);
-		if	(errfd < 0)
-			{
-			fprintf(stderr, "can't open %s\n", StringFile);
-			fflush(stderr);
-			exit(1);
-			}
-		}
-	(void)lseek(errfd, (long)soff, L_SET);
-	(void)read(errfd, buf, 256);
 	}
 
 tinit(){ /* initialize expression tree search */
@@ -401,7 +370,7 @@ tstr(cp)
 {
 	register int i = strlen(cp);
 	register char *dp;
-	
+
 	if (tstrused + i >= TSTRSZ) {
 		if (++curtstr >= &tstrbuf[NTSTRBUF])
 			cerror("out of temporary string space");

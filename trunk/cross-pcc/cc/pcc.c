@@ -1,314 +1,35 @@
-static	char sccsid[] = "@(#)cc.c 4.13 9/18/85";
 /*
  * cc - front end for C compiler
  */
 #include <sys/param.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <ctype.h>
+#include <unistd.h>
 #include <signal.h>
 #include <sys/dir.h>
+#include <sys/wait.h>
 
-char	*cpp = "/lib/cpp";
-char	*ccom = "/lib/c0";
-char	*ccom1 = "/lib/c1";
-char	*c2 = "/lib/c2";
-char	*as = "/bin/as";
-char	*ld = "/bin/ld";
-char	*crt0 = "/lib/crt0.o";
+char	*cpp = "/usr/bin/cpp";
+char	*ccom = "/usr/local/lib/pdp11/ccom";
+char	*c2 = "/usr/local/lib/pdp11/c2";
+char	*as = "/usr/local/bin/pdp11-as";
+char	*ld = "/usr/local/bin/pdp11-ld";
+char	*crt0 = "/usr/local/lib/pdp11/crt0.o";
 
 char	tmp0[30];		/* big enough for /tmp/ctm%05.5d */
-char	*tmp1, *tmp2, *tmp3, *tmp4, *tmp5;
+char	*tmp_as, *tmp_cpp, *tmp_opt;
 char	*outfile;
 char	*savestr(), *strspl(), *setsuf();
-int	idexit();
 char	**av, **clist, **llist, **plist;
-int	cflag, eflag, oflag, pflag, sflag, wflag, exflag, proflag;
-int	Mflag, debug;
+int	cflag, Oflag, Pflag, Sflag, Eflag, proflag, vflag;
+int	errflag;
 int	exfail;
-char	*chpass;
-char	*npassname;
 
 int	nc, nl, np, nxo, na;
 
-#define	cunlink(s)	if (s) unlink(s)
-
-main(argc, argv)
-	char **argv;
-{
-	char *t;
-	char *assource;
-	int i, j, c;
-
-	/* ld currently adds upto 5 args; 10 is room to spare */
-	av = (char **)calloc(argc+10, sizeof (char **));
-	clist = (char **)calloc(argc, sizeof (char **));
-	llist = (char **)calloc(argc, sizeof (char **));
-	plist = (char **)calloc(argc, sizeof (char **));
-	for (i = 1; i < argc; i++) {
-		if (*argv[i] == '-') switch (argv[i][1]) {
-
-		case 'S':
-			sflag++;
-			cflag++;
-			continue;
-		case 'o':
-			if (++i < argc) {
-				outfile = argv[i];
-				switch (getsuf(outfile)) {
-
-				case 'c':
-					error("-o would overwrite %s",
-					    outfile);
-					exit(8);
-				}
-			}
-			continue;
-		case 'O':
-			oflag++;
-			continue;
-		case 'p':
-			proflag++;
-			crt0 = "/lib/mcrt0.o";
-			if (argv[i][2] == 'g')
-				crt0 = "/usr/lib/gcrt0.o";
-			continue;
-		case 'w':
-			wflag++;
-			continue;
-		case 'E':
-			exflag++;
-		case 'P':
-			pflag++;
-			if (argv[i][1]=='P')
-				fprintf(stderr,
-	"cc: warning: -P option obsolete; you should use -E instead\n");
-			plist[np++] = argv[i];
-		case 'c':
-			cflag++;
-			continue;
-		case 'M':
-			exflag++;
-			pflag++;
-			Mflag++;
-			/* and fall through */
-		case 'D':
-		case 'I':
-		case 'U':
-		case 'C':
-			plist[np++] = argv[i];
-			continue;
-		case 'L':
-			llist[nl++] = argv[i];
-			continue;
-		case 't':
-			if (chpass)
-				error("-t overwrites earlier option", 0);
-			chpass = argv[i]+2;
-			if (chpass[0]==0)
-				chpass = "012p";
-			continue;
-		case 'B':
-			if (npassname)
-				error("-B overwrites earlier option", 0);
-			npassname = argv[i]+2;
-			if (npassname[0]==0)
-				npassname = "/usr/c/o";
-			continue;
-		case 'd':
-			if (argv[i][2] == '\0') {
-				debug++;
-				continue;
-			}
-			continue;
-		}
-		t = argv[i];
-		c = getsuf(t);
-		if (c=='c' || c=='s' || exflag) {
-			clist[nc++] = t;
-			t = setsuf(t, 'o');
-		}
-		if (nodup(llist, t)) {
-			llist[nl++] = t;
-			if (getsuf(t)=='o')
-				nxo++;
-		}
-	}
-	if (npassname && chpass ==0)
-		chpass = "012p";
-	if (chpass && npassname==0)
-		npassname = "/usr/new";
-	if (chpass)
-	for (t=chpass; *t; t++) {
-		switch (*t) {
-
-		case '0':
-			ccom = strspl(npassname, "c0");
-			continue;
-		case '1':
-			ccom1 = strspl(npassname, "c1");
-			continue;
-		case '2':
-			c2 = strspl(npassname, "c2");
-			continue;
-		case 'p':
-			cpp = strspl(npassname, "cpp");
-			continue;
-		}
-	}
-	if (nc==0)
-		goto nocom;
-	if (signal(SIGINT, SIG_IGN) != SIG_IGN)
-		signal(SIGINT, idexit);
-	if (signal(SIGTERM, SIG_IGN) != SIG_IGN)
-		signal(SIGTERM, idexit);
-	if (signal(SIGHUP, SIG_IGN) != SIG_IGN)
-		signal(SIGHUP, idexit);
-	if (pflag==0)
-		sprintf(tmp0, "/tmp/ctm%05.5d", getpid());
-	tmp1 = strspl(tmp0, "1");
-	tmp2 = strspl(tmp0, "2");
-	tmp3 = strspl(tmp0, "3");
-	if (pflag==0)
-		tmp4 = strspl(tmp0, "4");
-	if (oflag)
-		tmp5 = strspl(tmp0, "5");
-	for (i=0; i<nc; i++) {
-		if (nc > 1 && !Mflag) {
-			printf("%s:\n", clist[i]);
-			fflush(stdout);
-		}
-		if (!Mflag && getsuf(clist[i]) == 's') {
-			assource = clist[i];
-			goto assemble;
-		} else
-			assource = tmp3;
-		if (pflag)
-			tmp4 = setsuf(clist[i], 'i');
-		av[0] = "cpp"; av[1] = clist[i];
-		na = 2;
-		if (!exflag)
-			av[na++] = tmp4;
-		for (j = 0; j < np; j++)
-			av[na++] = plist[j];
-		av[na++] = 0;
-		if (callsys(cpp, av)) {
-			exfail++;
-			eflag++;
-		}
-		if (pflag || exfail) {
-			cflag++;
-			continue;
-		}
-		if (sflag) {
-			if (nc==1 && outfile)
-				tmp3 = outfile;
-			else
-				tmp3 = setsuf(clist[i], 's');
-			assource = tmp3;
-		}
-		av[0] = "c0";
-		av[1] = tmp4; av[2] = tmp1; av[3] = tmp2; na = 4;
-		if (proflag)
-			av[na++] = "-P";
-		if (wflag)
-			av[na++] = "-w";
-		av[na] = 0;
-		if (callsys(ccom, av)) {
-			cflag++;
-			eflag++;
-			continue;
-		}
-		av[0] = "c1"; av[1] = tmp1; av[2] = tmp2;
-		av[3] = oflag ? tmp5 : tmp3;
-		av[4] = 0;
-		if (callsys(ccom1, av)) {
-			cflag++;
-			eflag++;
-			continue;
-		}
-		if (oflag) {
-			av[0] = "c2"; av[1] = tmp5; av[2] = tmp3; av[3] = 0;
-			if (callsys(c2, av)) {
-				unlink(tmp3);
-				tmp3 = assource = tmp5;
-			} else
-				unlink(tmp5);
-		}
-		if (sflag)
-			continue;
-	assemble:
-		cunlink(tmp1); cunlink(tmp2); cunlink(tmp4);
-		av[0] = "as"; av[1] = "-V";
-		av[2] = "-u"; av[3] = "-o";
-		if (cflag && nc==1 && outfile)
-			av[4] = outfile;
-		else
-			av[4] = setsuf(clist[i], 'o');
-		av[5] = assource;
-		av[6] = 0;
-		if (callsys(as, av) > 1) {
-			cflag++;
-			eflag++;
-			continue;
-		}
-	}
-nocom:
-	if (cflag==0 && nl!=0) {
-		i = 0;
-		av[0] = "ld"; av[1] = "-X"; av[2] = crt0; na = 3;
-		if (outfile) {
-			av[na++] = "-o";
-			av[na++] = outfile;
-		}
-		while (i < nl)
-			av[na++] = llist[i++];
-		if (proflag)
-			av[na++] = "-lc_p";
-		else
-			av[na++] = "-lc";
-		av[na++] = 0;
-		eflag |= callsys(ld, av);
-		if (nc==1 && nxo==1 && eflag==0)
-			unlink(setsuf(clist[0], 'o'));
-	}
-	dexit();
-}
-
-idexit()
-{
-
-	eflag = 100;
-	dexit();
-}
-
-dexit()
-{
-
-	if (!pflag) {
-		cunlink(tmp1);
-		cunlink(tmp2);
-		if (sflag==0)
-			cunlink(tmp3);
-		cunlink(tmp4);
-		cunlink(tmp5);
-	}
-	exit(eflag);
-}
-
-error(s, x)
-	char *s, *x;
-{
-	FILE *diag = exflag ? stderr : stdout;
-
-	fprintf(diag, "cc: ");
-	fprintf(diag, s, x);
-	putc('\n', diag);
-	exfail++;
-	cflag++;
-	eflag++;
-}
-
-getsuf(as)
+int getsuf(as)
 char as[];
 {
 	register int c;
@@ -317,7 +38,7 @@ char as[];
 
 	s = as;
 	c = 0;
-	while (t = *s++)
+	while ((t = *s++) != 0)
 		if (t=='/')
 			c = 0;
 		else
@@ -342,17 +63,53 @@ setsuf(as, ch)
 	return (s1);
 }
 
-callsys(f, v)
+int inlist(l, os)
+	char **l, *os;
+{
+	register char *t, *s;
+	register int c;
+
+	s = os;
+	while ((t = *l++) != 0) {
+		while ((c = *s++) != 0)
+			if (c != *t++)
+				break;
+		if (*t==0 && c==0)
+			return (1);
+		s = os;
+	}
+	return (0);
+}
+
+void cleanup()
+{
+	if (!Pflag) {
+		if (Sflag==0 && tmp_as)
+			unlink(tmp_as);
+		if (tmp_cpp)
+			unlink(tmp_cpp);
+		if (tmp_opt)
+			unlink(tmp_opt);
+	}
+}
+
+void killed()
+{
+	cleanup();
+	exit(100);
+}
+
+int callsys(f, v)
 	char *f, **v;
 {
 	int t, status;
 	char **cpp;
 
-	if (debug) {
-		fprintf(stderr, "%s:", f);
-		for (cpp = v; *cpp != 0; cpp++)
-			fprintf(stderr, " %s", *cpp);
-		fprintf(stderr, "\n");
+	if (vflag) {
+		printf("  %s", f);
+		for (cpp = v+1; *cpp != 0; cpp++)
+			printf(" %s", *cpp);
+		printf("\n");
 	}
 	t = vfork();
 	if (t == -1) {
@@ -368,33 +125,221 @@ callsys(f, v)
 	while (t != wait(&status))
 		;
 	if ((t=(status&0377)) != 0 && t!=14) {
+		cleanup();
 		if (t!=2) {
 			printf("Fatal error in %s\n", f);
-			eflag = 8;
+			exit(8);
 		}
-		dexit();
+		exit(errflag);
 	}
 	return ((status>>8) & 0377);
 }
 
-nodup(l, os)
-	char **l, *os;
+int main(argc, argv)
+	char **argv;
 {
-	register char *t, *s;
-	register int c;
+	char *t;
+	char *assource;
+	int i, j, c;
 
-	s = os;
-	if (getsuf(s) != 'o')
-		return (1);
-	while (t = *l++) {
-		while (c = *s++)
-			if (c != *t++)
-				break;
-		if (*t==0 && c==0)
-			return (0);
-		s = os;
+	/* ld currently adds upto 5 args; 10 is room to spare */
+	av = (char **)calloc(argc+10, sizeof (char **));
+	clist = (char **)calloc(argc, sizeof (char **));
+	llist = (char **)calloc(argc, sizeof (char **));
+	plist = (char **)calloc(argc, sizeof (char **));
+	for (i = 1; i < argc; i++) {
+		if (*argv[i] == '-') {
+			switch (argv[i][1]) {
+			case 'S':
+				Sflag++;
+				cflag++;
+				continue;
+			case 'o':
+				if (++i < argc) {
+					outfile = argv[i];
+					switch (getsuf(outfile)) {
+					case 'c':
+						fprintf(stderr, "cc: -o would overwrite %s\n",
+						    outfile);
+						exit(8);
+					}
+				}
+				continue;
+			case 'O':
+				Oflag++;
+				continue;
+			case 'p':
+				proflag++;
+				crt0 = "/usr/local/lib/pdp11/mcrt0.o";
+				if (argv[i][2] == 'g')
+					crt0 = "/usr/local/lib/pdp11/gcrt0.o";
+				continue;
+			case 'v':
+				vflag++;
+				continue;
+			case 'E':
+				Eflag++;
+			case 'P':
+				Pflag++;
+				plist[np++] = argv[i];
+			case 'c':
+				cflag++;
+				continue;
+			case 'D':
+			case 'I':
+			case 'U':
+			case 'C':
+				plist[np++] = argv[i];
+				continue;
+			case 'L':
+				llist[nl++] = argv[i];
+				continue;
+			}
+		}
+		t = argv[i];
+		c = getsuf(t);
+		if (c=='c' || c=='s' || c=='S' || Eflag) {
+			clist[nc++] = t;
+			t = setsuf(t, 'o');
+		}
+		if (getsuf(t) != 'o' || ! inlist(llist, t)) {
+			llist[nl++] = t;
+			if (getsuf(t)=='o')
+				nxo++;
+		}
 	}
-	return (1);
+	if (nc==0)
+		goto nocom;
+	if (signal(SIGINT, SIG_IGN) != SIG_IGN)
+		signal(SIGINT, killed);
+	if (signal(SIGTERM, SIG_IGN) != SIG_IGN)
+		signal(SIGTERM, killed);
+	if (signal(SIGHUP, SIG_IGN) != SIG_IGN)
+		signal(SIGHUP, killed);
+	if (Pflag==0)
+		sprintf(tmp0, "/tmp/ctm%05d", getpid());
+	tmp_as = strspl(tmp0, "3");
+	if (Pflag==0)
+		tmp_cpp = strspl(tmp0, "4");
+	if (Oflag)
+		tmp_opt = strspl(tmp0, "5");
+	for (i=0; i<nc; i++) {
+		if (nc > 1) {
+			printf("%s:\n", clist[i]);
+			fflush(stdout);
+		}
+		if (getsuf(clist[i]) == 's') {
+			assource = clist[i];
+			goto assemble;
+		}
+		if (Sflag) {
+			if (nc==1 && outfile)
+				tmp_as = outfile;
+			else
+				tmp_as = setsuf(clist[i], 's');
+		}
+		assource = tmp_as;
+		if (Pflag)
+			tmp_cpp = setsuf(clist[i], 'i');
+
+		/* Preprocessor. */
+		av[0] = "cpp";
+		na = 1;
+		av[na++] = clist[i];
+		if (getsuf(clist[i]) == 'S')
+			av[na++] = tmp_as;
+		else if (! Eflag)
+			av[na++] = tmp_cpp;
+		for (j = 0; j < np; j++)
+			av[na++] = plist[j];
+		av[na++] = 0;
+		if (callsys(cpp, av)) {
+			exfail++;
+			errflag++;
+		}
+		if (Pflag || exfail) {
+			cflag++;
+			continue;
+		}
+		if (getsuf(clist[i]) == 'S')
+			goto assemble;
+
+		/* Compiler. */
+		av[0] = "ccom";
+		na = 1;
+		av[na++] = tmp_cpp;
+		av[na++] = Oflag ? tmp_opt : tmp_as;
+		if (proflag)
+			av[na++] = "-P";
+		av[na] = 0;
+		if (callsys(ccom, av)) {
+			cflag++;
+			errflag++;
+			continue;
+		}
+
+		/* Optimizer. */
+		if (Oflag) {
+			av[0] = "c2";
+			na = 1;
+			av[na++] = tmp_opt;
+			av[na++] = tmp_as;
+			av[na] = 0;
+			if (callsys(c2, av)) {
+				unlink(tmp_as);
+				tmp_as = assource = tmp_opt;
+			} else
+				unlink(tmp_opt);
+		}
+		if (Sflag)
+			continue;
+assemble:
+		if (tmp_cpp)
+			unlink(tmp_cpp);
+
+		/* Assembler. */
+		av[0] = "as";
+		na = 1;
+		av[na++] = "-o";
+		if (cflag && nc==1 && outfile)
+			av[na++] = outfile;
+		else
+			av[na++] = setsuf(clist[i], 'o');
+		av[na++] = assource;
+		av[na] = 0;
+		if (callsys(as, av) > 1) {
+			cflag++;
+			errflag++;
+			continue;
+		}
+	}
+nocom:
+	if (cflag==0 && nl!=0) {
+		i = 0;
+
+		/* Linker. */
+		av[0] = "ld";
+		na = 1;
+		av[na++] = "-X";
+		av[na++] = crt0;
+		if (outfile) {
+			av[na++] = "-o";
+			av[na++] = outfile;
+		}
+		while (i < nl)
+			av[na++] = llist[i++];
+		av[na++] = "-L/usr/local/lib/pdp11";
+		if (proflag)
+			av[na++] = "-lpcc_p";
+		else
+			av[na++] = "-lpcc";
+		av[na++] = 0;
+		errflag |= callsys(ld, av);
+		if (nc==1 && nxo==1 && errflag==0)
+			unlink(setsuf(clist[0], 'o'));
+	}
+	cleanup();
+	return (errflag);
 }
 
 #define	NSAVETAB	1024
