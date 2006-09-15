@@ -33,7 +33,6 @@ extern int	swflg, swwait;
 void *memcpy();
 void *memset();
 void memzero();
-void panic();
 void sleep();
 void wakeup();
 void ttread();
@@ -60,9 +59,16 @@ int dpcmp();
 int swap();
 int newproc();
 int bad_user_address();
+void panichalt();
+
 #ifdef DEBUG
 void debug_putchar();
 void debug_printf();
+#define panic(x)		panichalt(x)
+#else
+#define debug_putchar(...)	/* empty */
+#define debug_printf(...)	/* empty */
+#define panic(x)		panichalt()
 #endif
 
 /*

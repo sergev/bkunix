@@ -9,24 +9,29 @@ LIBS		=
 
 # Johnson's portable compiler.
 CC		= pdp11-pcc
-CFLAGS		= -I. -DKERNEL -DDEBUG
+CFLAGS		= -I. -DKERNEL
 LIBS		= -L/usr/local/lib/pdp11 -lpcc
 
 # Using GNU binutils.
 AS		= pdp11-as
 LD		= pdp11-ld
 SIZE		= pdp11-size -o
-LDFLAGS		= --omagic -e0 -Tpdp11.x
+LDFLAGS		= --omagic -Tpdp11.x
 
 ASRCS		= low.S mch.S
 ASOBJS		= low.o mch.o
 CSRCS		= alloc.c bio.c \
 		  clock.c fio.c iget.c main.c nami.c rdwri.c sig.c slp.c \
-		  subr.c sys1.c sys2.c sys3.c sys4.c sysent.c trap.c debug.c
+		  subr.c sys1.c sys2.c sys3.c sys4.c sysent.c trap.c
 COBJS		= alloc.o bio.o \
 		  clock.o fio.o iget.o main.o nami.o rdwri.o sig.o slp.o \
-		  subr.o sys1.o sys2.o sys3.o sys4.o sysent.o trap.o debug.o
+		  subr.o sys1.o sys2.o sys3.o sys4.o sysent.o trap.o
 OBJS		= $(ASOBJS) $(COBJS)
+
+# Debug mode: use debuf_printf().
+#CFLAGS		+= -DDEBUG
+#CSRCS		+= debug.c
+#OBJS		+= debug.o
 
 vpath %.c . dev
 

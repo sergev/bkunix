@@ -251,8 +251,10 @@ void scanner (lsxfs_inode_t *dir, lsxfs_inode_t *inode,
 	if (verbose) {
 		/* Print a list of blocks. */
 		print_inode_blocks (inode, out);
-		/*lsxfs_inode_print (inode, out);*/
-		/*printf ("--------\n");*/
+		if (verbose > 1) {
+			lsxfs_inode_print (inode, out);
+			printf ("--------\n");
+		}
 	}
 	if ((inode->mode & INODE_MODE_FMT) == INODE_MODE_FDIR) {
 		/* Scan subdirectory. */
