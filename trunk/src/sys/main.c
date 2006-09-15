@@ -46,7 +46,7 @@ int	icode[] = {
  * Panic is called on unresolvable fatal errors.
  * It prints "panic: mesg", and then halts.
  */
-void panic(s)
+void panichalt(s)
 	char *s;
 {
 #ifdef DEBUF
