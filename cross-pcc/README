@@ -1,0 +1,3 @@
+This is a port of C compiler for PDP-11, taken from 2.11BSD.
+___
+Serge Vakulenko, <vak@cronyx.ru>
