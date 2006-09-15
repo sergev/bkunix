@@ -24,12 +24,13 @@
 void
 exec()
 {
-	int ap, na, nc, ds;
+	int na, nc, ds;
 	struct buf *bp;
 	register int c;
 	register struct inode *ip;
 	register char *cp;
 	int *sp;
+	char *up;
 
 	/*
 	 * pick up file names
@@ -51,17 +52,17 @@ exec()
 	na = 0;
 	nc = 0;
 	for (;;) {
-		ap = fuword(u.u_arg[1]);
-		if (ap == 0)
+		up = (char*) u.u_arg[1];
+		if (up == 0)
 			break;
-		na++;
-		if(ap == -1)
+		if (bad_user_address (up))
 			goto bad;
+		na++;
 		u.u_arg[1] += 2;
 		for(;;) {
-			c = fubyte(ap++);
-			if(c == -1)
+			if (bad_user_address (up))
 				goto bad;
+			c = *up++;
 			*cp++ = c;
 			nc++;
 			if(nc > 510) {
@@ -130,17 +131,17 @@ exec()
 	u.u_dsize = ds;
 	u.u_ssize = SSIZE;
 	cp = bp->b_addr;
-	ap = TOPUSR - nc - na*2 - 4;
-	u.u_ar0[R6] = ap;
-	suword(ap, na);
-	c = TOPUSR - nc;
+	u.u_ar0[R6] = TOPUSR - nc - na*2 - 4;
+	sp = (int*) u.u_ar0[R6];
+	*sp++ = na;
+	up = (char*) (TOPUSR - nc);
 	while(na--) {
-		suword(ap += 2, c);
-		do
-			subyte(c++, *cp);
-		while(*cp++);
+		*sp++ = (int) up;
+		do {
+			*up++ = *cp;
+		} while(*cp++);
 	}
-	suword(ap+2, -1);
+	*sp = -1;
 
 	/*
 	 * clear sigs, regs and return
@@ -205,7 +206,7 @@ pexit()
 		if(cpid)
 			cpid--;
 		else
-			panic();
+			panic("zero pid");
 	}
 	if(p == bgproc) bgproc = 0;
 	retu(u.u_rsav);
@@ -225,7 +226,7 @@ pexit()
 	if(cpid)
 		cpid--;
 	else
-		panic();
+		panic("zero pid");
 	retu(u.u_rsav);	/* switch to system stack */
 	swap(B_READ);
 #endif

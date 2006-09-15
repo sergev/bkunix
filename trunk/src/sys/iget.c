@@ -47,7 +47,7 @@ loop:
 						ino = ROOTINO;
 						goto loop;
 					}
-				panic();
+				panic("mount table failure");
 			}
 			p->i_count++;
 			return(p);

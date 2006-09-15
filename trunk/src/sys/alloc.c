@@ -26,7 +26,7 @@ void iinit()
 	bp = bread(ROOTDEV, 1);
 	cp = getblk(NODEV, 0);
 	if(u.u_error)
-		panic();
+		panic("error reading superblock");
 	memcpy(cp->b_addr, bp->b_addr, 512);
 	brelse(bp);
 	mount[0].m_bufp = cp;
@@ -93,7 +93,7 @@ alloc(dev)
 		brelse(bp);
 	}
 	if(bno < fp->s_isize+2 || bno >= fp->s_fsize)
-		panic();
+		panic("no space on dev");
 	bp = getblk(dev, bno);
 	memzero (bp->b_addr, 512);
 	fp->s_fmod = 1;
@@ -121,7 +121,7 @@ free(dev, bno)
 
 	fp = getfs(dev);
 	if(bno < fp->s_isize+2 || bno >= fp->s_fsize)
-		panic();
+		panic("free block illegal");
 	if(fp->s_nfree <= 0) {
 		fp->s_nfree = 1;
 		fp->s_free[0] = 0;
@@ -220,7 +220,7 @@ getfs(dev)
 		if(p->m_bufp != NULL && p->m_dev == dev) {
 			return (struct filsys*) ((p->m_bufp)->b_addr);
 		}
-	panic();
+	panic("no fs");
 	return 0;
 }
 

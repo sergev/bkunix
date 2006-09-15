@@ -52,8 +52,6 @@ void update();
 int lshift();
 int spl0();
 int spl7();
-int fuword();
-int fubyte();
 int subyte();
 int cpass();
 int passc();
@@ -61,6 +59,11 @@ int issig();
 int dpcmp();
 int swap();
 int newproc();
+int bad_user_address();
+#ifdef DEBUG
+void debug_putchar();
+void debug_printf();
+#endif
 
 /*
  * structure of the system entry table (sysent.c)

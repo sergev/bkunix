@@ -134,8 +134,10 @@ psig()
 		if(n != SIGINS)
 			u.u_signal[n] = 0;
 		n = u.u_ar0[R6] - 4;
-		suword(n+2, u.u_ar0[RPS]);
-		suword(n, u.u_ar0[R7]);
+		if (! bad_user_address ((char*) n)) {
+			*(int*)(n+2) = u.u_ar0[RPS];
+			*(int*)n = u.u_ar0[R7];
+		}
 		u.u_ar0[R6] = n;
 		u.u_ar0[RPS] &= ~TBIT;
 		u.u_ar0[R7] = p;

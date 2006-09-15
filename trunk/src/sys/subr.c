@@ -8,6 +8,21 @@
 #include "systm.h"
 
 /*
+ * Check the address value received from user program.
+ * Return 0 when the address is valid.
+ */
+int
+bad_user_address(addr)
+	register char *addr;
+{
+	if (addr < (char*) TOPSYS || addr >= (char*) TOPUSR) {
+		u.u_error = EFAULT;
+		return 1;
+	}
+	return 0;
+}
+
+/*
  * Bmap defines the structure of file system storage
  * by returning the physical block number on a device given the
  * inode and the logical block number in a file.
@@ -99,14 +114,12 @@ int
 passc(c)
 	int c;
 {
-	if(subyte(u.u_base, c) < 0) {
-		u.u_error = EFAULT;
-		return(-1);
-	}
+	if (bad_user_address (u.u_base))
+		return -1;
+	*u.u_base++ = c;
 	u.u_count--;
 	if(++u.u_offset[1] == 0)
 		u.u_offset[0]++;
-	u.u_base++;
 	return(u.u_count == 0? -1: 0);
 }
 
@@ -124,14 +137,12 @@ cpass()
 
 	if(u.u_count == 0)
 		return(-1);
-	if((c=fubyte(u.u_base)) < 0) {
-		u.u_error = EFAULT;
-		return(-1);
-	}
+	if (bad_user_address (u.u_base))
+		return -1;
+	c = *u.u_base++;
 	u.u_count--;
 	if(++u.u_offset[1] == 0)
 		u.u_offset[0]++;
-	u.u_base++;
 	return(c&0377);
 }
 

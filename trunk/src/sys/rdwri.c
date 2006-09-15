@@ -43,11 +43,9 @@ iomove(kdata, an, flag)
 	register int n;
 
 	n = an;
-	if (u.u_base < (char*) TOPSYS ||
-	    (u.u_base + n) > (char*) TOPUSR) {
-		u.u_error = EFAULT;
+	if (bad_user_address (u.u_base) ||
+	    bad_user_address (u.u_base + n - 1))
 		return;
-	}
 	if (flag==B_WRITE)
 		memcpy (kdata, u.u_base, n);
 	else

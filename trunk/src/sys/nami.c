@@ -14,12 +14,9 @@
 int
 uchar()
 {
-	register int c;
-
-	c = fubyte(u.u_dirp++);
-	if(c == -1)
-		u.u_error = EFAULT;
-	return(c);
+	if (bad_user_address (u.u_dirp))
+		return -1;
+	return *u.u_dirp++;
 }
 
 /*

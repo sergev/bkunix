@@ -12,6 +12,8 @@
 #define	SYS	0104400		/* sys (trap) instruction */
 #define	USER	020		/* user-mode flag added to dev */
 
+#define fetch_word(a)		(*(unsigned*)(a))
+
 /*
  * Call the system-entry routine f (out of the
  * sysent table). This is a subroutine for trap, and
@@ -53,6 +55,7 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 	register int i, a;
 	register struct sysent *callp;
 
+debug_printf ("trap dev=%x sp=%x r0=%x pc=%x ps=%x\n", dev, sp, r0, pc, ps);
 	if(pc > (char*) TOPSYS)
 		dev |= USER;
 	u.u_ar0 = &r0;
@@ -63,7 +66,7 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 	 * Usually a kernel mode bus error.
 	 */
 	default:
-		panic();
+		panic("unknown trap");
 
 	case 0+USER: /* bus error */
 		i = SIGBUS;
@@ -78,7 +81,7 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 	 * will trap on CPUs without 11/45 FPU.
 	 */
 	case 1+USER: /* illegal instruction */
-		if(fuword(pc-2) == SETD && u.u_signal[SIGINS] == 0)
+		if(fetch_word(pc-2) == SETD && u.u_signal[SIGINS] == 0)
 			goto out;
 		i = SIGINS;
 		break;
@@ -96,25 +99,27 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 		break;
 
 	case 6+USER: /* sys call */
+debug_printf ("sys call\n");
 		u.u_error = 0;
 		ps &= ~EBIT;
-		callp = &sysent[fuword(pc-2)&077];
+		callp = &sysent[fetch_word(pc-2)&077];
 		if (callp == sysent) { /* indirect */
-			a = fuword(pc);
+			a = fetch_word(pc);
 			pc += 2;
-			i = fuword(a);
+			i = fetch_word(a);
 			if ((i & ~077) != SYS)
 				i = 077;	/* illegal */
 			callp = &sysent[i&077];
 			for(i=0; i<callp->count; i++)
-				u.u_arg[i] = fuword(a += 2);
+				u.u_arg[i] = fetch_word(a += 2);
 		} else {
 			for(i=0; i<callp->count; i++) {
-				u.u_arg[i] = fuword(pc);
+				u.u_arg[i] = fetch_word(pc);
 				pc += 2;
 			}
 		}
 		u.u_dirp = (char*) u.u_arg[0];
+debug_printf ("arg: %s\n", u.u_dirp);
 		trap1(callp->call);
 		if(u.u_intflg)
 			u.u_error = EINTR;
@@ -127,26 +132,8 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 		}
 		i = SIGSYS;
 		break;
-
-	/*
-	 * Since the floating exception is an
-	 * imprecise trap, a user generated
-	 * trap may actually come from kernel
-	 * mode. In this case, a signal is sent
-	 * to the current process to be picked
-	 * up later.
-	 */
-	case 8: /* floating exception */
-		psignal(u.u_procp, SIGFPT);
-		return;
-
-	case 8+USER:
-		i = SIGFPT;
-		break;
-
 	}
 	psignal(u.u_procp, i);
-
 out:
 	if(issig())
 		psig();
