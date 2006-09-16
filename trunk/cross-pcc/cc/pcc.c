@@ -63,6 +63,18 @@ setsuf(as, ch)
 	return (s1);
 }
 
+char *
+concat(a, b)
+	char *a, *b;
+{
+	char *p;
+
+	p = malloc(strlen(a) + strlen(b) + 1);
+	strcpy (p, a);
+	strcat (p, b);
+	return p;
+}
+
 int inlist(l, os)
 	char **l, *os;
 {
@@ -245,14 +257,15 @@ int main(argc, argv)
 		/* Preprocessor. */
 		av[0] = "cpp";
 		na = 1;
-		av[na++] = clist[i];
-		if (getsuf(clist[i]) == 'S')
-			av[na++] = tmp_as;
-		else if (! Eflag)
-			av[na++] = tmp_cpp;
 		for (j = 0; j < np; j++)
 			av[na++] = plist[j];
-		av[na++] = 0;
+		/* Some versions of cpp require no space between -o and file name. */
+		if (getsuf(clist[i]) == 'S')
+			av[na++] = concat("-o", tmp_as);
+		else if (! Eflag)
+			av[na++] = concat("-o", tmp_cpp);
+		av[na++] = clist[i];
+		av[na] = 0;
 		if (callsys(cpp, av)) {
 			exfail++;
 			errflag++;
