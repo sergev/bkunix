@@ -79,9 +79,9 @@ data_def:
 				pfstab(stab[$2->tn.rval].sname);
 #endif
 				}  function_body
-			={  
+			={
 			    if( blevel ) cerror("function level error" );
-			    if( reached ) retstat |= NRETVAL; 
+			    if( reached ) retstat |= NRETVAL;
 			    $1->in.op = FREE;
 			    ftnend();
 			    }
@@ -101,13 +101,13 @@ stmt_list:	   stmt_list statement
 		;
 
 r_dcl_stat_list	:  dcl_stat_list attributes SM
-			={  $2->in.op = FREE; 
+			={  $2->in.op = FREE;
 #ifndef LINT
 			    plcstab(blevel);
 #endif
 			    }
 		|  dcl_stat_list attributes init_dcl_list SM
-			={  $2->in.op = FREE; 
+			={  $2->in.op = FREE;
 #ifndef LINT
 			    plcstab(blevel);
 #endif
@@ -250,22 +250,22 @@ declarator:	   fdeclarator
 		;
 
 		/* int (a)();   is not a function --- sorry! */
-nfdeclarator:	   MUL nfdeclarator		
+nfdeclarator:	   MUL nfdeclarator
 			={  umul:
 				$$ = bdty( UNARY MUL, $2, 0 ); }
-		|  nfdeclarator  LP   RP		
+		|  nfdeclarator  LP   RP
 			={  uftn:
 				$$ = bdty( UNARY CALL, $1, 0 );  }
-		|  nfdeclarator LB RB		
+		|  nfdeclarator LB RB
 			={  uary:
 				$$ = bdty( LB, $1, 0 );  }
-		|  nfdeclarator LB con_e RB	
+		|  nfdeclarator LB con_e RB
 			={  bary:
 				if( (int)$3 <= 0 ) werror("zero or negative subscript" );
 				$$ = bdty( LB, $1, $3 );  }
-		|  NAME  		
+		|  NAME
 			={  $$ = bdty( NAME, NIL, $1 );  }
-		|   LP  nfdeclarator  RP 		
+		|   LP  nfdeclarator  RP
 			={ $$=$2; }
 		;
 fdeclarator:	   MUL fdeclarator
@@ -278,7 +278,7 @@ fdeclarator:	   MUL fdeclarator
 			={  goto bary; }
 		|   LP  fdeclarator  RP
 			={ $$ = $2; }
-		|  name_lp  name_list  RP
+		|  name_lp  type_list  RP
 			={
 				if( blevel!=0 ) uerror("function declaration in bad context");
 				$$ = bdty( UNARY CALL, bdty(NAME,NIL,$1), 0 );
@@ -300,10 +300,10 @@ name_lp:	  NAME LP
 				}
 		;
 
-name_list:	   NAME			
-			={ ftnarg( $1 );  stwart = SEENAME; }
-		|  name_list  CM  NAME 
-			={ ftnarg( $3 );  stwart = SEENAME; }
+type_list:	   cast_type
+			={ tfree( $1 );  stwart = SEENAME; }
+		|  type_list  CM  cast_type
+			={ tfree( $3 );  stwart = SEENAME; }
 		| error
 		;
 		/* always preceeded by attributes: thus the $<nodep>0's */
@@ -372,7 +372,7 @@ compoundstmt:	   dcmpstmt
 		;
 
 dcmpstmt:	   begin r_dcl_stat_list stmt_list RC
-			={  
+			={
 #ifndef LINT
 			    prcstab(blevel);
 #endif
@@ -551,7 +551,7 @@ whprefix:	  WHILE  LP  e  RP
 			    else ecomp( buildtree( CBRANCH, $3, bcon( brklab) ) );
 			    }
 		;
-forprefix:	  FOR  LP  .e  SM .e  SM 
+forprefix:	  FOR  LP  .e  SM .e  SM
 			={  if( $3 ) ecomp( $3 );
 			    else if( !reached ) werror("loop not entered at top");
 			    savebc();
@@ -565,7 +565,7 @@ forprefix:	  FOR  LP  .e  SM .e  SM
 		;
 switchpart:	   SWITCH  LP  e  RP
 			={  register NODE *q;
-			
+
 			    savebc();
 			    brklab = getlab();
 			    q = $3;
@@ -772,7 +772,7 @@ null_decl:	   /* empty */
 			={ $$ = $2; }
 		;
 
-funct_idn:	   NAME  LP 
+funct_idn:	   NAME  LP
 			={  if( stab[$1].stype == UNDEF ){
 				register NODE *q;
 				q = block( FREE, NIL, NIL, FTN|INT, 0, INT );
@@ -783,7 +783,7 @@ funct_idn:	   NAME  LP
 			    $$=buildtree(NAME,NIL,NIL);
 			    stab[idname].suse = -lineno;
 			}
-		|  term  LP 
+		|  term  LP
 		;
 %%
 
