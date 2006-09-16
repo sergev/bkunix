@@ -5,7 +5,7 @@
 # GNU compiler.
 #CC		= pdp11-gcc -Wall
 #CFLAGS		= -Os -fomit-frame-pointer -fno-builtin -I. -DKERNEL -DDEBUG
-LIBS		=
+#LIBS		=
 
 # Johnson's portable compiler.
 CC		= pdp11-pcc
