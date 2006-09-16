@@ -88,12 +88,12 @@ gtime()
 		y = localtime(nt)[5];
 	}
 	if (*cbp == 'p')
-		h =+ 12;
+		h += 12;
 	if (h<0 || h>23)
 		goto bad;
 	timbuf[0] = 0;
 	timbuf[1] = 0;
-	y =+ 1900;
+	y += 1900;
 	for(i=1970; i<y; i++)
 		gdadd(dysize(i));
 	if( dysize(i) == 366)
