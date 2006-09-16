@@ -29,27 +29,27 @@ char **argv;
 			while((i = *p++) != '\0') {
 				switch(i) {
 				case 'o':
-					conv =| 001;
+					conv |= 001;
 					f = 6;
 					break;
 				case 'd':
-					conv =| 002;
+					conv |= 002;
 					f = 5;
 					break;
 				case 'a':
-					conv =| 004;
+					conv |= 004;
 					f = 4;
 					break;
 				case 'h':
-					conv =| 010;
+					conv |= 010;
 					f = 4;
 					break;
 				case 'c':
-					conv =| 020;
+					conv |= 020;
 					f = 5;
 					break;
 				case 'b':
-					conv =| 040;
+					conv |= 040;
 					f = 7;
 					break;
 				}
@@ -87,7 +87,7 @@ loop:
 			break;
 		word[i] = w;
 		if(i)
-			f =& w==k; else
+			f &= w==k; else
 			k = w;
 	}
 	if(i)
@@ -98,7 +98,7 @@ loop:
 			from[0] = a[0];
 			from[1] = a[1];
 		}
-		flag =+ i;
+		flag += i;
 	} else {
 		dupl();
 		line(a, word, i);
@@ -136,7 +136,7 @@ int w[];
 	int i, f, c;
 
 	f = 1;
-	for(c=1; c; c=+c) {
+	for(c=1; c; c+=c) {
 		if((c&conv) == 0)
 			continue;
 		if(f) {
@@ -220,7 +220,7 @@ getc()
 
 putc(c)
 {
-	c =& 0377;
+	c &= 0377;
 	if(c>037 && c<0177 && c!='\\') {
 		putchar(' ');
 		putchar(c);
@@ -303,18 +303,18 @@ char s[];
 		a[0] = 0;
 		a[1] = 0;
 		while(i--) {
-			a[1] =+ 512;
+			a[1] += 512;
 			while(a[1] >= basem) {
-				a[1] =- basem;
+				a[1] -= basem;
 				a[0]++;
 			}
 		}
 	}
 	i = 0;
 	while(a[0] > addr[0]+1) {
-		addr[1] =+ 512;
+		addr[1] += 512;
 		while(addr[1] >= basem) {
-			addr[1] =- basem;
+			addr[1] -= basem;
 			addr[0]++;
 		}
 		i++;

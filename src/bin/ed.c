@@ -55,7 +55,6 @@ char	*linebp;
 int	ninbuf;
 int	io;
 int	pflag;
-long	lseek();
 int	(*oldhup)();
 int	(*oldquit)();
 int	vflag	= 1;
@@ -321,11 +320,12 @@ commands()
 		setall();
 		nonzero();
 		filename(c);
-		if(!wrapp ||
-		  ((io = open(file,1)) == -1) ||
-		  ((lseek(io, 0L, 2)) == -1))
+		if(!wrapp || (io = open(file,1)) == -1) {
 			if ((io = creat(file, 0666)) < 0)
 				error(file);
+		} else
+			seek(io, 0, 2);
+
 		wrapp = 0;
 		putfile();
 		exfile();
@@ -387,7 +387,7 @@ address()
 		case ' ':
 		case '\t':
 			continue;
-	
+
 		case '+':
 			minus++;
 			if (a1==0)
@@ -400,7 +400,7 @@ address()
 			if (a1==0)
 				a1 = dot;
 			continue;
-	
+
 		case '?':
 		case '/':
 			compile(c);
@@ -421,11 +421,11 @@ address()
 					error(Q);
 			}
 			break;
-	
+
 		case '$':
 			a1 = dol;
 			break;
-	
+
 		case '.':
 			a1 = dot;
 			break;
@@ -437,7 +437,7 @@ address()
 				if (names[c-'a'] == (*a1 & ~01))
 					break;
 			break;
-	
+
 		default:
 			peekc = c;
 			if (a1==0)
@@ -579,7 +579,7 @@ char *s;
 	putchr('?');
 	puts(s);
 	count = 0;
-	lseek(0, (long)0, 2);
+	seek(0, 0, 2);
 	pflag = 0;
 	if (globp)
 		lastc = '\n';
@@ -872,7 +872,7 @@ getblock(atl, iof)
 	register bno, off;
 	register char *p1, *p2;
 	register int n;
-	
+
 	bno = (atl>>8)&0377;
 	off = (atl<<1)&0774;
 	if (bno >= 255) {
@@ -906,7 +906,7 @@ blkio(b, buf, iofcn)
 char *buf;
 int (*iofcn)();
 {
-	lseek(tfile, (long)b<<9, 0);
+	seek(tfile, b, 3);
 	if ((*iofcn)(tfile, buf, 512) != 512) {
 		error(T);
 	}
@@ -1307,7 +1307,7 @@ compile(aeof)
 						*ep = ep[-1]+1;
 						ep++;
 						cclcnt++;
-						if (ep>=&expbuf[ESIZE])
+						if (ep >= &expbuf[ESIZE])
 							goto cerror;
 					}
 				}
@@ -1582,4 +1582,3 @@ out:
 	}
 	linp = lp;
 }
-

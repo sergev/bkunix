@@ -276,8 +276,8 @@ char *file;
 	ndup = sblock.s_fsize - sblock.s_isize - 2 - 4096;
 	for(i=0; i<512; i++) {
 		j = bmap[i];
-		ndup =+ bitcnt[j&017];
-		ndup =+ bitcnt[(j>>4)&017];
+		ndup += bitcnt[j&017];
+		ndup += bitcnt[(j>>4)&017];
 	}
 	if(ndup)
 		printf("%l missing\n", ndup);
@@ -328,12 +328,12 @@ struct inode *ip;
 		return;
 	if(uflg) {
 		i = ldiv(0, ino, 8);
-		ucnt[i] =| 1<<ldivr;
+		ucnt[i] |= 1<<ldivr;
 	}
 	if (!lflg) {
-		icnt->icnt[ino-1] =+ 0100;
+		icnt->icnt[ino-1] += 0100;
 		if(ip->i_nlink)
-			icnt->icnt[ino-1] =+ 0100 + ip->i_nlink;
+			icnt->icnt[ino-1] += 0100 + ip->i_nlink;
 	}
 	if((ip->i_mode&IFCHR&IFBLK) != 0) {
 		nspcl++;
@@ -375,7 +375,7 @@ struct inode *ip;
 			for(j=0; j<256; j++)
 			if(buf[j] != 0)
 				chk(buf[j], "ldir", df);
-			df =- 32;
+			df -= 32;
 		}
 		if(ip->i_addr[7]) {
 			nvlarg++;
@@ -398,7 +398,7 @@ struct inode *ip;
 	for(i=0; i<8; i++) {
 		if(ip->i_addr[i] != 0)
 			chk(ip->i_addr[i], "sdir", df);
-		df =- 32;
+		df -= 32;
 	}
 }
 
@@ -440,11 +440,11 @@ char *ii;
 			fprintf("%l dup; i=%l(%s)\n", i, ino, s);
 			return(1);
 		}
-		bmap[n] =| j;
+		bmap[n] |= j;
 	}
 	if(df>0) {
 		bread(i, buf);
-		for(n=0; n<256; n=+8) {
+		for(n=0; n<256; n+=8) {
 			if(df <= 0)
 				break;
 			df--;
@@ -469,7 +469,7 @@ char *ii;
 				j++;
 				if(!uflg)
 					write(lfdes, buf[n].name, j);
-				lfptr =+ j;
+				lfptr += j;
 				edn++;
 			}
 			for(j=0; j<ndlist; j++)
@@ -690,7 +690,7 @@ inodlist()
 				if(sblock.s_ninode >= 100)
 					return;
 			}
-			ip =+ 16;
+			ip += 16;
 		}
 	}
 }

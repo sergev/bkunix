@@ -1,7 +1,7 @@
-#
 /*
- * list file or directory
+ * List file or directory
  */
+#include <unistd.h>
 
 struct {
 	int	fdes;
@@ -54,7 +54,7 @@ int	statreq;
 struct	lbuf	*lastp;
 struct	lbuf	*rlastp;
 struct	lbuf	*firstp;
-char	*dotp	".";
+char	*dotp = ".";
 
 #define	IFMT	060000
 #define	DIR	0100000
@@ -76,8 +76,10 @@ char	*dotp	".";
 #define	XOTH	01
 #define	RSTXT	01000
 
+int
 main(argc, argv)
-char **argv;
+	int argc;
+	char **argv;
 {
 	int i, j;
 	register struct lbuf *ep, *ep1;
@@ -96,7 +98,7 @@ char **argv;
 
 		case 'I':
 			if (argc > 1) {
-				argc =- 2;
+				argc -= 2;
 				argv++;
 				filsys = open(*argv, 0);
 				Iflg++;
@@ -176,7 +178,7 @@ out:
 		if ((ep = gstat(*++argv, 1))==0)
 			continue;
 		ep->namep = *argv;
-		ep->lflags =| ISARG;
+		ep->lflags |= ISARG;
 	}
 	qsort(firstp, lastp - firstp, sizeof *lastp, compar);
 	slastp = lastp;
@@ -192,15 +194,16 @@ out:
 				printf("total %d\n", tblocks);
 			for (ep1=slastp; ep1<lastp; ep1++)
 				pentry(ep1);
-		} else 
+		} else
 			pentry(ep);
 	}
 	flush();
 	exit(0);
 }
 
+void
 pentry(ap)
-struct lbuf *ap;
+	struct lbuf *ap;
 {
 	struct { char dminor, dmajor;};
 	register t;
@@ -220,7 +223,7 @@ struct lbuf *ap;
 		t = p->luid;
 		if(gflg)
 			t = p->lgid;
-		t =& 0377;
+		t &= 0377;
 		if (getname(t, tbuf)==0)
 			printf("%-6.6s", tbuf);
 		else
@@ -241,9 +244,10 @@ struct lbuf *ap;
 		printf("%.14s\n", p->lname);
 }
 
+int
 getname(uid, buf)
-int uid;
-char buf[];
+	int uid;
+	char buf[];
 {
 	int j, c, n, i;
 
@@ -275,8 +279,9 @@ char buf[];
 	return(0);
 }
 
+int
 nblock(size0, size)
-char *size0, *size;
+	char *size0, *size;
 {
 	register int n;
 
@@ -284,24 +289,26 @@ char *size0, *size;
 	if (size&0777)
 		n++;
 	if (n>8)
-		n =+ (n+255)/256;
+		n += (n+255)/256;
 	return(n);
 }
 
-int	m0[] { 3, DIR, 'd', BLK, 'b', CHR, 'c', '-'};
-int	m1[] { 1, ROWN, 'r', '-' };
-int	m2[] { 1, WOWN, 'w', '-' };
-int	m3[] { 2, SUID, 's', XOWN, 'x', '-' };
-int	m4[] { 1, RGRP, 'r', '-' };
-int	m5[] { 1, WGRP, 'w', '-' };
-int	m6[] { 2, SGID, 's', XGRP, 'x', '-' };
-int	m7[] { 1, ROTH, 'r', '-' };
-int	m8[] { 1, WOTH, 'w', '-' };
-int	m9[] { 2, STXT, 't', XOTH, 'x', '-' };
+int	m0[] = { 3, DIR, 'd', BLK, 'b', CHR, 'c', '-'};
+int	m1[] = { 1, ROWN, 'r', '-' };
+int	m2[] = { 1, WOWN, 'w', '-' };
+int	m3[] = { 2, SUID, 's', XOWN, 'x', '-' };
+int	m4[] = { 1, RGRP, 'r', '-' };
+int	m5[] = { 1, WGRP, 'w', '-' };
+int	m6[] = { 2, SGID, 's', XGRP, 'x', '-' };
+int	m7[] = { 1, ROTH, 'r', '-' };
+int	m8[] = { 1, WOTH, 'w', '-' };
+int	m9[] = { 2, STXT, 't', XOTH, 'x', '-' };
 
-int	*m[] { m0, m1, m2, m3, m4, m5, m6, m7, m8, m9};
+int	*m[] = { m0, m1, m2, m3, m4, m5, m6, m7, m8, m9};
 
+void
 pmode(aflag)
+	int aflag;
 {
 	register int **mp;
 
@@ -310,8 +317,9 @@ pmode(aflag)
 		select(*mp++);
 }
 
+void
 select(pairp)
-int *pairp;
+	int *pairp;
 {
 	register int n, *ap;
 
@@ -322,8 +330,9 @@ int *pairp;
 	putchar(*ap);
 }
 
+char *
 makename(dir, file)
-char *dir, *file;
+	char *dir, *file;
 {
 	static char dfile[100];
 	register char *dp, *fp;
@@ -341,8 +350,9 @@ char *dir, *file;
 	return(dfile);
 }
 
+void
 readdir(dir)
-char *dir;
+	char *dir;
 {
 	static struct {
 		int	dinode;
@@ -375,8 +385,9 @@ char *dir;
 	close(inf.fdes);
 }
 
+struct lbuf *
 gstat(file, argfl)
-char *file;
+	char *file;
 {
 	struct ibuf statb;
 	register ino;
@@ -384,7 +395,7 @@ char *file;
 
 	if (lastp+1 >= rlastp) {
 		sbrk(512);
-		rlastp.idev =+ 512;
+		rlastp.idev += 512;
 	}
 	rep = lastp;
 	lastp++;
@@ -408,17 +419,17 @@ char *file;
 			}
 		}
 		rep->lnum = statb.inum;
-		statb.iflags =& ~DIR;
+		statb.iflags &= ~DIR;
 		if ((statb.iflags&IFMT) == 060000) {
-			statb.iflags =& ~020000;
+			statb.iflags &= ~020000;
 		} else if ((statb.iflags&IFMT)==040000) {
-			statb.iflags =& ~IFMT;
-			statb.iflags =| DIR;
+			statb.iflags &= ~IFMT;
+			statb.iflags |= DIR;
 		}
-		statb.iflags =& ~ LARGE;
+		statb.iflags &= ~ LARGE;
 		if (statb.iflags & RSTXT)
-			statb.iflags =| STXT;
-		statb.iflags =& ~ RSTXT;
+			statb.iflags |= STXT;
+		statb.iflags &= ~ RSTXT;
 		rep->lflags = statb.iflags;
 		rep->luid = statb.iuid;
 		rep->lgid = statb.igid;
@@ -433,13 +444,14 @@ char *file;
 			rep->lmtime[0] = statb.iatime[0];
 			rep->lmtime[1] = statb.iatime[1];
 		}
-		tblocks =+ nblock(statb.isize0, statb.isize);
+		tblocks += nblock(statb.isize0, statb.isize);
 	}
 	return(rep);
 }
 
+int
 compar(ap1, ap2)
-struct lbuf *ap1, *ap2;
+	struct lbuf *ap1, *ap2;
 {
 	register struct lbuf *p1, *p2;
 	register int i;

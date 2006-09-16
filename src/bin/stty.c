@@ -62,8 +62,8 @@ char	*argv[];
 		arg = *++argv;
 		for(i = 0; modes[i].string; i++)
 			if(eq(modes[i].string)) {
-				mode[2] =& ~modes[i].reset;
-				mode[2] =| modes[i].set;
+				mode[2] &= ~modes[i].reset;
+				mode[2] |= modes[i].set;
 			}
 		if(arg)
 			printf("unknown mode: %s\n", arg);
