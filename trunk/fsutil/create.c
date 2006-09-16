@@ -139,6 +139,12 @@ int lsxfs_create (lsxfs_t *fs, const char *filename, unsigned long bytes)
 	if (fs->isize < 1)
 		return 0;
 
+	/* make sure the file is of proper size - for SIMH */
+	if (lseek(fs->fd, 256255, SEEK_SET) == 256255) {
+		write(fs->fd, "", 1);
+		lseek(fs->fd, 0, SEEK_SET);
+	} else
+		return 0;
 	/* build a list of free blocks */
 	lsxfs_block_free (fs, 0);
 	for (n = fs->fsize - 1; n >= fs->isize + 2; n--)
