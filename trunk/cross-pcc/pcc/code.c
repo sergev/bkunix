@@ -1,6 +1,5 @@
 # include "pass1.h"
 # include <sys/types.h>
-# include <a.out.h>
 # include <stab.h>
 
 int proflg = 0;	/* are we generating profiling code? */

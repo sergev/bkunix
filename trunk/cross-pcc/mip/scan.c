@@ -3,7 +3,6 @@ static char *sccsid ="@(#)scan.c	2.1.1 (2.11BSD GTE) 1/17/95";
 #endif
 
 # include "pass1.h"
-# include <a.out.h>
 # include <stab.h>
 # include <ctype.h>
 # include <signal.h>
