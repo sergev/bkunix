@@ -264,7 +264,7 @@ register union tree *tree;
 
 	constant:
 		if (tree->t.tr1->t.op==CON && tree->t.tr2->t.op==CON) {
-			const(op, &tree->t.tr1->c.value, tree->t.tr2->c.value, tree->t.type);
+			pconst(op, &tree->t.tr1->c.value, tree->t.tr2->c.value, tree->t.type);
 			return(tree->t.tr1);
 		}
 
@@ -314,7 +314,7 @@ register union tree *tree;
 
 	case INCAFT:
 	case DECAFT:
-		if (tree->t.type!=subtre->t.type) 
+		if (tree->t.type!=subtre->t.type)
 			paint(subtre, tree->t.type);
 		break;
 
@@ -345,7 +345,7 @@ register union tree *tree;
 			tree->f.fvalue = subtre->l.lvalue;
 			return(optim(tree));
 		}
-		if (subtre->t.type==UNLONG) 
+		if (subtre->t.type==UNLONG)
 			tree->t.op = ULTOF;
 		break;
 
@@ -672,7 +672,7 @@ register union tree *tree;
 			if (t2[0]->t.op==CON && t2[-1]->t.op==CON) {
 				acl.nextl--;
 				t2--;
-				const(op, &t2[0]->c.value, t2[1]->c.value, d);
+				pconst(op, &t2[0]->c.value, t2[1]->c.value, d);
 				t2[0]->t.type = d;
 			} else if (t = lconst(op, t2[-1], t2[0])) {
 				acl.nextl--;
@@ -871,7 +871,7 @@ union tree **p, **maxp;
 		*np = *(np+1);
 }
 
-const(op, vp, v, type)
+pconst(op, vp, v, type)
 register int *vp, v;
 {
 	switch (op) {

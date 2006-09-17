@@ -187,7 +187,7 @@ build(op)
 		   p1, cblock(p2->t.tr1->n.hoffset));
 		build(STAR);
 		if (p2->t.tr1->n.hflag&FFIELD)
-			*cp++ = block(FSEL, UNSIGN, (int *)NULL, (union str *)NULL, 
+			*cp++ = block(FSEL, UNSIGN, (int *)NULL, (union str *)NULL,
 			    *--cp, p2->t.tr1->n.hstrp);
 		return;
 	}
@@ -349,7 +349,7 @@ build(op)
 	if (t==CHAR)
 		t = INT;
 	if (op==CAST) {
-		if (t!=DOUBLE && (t!=INT || p2->t.type!=CHAR || p2->t.type!=UNCHAR)) {
+		if (t!=DOUBLE && (t!=INT || (p2->t.type!=CHAR && p2->t.type!=UNCHAR))) {
 			p2->t.type = t;
 			p2->t.subsp = p1->t.subsp;
 			p2->t.strp = p1->t.strp;
@@ -539,7 +539,7 @@ lintyp(t)
  * Report an error.
  */
 
-extern int Wflag = 0;	/* Non-zero means do not print warnings */
+int Wflag = 0;	/* Non-zero means do not print warnings */
 
 /* VARARGS1 */
 werror(s, p1, p2, p3, p4, p5, p6)

@@ -337,7 +337,7 @@ arlength(t)
  * Modified Memorial day May 80 to uniquely identify switch tables
  * (as on Vax) so a shell script can optionally include them in RO code.
  * This is useful in overlays to reduce the size of data space load.
- * wfj 5/80 
+ * wfj 5/80
  */
 char	dirsw[] = {"\
 cmp	r0,$%o\n\
@@ -818,6 +818,17 @@ psoct(an)
 	printf("%s%o", sign, n);
 }
 
+static
+outname(s)
+register char *s;
+{
+	register int c;
+
+	while (c = getchar())
+		*s++ = c;
+	*s++ = '\0';
+}
+
 /*
  * Read in an intermediate file.
  */
@@ -1115,17 +1126,6 @@ geti()
 	i = getchar() & 0xff;
 	i |= (getchar() & 0xff) << 8;
 	return(i);
-}
-
-static
-outname(s)
-register char *s;
-{
-	register int c;
-
-	while (c = getchar())
-		*s++ = c;
-	*s++ = '\0';
 }
 
 strasg(atp)
