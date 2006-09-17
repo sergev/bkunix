@@ -29,4 +29,4 @@
 #define SYS_gtty	32
 #define SYS_sync	36	/* Force a write of modified buffers out to disk */
 #define SYS_dup		41	/* Duplicate an existing file descriptor */
-#define SYS_sig		48	/* Set signal handler */
+#define SYS_signal	48	/* Set signal handler */
