@@ -104,5 +104,7 @@ unixmain()
 	 * Return goes to loc. 0 of user init
 	 * code just copied out.
 	 */
-debug_printf ("unixmain done oct%o hex%x\n", 01234, 0x5678);
+#ifdef DEBUG
+	debug_printf ("unixmain done\n");
+#endif
 }
