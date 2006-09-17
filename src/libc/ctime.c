@@ -1,257 +1,210 @@
 /*
- * This routine converts time as follows.
- * The epoch is 0000 Jan 1 1970 GMT.
- * The argument time is in seconds since then.
- * The localtime(t) entry returns a pointer to an array
- * containing
- *  seconds (0-59)
- *  minutes (0-59)
- *  hours (0-23)
- *  day of month (1-31)
- *  month (0-11)
- *  year-1970
- *  weekday (0-6, Sun is 0)
- *  day of the year
- *  daylight savings flag
- *
- * The routine corrects for daylight saving
- * time and will work in any time zone provided
- * "timezone" is adjusted to the difference between
- * Greenwich and local standard time (measured in seconds).
- * In places like Michigan "daylight" must
- * be initialized to 0 to prevent the conversion
- * to daylight time.
- * There is a table which accounts for the peculiarities
- * undergone by daylight time in 1974-1975.
- *
- * The routine does not work
- * in Saudi Arabia which runs on Solar time.
- *
- * asctime(tvec))
- * where tvec is produced by localtime
- * returns a ptr to a character string
- * that has the ascii time in the form
- *	Thu Jan 01 00:00:00 1970n0\\
- *	01234567890123456789012345
- *	0	  1	    2
- *
- * ctime(t) just calls localtime, then asctime.
+ * Copyright (c) 1987 Regents of the University of California.
+ * This file may be freely redistributed provided that this
+ * notice remains attached.
  */
-#include <stdlib.h>
+#include <time.h>
+#include <string.h>
 
-static char	cbuf[26];
-static int	dmsize[12] = {
-	31,
-	28,
-	31,
-	30,
-	31,
-	30,
-	31,
-	31,
-	30,
-	31,
-	30,
-	31
-};
-
-int timezone = 5*60*60;
-char *tzname[] = {
-	"EST",
-	"EDT",
-};
-int	daylight = 1;	/* Allow daylight conversion */
+#define	SECS_PER_MIN	60
+#define	MINS_PER_HOUR	60
+#define	HOURS_PER_DAY	24
+#define	SECS_PER_HOUR	(SECS_PER_MIN * MINS_PER_HOUR)
+#define	SECS_PER_DAY	((long) SECS_PER_HOUR * HOURS_PER_DAY)
+#define	EPOCH_WDAY	4 /* thursday */
 
 /*
- * The following table is used for 1974 and 1975 and
- * gives the day number of the first day after the Sunday of the
- * change.
+ * Accurate only for the past couple of centuries;
+ * that will probably do.
  */
-static struct {
-	int	daylb;
-	int	dayle;
-} daytab[] = {
-	5,	333,	/* 1974: Jan 6 - last Sun. in Nov */
-	58,	303,	/* 1975: Last Sun. in Feb - last Sun in Oct */
-};
-
-#define	SEC	0
-#define	MIN	1
-#define	HOUR	2
-#define	MDAY	3
-#define	MON	4
-#define	YEAR	5
-#define	WDAY	6
-#define	YDAY	7
-#define	ISDAY	8
-
-/*
- * The argument is a 0-origin day number.
- * The value is the day number of the first
- * Sunday on or after the day.
- */
-static int
-sunday(at, ad)
-	int *at, ad;
+static int isleap(y)
+	int y;
 {
-	register int *t, d;
-
-	t = at;
-	d = ad;
-	if (d >= 58)
-		d += dysize(t[YEAR]) - 365;
-	return(d - (d - t[YDAY] + t[WDAY] + 700) % 7);
+	if (y % 4 != 0)
+		return 0;
+	if (y % 100 != 0)
+		return 1;
+	if (y % 400 == 0)
+		return 1;
+	return 0;
 }
 
-int *
-gmtime(tim)
-	int *tim;
-{
-	register int d0, d1;
-	register *tp;
-	static xtime[9];
-	extern int ldivr;
-
-	/*
-	 * break initial number into
-	 * multiples of 8 hours.
-	 * (28800 = 60*60*8)
-	 */
-
-	d0 = ldiv(tim[0], tim[1], 28800);
-	d1 = ldivr;
-	tp = &xtime[0];
-
-	/*
-	 * generate hours:minutes:seconds
-	 */
-
-	*tp++ = d1%60;
-	d1 /= 60;
-	*tp++ = d1%60;
-	d1 /= 60;
-	d1 += (d0%3)*8;
-	d0 /= 3;
-	*tp++ = d1;
-
-	/*
-	 * d0 is the day number.
-	 * generate day of the week.
-	 */
-
-	xtime[WDAY] = (d0+4)%7;
-
-	/*
-	 * year number
-	 */
-	for(d1=70; d0 >= dysize(d1); d1++)
-		d0 -= dysize(d1);
-	xtime[YEAR] = d1;
-	xtime[YDAY] = d0;
-
-	/*
-	 * generate month
-	 */
-
-	if (dysize(d1)==366)
-		dmsize[1] = 29;
-	for(d1=0; d0 >= dmsize[d1]; d1++)
-		d0 -= dmsize[d1];
-	dmsize[1] = 28;
-	*tp++ = d0+1;
-	*tp++ = d1;
-	xtime[ISDAY] = 0;
-	return(xtime);
-}
-
-int *
-localtime(tim)
-	int *tim;
-{
-	register int *t, *ct, dayno;
-	int daylbegin, daylend;
-	int copyt[2];
-
-	t = copyt;
-	t[0] = tim[0];
-	t[1] = tim[1];
-	dpadd(t, -timezone);
-	ct = gmtime(t);
-	dayno = ct[YDAY];
-	daylbegin = 119;	/* last Sun in Apr */
-	daylend = 303;		/* Last Sun in Oct */
-	if (ct[YEAR]==74 || ct[YEAR]==75) {
-		daylbegin = daytab[ct[YEAR]-74].daylb;
-		daylend = daytab[ct[YEAR]-74].dayle;
-	}
-	daylbegin = sunday(ct, daylbegin);
-	daylend = sunday(ct, daylend);
-	if (daylight &&
-	    (dayno>daylbegin || (dayno==daylbegin && ct[HOUR]>=2)) &&
-	    (dayno<daylend || (dayno==daylend && ct[HOUR]<1))) {
-		dpadd(t, 1*60*60);
-		ct = gmtime(t);
-		ct[ISDAY]++;
-	}
-	return(ct);
-}
-
-static char *
-ct_numb(acp, n)
-	char *acp;
-{
+static void
+putnumb(cp, n)
 	register char *cp;
+{
+	*cp++ = (n / 10) % 10 + '0';
+	*cp++ = n % 10 + '0';
+}
 
-	cp = acp;
-	cp++;
-	if (n>=10)
-		*cp++ = (n/10)%10 + '0';
-	else
-		*cp++ = ' ';
-	*cp++ = n%10 + '0';
-	return(cp);
+/*
+** A la X3J11
+*/
+char *
+asctime(timeptr)
+	register struct tm *timeptr;
+{
+	static char	wday_name[7][3] = {
+		"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+	};
+	static char	mon_name[12][3] = {
+		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+	};
+	static char	result[26];
+
+	strcpy(result, "Day Mon 00 00:00:00 1900\n");
+	memcpy(result, wday_name[timeptr->tm_wday], 3);
+	memcpy(result+4, mon_name[timeptr->tm_mon], 3);
+	putnumb(result+8, timeptr->tm_mday);
+	putnumb(result+11, timeptr->tm_hour);
+	putnumb(result+14, timeptr->tm_min);
+	putnumb(result+17, timeptr->tm_sec);
+	putnumb(result+20, 19 + timeptr->tm_year / 100);
+	putnumb(result+22, timeptr->tm_year);
+	return result;
+}
+
+struct state {
+	int		timecnt;
+	int		typecnt;
+	int		charcnt;
+	long		gmtoff;		/* GMT offset in seconds */
+	int		isdst;		/* used to set tm_isdst */
+	char		chars[8];
+};
+
+static struct state	s;
+
+static int		tz_is_set;
+
+char *			tzname[2] = {
+	"GMT",
+	"GMT"
+};
+
+long			timezone = 0;
+int			daylight = 0;
+
+void
+tzset()
+{
+	tz_is_set = 1;
+
+	/* GMT is default */
+	s.timecnt = 0;
+	s.gmtoff = 0;
+	(void) strcpy(s.chars, "GMT");
+	tzname[0] = tzname[1] = s.chars;
+	timezone = 0;
+	daylight = 0;
+}
+
+static int	mon_lengths[2][12] = {
+	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+	31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+};
+
+static int	year_lengths[2] = {
+	365, 366
+};
+
+static struct tm *
+offtime(clock, offset)
+	long *clock;
+	long offset;
+{
+	register struct tm *	tmp;
+	register long		days;
+	register long		rem;
+	register int		y;
+	register int		yleap;
+	register int *		ip;
+	static struct tm	tm;
+
+	tmp = &tm;
+	days = *clock / SECS_PER_DAY;
+	rem = *clock % SECS_PER_DAY;
+	rem += offset;
+	while (rem < 0) {
+		rem += SECS_PER_DAY;
+		--days;
+	}
+	while (rem >= SECS_PER_DAY) {
+		rem -= SECS_PER_DAY;
+		++days;
+	}
+	tmp->tm_hour = (int) (rem / SECS_PER_HOUR);
+	rem = rem % SECS_PER_HOUR;
+	tmp->tm_min = (int) (rem / SECS_PER_MIN);
+	tmp->tm_sec = (int) (rem % SECS_PER_MIN);
+	tmp->tm_wday = (int) ((EPOCH_WDAY + days) % 7);
+	if (tmp->tm_wday < 0)
+		tmp->tm_wday += 7;
+	y = 1970;
+	if (days >= 0)
+		for ( ; ; ) {
+			yleap = isleap(y);
+			if (days < (long) year_lengths[yleap])
+				break;
+			++y;
+			days = days - (long) year_lengths[yleap];
+		}
+	else do {
+		--y;
+		yleap = isleap(y);
+		days = days + (long) year_lengths[yleap];
+	} while (days < 0);
+	tmp->tm_year = y - 1900;
+	tmp->tm_yday = (int) days;
+	ip = mon_lengths[yleap];
+	for (tmp->tm_mon = 0; days >= (long) ip[tmp->tm_mon]; ++(tmp->tm_mon))
+		days = days - (long) ip[tmp->tm_mon];
+	tmp->tm_mday = (int) (days + 1);
+	tmp->tm_isdst = 0;
+	tmp->tm_zone = "";
+	tmp->tm_gmtoff = offset;
+	return tmp;
+}
+
+struct tm *
+localtime(timep)
+	long *timep;
+{
+	register struct tm *		tmp;
+	register int			i;
+	long				t;
+
+	if (! tz_is_set)
+		(void) tzset();
+	t = *timep;
+	/*
+	** To get (wrong) behavior that's compatible with System V Release 2.0
+	** you'd replace the statement below with
+	**	tmp = offtime((long) (t + s.gmtoff), 0L);
+	*/
+	tmp = offtime(&t, s.gmtoff);
+	tmp->tm_isdst = s.isdst;
+	tzname[tmp->tm_isdst] = &s.chars[0];
+	tmp->tm_zone = &s.chars[0];
+	return tmp;
+}
+
+struct tm *
+gmtime(clock)
+	long *clock;
+{
+	register struct tm *	tmp;
+
+	tmp = offtime(clock, 0L);
+	tzname[0] = "GMT";
+	tmp->tm_zone = "GMT";		/* UCT ? */
+	return tmp;
 }
 
 char *
-asctime(t)
-	int *t;
+ctime(t)
+	long *t;
 {
-	register char *cp, *ncp;
-	register int *tp;
-
-	cp = cbuf;
-	for (ncp = "Day Mon 00 00:00:00 1900\n"; *cp++ = *ncp++;);
-	ncp = &"SunMonTueWedThuFriSat"[3*t[6]];
-	cp = cbuf;
-	*cp++ = *ncp++;
-	*cp++ = *ncp++;
-	*cp++ = *ncp++;
-	cp++;
-	tp = &t[4];
-	ncp = &"JanFebMarAprMayJunJulAugSepOctNovDec"[(*tp)*3];
-	*cp++ = *ncp++;
-	*cp++ = *ncp++;
-	*cp++ = *ncp++;
-	cp = ct_numb(cp, *--tp);
-	cp = ct_numb(cp, *--tp+100);
-	cp = ct_numb(cp, *--tp+100);
-	cp = ct_numb(cp, *--tp+100);
-	cp += 2;
-	cp = ct_numb(cp, t[YEAR]);
-	return(cbuf);
-}
-
-static int
-dysize(y)
-{
-	if((y%4) == 0)
-		return(366);
-	return(365);
-}
-
-char *
-ctime(at)
-	int *at;
-{
-	return(asctime(localtime(at)));
+	return(asctime(localtime(t)));
 }
