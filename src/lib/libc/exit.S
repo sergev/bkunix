@@ -1,11 +1,12 @@
-/ C library -- exit
-
-/ exit(code)
-/ code is return in r0 to system
-
-exit = 1
+/*
+ * C library -- exit(code)
+ * Code is return in r0 to system.
+ */
+#include <syscall.h>
 
 	.globl	_exit
 _exit:
-	mov	2(sp),r0
-	sys	exit
+	mov	r5,-(sp)
+	mov	sp,r5
+	mov	4(r5),r0
+	sys	SYS_exit

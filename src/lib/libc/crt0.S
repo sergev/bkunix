@@ -1,6 +1,7 @@
-/ C runtime startoff
-
-exit = 1
+/*
+ * C runtime startoff
+ */
+#include <syscall.h>
 
 	.globl	_exit
 	.globl	_main
@@ -13,4 +14,4 @@ start:
 	jsr	pc,_main
 	mov	r0,(sp)
 	jsr	pc,*$_exit
-	sys	exit
+	sys	SYS_exit
