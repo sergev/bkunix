@@ -30,7 +30,7 @@ install:	all
 		install -s ccom ${DESTDIR}/ccom
 
 clean:
-		rm -f *~ $M/*~ *.o ccom cgram.c pcctokens pcclocal.h gram.in
+		rm -f *~ $M/*~ *.o ccom cgram.c pcctokens pcclocal.h gram.in y.output
 #
 # 'ccom' is a one-pass C compiler.
 #
