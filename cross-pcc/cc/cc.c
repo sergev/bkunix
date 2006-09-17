@@ -1,29 +1,31 @@
-static	char sccsid[] = "@(#)cc.c 4.13 9/18/85";
 /*
  * cc - front end for C compiler
  */
 #include <sys/param.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <ctype.h>
+#include <unistd.h>
 #include <signal.h>
 #include <sys/dir.h>
+#include <sys/wait.h>
 
-char	*cpp = "/lib/cpp";
-char	*ccom = "/lib/c0";
-char	*ccom1 = "/lib/c1";
-char	*c2 = "/lib/c2";
-char	*as = "/bin/as";
-char	*ld = "/bin/ld";
-char	*crt0 = "/lib/crt0.o";
+char	*cpp = "/usr/bin/cpp";
+char	*ccom = "/usr/local/lib/pdp11/c0";
+char	*ccom1 = "/usr/local/lib/pdp11/c1";
+char	*c2 = "/usr/local/lib/pdp11/c2";
+char	*as = "/usr/local/bin/pdp11-as";
+char	*ld = "/usr/local/bin/pdp11-ld";
+char	*crt0 = "/usr/local/lib/pdp11/crt0.o";
 
 char	tmp0[30];		/* big enough for /tmp/ctm%05.5d */
 char	*tmp1, *tmp2, *tmp3, *tmp4, *tmp5;
 char	*outfile;
 char	*savestr(), *strspl(), *setsuf();
-int	idexit();
 char	**av, **clist, **llist, **plist;
 int	cflag, eflag, oflag, pflag, sflag, wflag, exflag, proflag;
-int	Mflag, debug;
+int	Mflag, vflag;
 int	exfail;
 char	*chpass;
 char	*npassname;
@@ -32,7 +34,126 @@ int	nc, nl, np, nxo, na;
 
 #define	cunlink(s)	if (s) unlink(s)
 
-main(argc, argv)
+void error(s, x)
+	char *s, *x;
+{
+	FILE *diag = exflag ? stderr : stdout;
+
+	fprintf(diag, "cc: ");
+	fprintf(diag, s, x);
+	putc('\n', diag);
+	exfail++;
+	cflag++;
+	eflag++;
+}
+
+int getsuf(as)
+char as[];
+{
+	register int c;
+	register char *s;
+	register int t;
+
+	s = as;
+	c = 0;
+	while ((t = *s++) != 0)
+		if (t=='/')
+			c = 0;
+		else
+			c++;
+	s -= 3;
+	if (c <= MAXNAMLEN && c > 2 && *s++ == '.')
+		return (*s);
+	return (0);
+}
+
+char *
+setsuf(as, ch)
+	char *as;
+{
+	register char *s, *s1;
+
+	s = s1 = savestr(as);
+	while (*s)
+		if (*s++ == '/')
+			s1 = s;
+	s[-1] = ch;
+	return (s1);
+}
+
+int inlist(l, os)
+	char **l, *os;
+{
+	register char *t, *s;
+	register int c;
+
+	s = os;
+	while ((t = *l++) != 0) {
+		while ((c = *s++) != 0)
+			if (c != *t++)
+				break;
+		if (*t==0 && c==0)
+			return (1);
+		s = os;
+	}
+	return (0);
+}
+
+void dexit()
+{
+	if (!pflag) {
+		cunlink(tmp1);
+		cunlink(tmp2);
+		if (sflag==0)
+			cunlink(tmp3);
+		cunlink(tmp4);
+		cunlink(tmp5);
+	}
+	exit(eflag);
+}
+
+void idexit()
+{
+	eflag = 100;
+	dexit();
+}
+
+int callsys(f, v)
+	char *f, **v;
+{
+	int t, status;
+	char **cpp;
+
+	if (vflag) {
+		printf("  %s", f);
+		for (cpp = v+1; *cpp != 0; cpp++)
+			printf(" %s", *cpp);
+		printf("\n");
+	}
+	t = vfork();
+	if (t == -1) {
+		printf("No more processes\n");
+		return (100);
+	}
+	if (t == 0) {
+		execv(f, v);
+		printf("Can't find %s\n", f);
+		fflush(stdout);
+		_exit(100);
+	}
+	while (t != wait(&status))
+		;
+	if ((t=(status&0377)) != 0 && t!=14) {
+		if (t!=2) {
+			printf("Fatal error in %s\n", f);
+			eflag = 8;
+		}
+		dexit();
+	}
+	return ((status>>8) & 0377);
+}
+
+int main(argc, argv)
 	char **argv;
 {
 	char *t;
@@ -68,12 +189,15 @@ main(argc, argv)
 			continue;
 		case 'p':
 			proflag++;
-			crt0 = "/lib/mcrt0.o";
+			crt0 = "/usr/local/lib/pdp11/mcrt0.o";
 			if (argv[i][2] == 'g')
-				crt0 = "/usr/lib/gcrt0.o";
+				crt0 = "/usr/local/lib/pdp11/gcrt0.o";
 			continue;
 		case 'w':
 			wflag++;
+			continue;
+		case 'v':
+			vflag++;
 			continue;
 		case 'E':
 			exflag++;
@@ -114,12 +238,6 @@ main(argc, argv)
 			if (npassname[0]==0)
 				npassname = "/usr/c/o";
 			continue;
-		case 'd':
-			if (argv[i][2] == '\0') {
-				debug++;
-				continue;
-			}
-			continue;
 		}
 		t = argv[i];
 		c = getsuf(t);
@@ -127,7 +245,7 @@ main(argc, argv)
 			clist[nc++] = t;
 			t = setsuf(t, 'o');
 		}
-		if (nodup(llist, t)) {
+		if (getsuf(t) != 'o' || ! inlist(llist, t)) {
 			llist[nl++] = t;
 			if (getsuf(t)=='o')
 				nxo++;
@@ -164,7 +282,7 @@ main(argc, argv)
 	if (signal(SIGHUP, SIG_IGN) != SIG_IGN)
 		signal(SIGHUP, idexit);
 	if (pflag==0)
-		sprintf(tmp0, "/tmp/ctm%05.5d", getpid());
+		sprintf(tmp0, "/tmp/ctm%05d", getpid());
 	tmp1 = strspl(tmp0, "1");
 	tmp2 = strspl(tmp0, "2");
 	tmp3 = strspl(tmp0, "3");
@@ -236,7 +354,7 @@ main(argc, argv)
 		}
 		if (sflag)
 			continue;
-	assemble:
+assemble:
 		cunlink(tmp1); cunlink(tmp2); cunlink(tmp4);
 		av[0] = "as"; av[1] = "-V";
 		av[2] = "-u"; av[3] = "-o";
@@ -272,129 +390,7 @@ nocom:
 			unlink(setsuf(clist[0], 'o'));
 	}
 	dexit();
-}
-
-idexit()
-{
-
-	eflag = 100;
-	dexit();
-}
-
-dexit()
-{
-
-	if (!pflag) {
-		cunlink(tmp1);
-		cunlink(tmp2);
-		if (sflag==0)
-			cunlink(tmp3);
-		cunlink(tmp4);
-		cunlink(tmp5);
-	}
-	exit(eflag);
-}
-
-error(s, x)
-	char *s, *x;
-{
-	FILE *diag = exflag ? stderr : stdout;
-
-	fprintf(diag, "cc: ");
-	fprintf(diag, s, x);
-	putc('\n', diag);
-	exfail++;
-	cflag++;
-	eflag++;
-}
-
-getsuf(as)
-char as[];
-{
-	register int c;
-	register char *s;
-	register int t;
-
-	s = as;
-	c = 0;
-	while (t = *s++)
-		if (t=='/')
-			c = 0;
-		else
-			c++;
-	s -= 3;
-	if (c <= MAXNAMLEN && c > 2 && *s++ == '.')
-		return (*s);
 	return (0);
-}
-
-char *
-setsuf(as, ch)
-	char *as;
-{
-	register char *s, *s1;
-
-	s = s1 = savestr(as);
-	while (*s)
-		if (*s++ == '/')
-			s1 = s;
-	s[-1] = ch;
-	return (s1);
-}
-
-callsys(f, v)
-	char *f, **v;
-{
-	int t, status;
-	char **cpp;
-
-	if (debug) {
-		fprintf(stderr, "%s:", f);
-		for (cpp = v; *cpp != 0; cpp++)
-			fprintf(stderr, " %s", *cpp);
-		fprintf(stderr, "\n");
-	}
-	t = vfork();
-	if (t == -1) {
-		printf("No more processes\n");
-		return (100);
-	}
-	if (t == 0) {
-		execv(f, v);
-		printf("Can't find %s\n", f);
-		fflush(stdout);
-		_exit(100);
-	}
-	while (t != wait(&status))
-		;
-	if ((t=(status&0377)) != 0 && t!=14) {
-		if (t!=2) {
-			printf("Fatal error in %s\n", f);
-			eflag = 8;
-		}
-		dexit();
-	}
-	return ((status>>8) & 0377);
-}
-
-nodup(l, os)
-	char **l, *os;
-{
-	register char *t, *s;
-	register int c;
-
-	s = os;
-	if (getsuf(s) != 'o')
-		return (1);
-	while (t = *l++) {
-		while (c = *s++)
-			if (c != *t++)
-				break;
-		if (*t==0 && c==0)
-			return (0);
-		s = os;
-	}
-	return (1);
 }
 
 #define	NSAVETAB	1024
