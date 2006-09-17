@@ -1,5 +1,7 @@
 /*
- * C library -- exit(code)
+ * C library --
+ *	exit(code)
+ *
  * Code is return in r0 to system.
  */
 #include <syscall.h>
