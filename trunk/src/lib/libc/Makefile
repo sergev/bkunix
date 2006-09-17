@@ -8,10 +8,10 @@ STRIP		= pdp11-strip
 RANLIB		= pdp11-ranlib
 CPP		= cpp
 CFLAGS		= -O
-CPPFLAGS	=
+CPPFLAGS	= -I.
 
 SRCS		= crt0.S exit.S
-OBJS		= exit.o
+OBJS		= exit.o sync.o
 
 all:		crt0.o libc.a
 
