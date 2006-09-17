@@ -24,26 +24,12 @@ char *argv[];
 	}
 }
 
-struct stbuf	{
-	int dev;
-	int inum;
-	int mode;
-	char nlink;
-	char uid;
-	char gid;
-	char siz0;
-	char siz1;
-	int addr[8];
-	int adate[2];
-	int mdate[2];
-	};
-
 rm(arg, fflg, rflg)
 char arg[];
 {
 	char *p;
 	int buf[20];
-	int i, b;
+	int i, b, status;
 
 	if(stat(arg, buf)) {
 		printf("%s: non existent\n", arg);
@@ -57,7 +43,7 @@ char arg[];
 				return;
 			}
 			if(i) {
-				while(wait() != i);
+				while(wait(&status) != i);
 				return;
 			}
 			if(chdir(arg)) {

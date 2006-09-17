@@ -1,14 +1,9 @@
 /*
  * List file or directory
  */
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
-
-struct {
-	int	fdes;
-	int	nleft;
-	char	*nextc;
-	char	buff[512];
-} inf;
 
 struct ibuf {
 	int	idev;
@@ -20,34 +15,32 @@ struct ibuf {
 	char	isize0;
 	int	isize;
 	int	iaddr[8];
-	char	*iatime[2];
-	char	*imtime[2];
+	int	iatime[2];
+	int	imtime[2];
 };
 
 struct lbuf {
-	char	lname[15];
+	union {
+		char	lname[15];
+		char	*namep;
+	} ln;
 	int	lnum;
 	int	lflags;
 	char	lnl;
 	char	luid;
 	char	lgid;
-	char	lsize0;
-	int	lsize;
-	char	*lmtime[2];
-};
-
-struct lbufx {
-	char	*namep;
+	long	lsize;
+	long	lmtime;
 };
 
 int	aflg, dflg, lflg, sflg, tflg, uflg, iflg, fflg, gflg, Iflg;
 int	fout;
 int	filsys;
-int	rflg	1;
-char	*year;
+int	rflg = 1;
+long	year;
 int	flags;
-int	uidfil	-1;
-int	lastuid	-1;
+int	uidfil = -1;
+int	lastuid = -1;
 char	tbuf[16];
 int	tblocks;
 int	statreq;
@@ -55,6 +48,17 @@ struct	lbuf	*lastp;
 struct	lbuf	*rlastp;
 struct	lbuf	*firstp;
 char	*dotp = ".";
+
+struct lbuf *gstat(char*, int);
+void pentry(struct lbuf*);
+void pmode(int);
+void select(int*);
+void readdir(char*);
+int nblock(long);
+int compar(struct lbuf*, struct lbuf*);
+
+#define minor(x)	((x) & 0377)
+#define major(x)	((x) >> 8 & 0377)
 
 #define	IFMT	060000
 #define	DIR	0100000
@@ -81,17 +85,15 @@ main(argc, argv)
 	int argc;
 	char **argv;
 {
-	int i, j;
+	int i;
 	register struct lbuf *ep, *ep1;
 	register struct lbuf *slastp;
 	struct lbuf lb;
-	int t;
-	int compar();
 
-	firstp = lastp = rlastp = sbrk(0);
+	firstp = lastp = rlastp = (struct lbuf*) sbrk(0);
 	fout = dup(1);
-	time(lb.lmtime);
-	year = lb.lmtime[0] - 245; /* 6 months ago */
+	time(&lb.lmtime);
+	year = lb.lmtime - 245L*65536; /* 6 months ago */
 	if (--argc > 0 && *argv[1] == '-') {
 		argv++;
 		while (*++*argv) switch (**argv) {
@@ -165,31 +167,30 @@ out:
 		statreq = 0;
 	}
 	if(lflg) {
-		t = "/etc/passwd";
-		if(gflg)
-			t = "/etc/group";
-		uidfil = open(t, 0);
+		uidfil = open(gflg ? "/etc/group" : "/etc/passwd", 0);
 	}
 	if (argc==0) {
 		argc++;
 		argv = &dotp - 1;
 	}
 	for (i=0; i < argc; i++) {
-		if ((ep = gstat(*++argv, 1))==0)
+		ep = gstat(*++argv, 1);
+		if (ep== 0)
 			continue;
-		ep->namep = *argv;
+		ep->ln.namep = *argv;
 		ep->lflags |= ISARG;
 	}
-	qsort(firstp, lastp - firstp, sizeof *lastp, compar);
+	qsort((char*) firstp, lastp - firstp, sizeof *lastp, compar);
 	slastp = lastp;
 	for (ep = firstp; ep<slastp; ep++) {
-		if (ep->lflags&DIR && dflg==0 || fflg) {
+		if (((ep->lflags & DIR) && dflg==0) || fflg) {
 			if (argc>1)
-				printf("\n%s:\n", ep->namep);
+				printf("\n%s:\n", ep->ln.namep);
 			lastp = slastp;
-			readdir(ep->namep);
+			readdir(ep->ln.namep);
 			if (fflg==0)
-				qsort(slastp,lastp - slastp,sizeof *lastp,compar);
+				qsort((char*) slastp, lastp - slastp,
+					sizeof *lastp,compar);
 			if (statreq)
 				printf("total %d\n", tblocks);
 			for (ep1=slastp; ep1<lastp; ep1++)
@@ -197,16 +198,14 @@ out:
 		} else
 			pentry(ep);
 	}
-	flush();
-	exit(0);
+	return(0);
 }
 
 void
 pentry(ap)
 	struct lbuf *ap;
 {
-	struct { char dminor, dmajor;};
-	register t;
+	register int t;
 	register struct lbuf *p;
 	register char *cp;
 
@@ -216,7 +215,7 @@ pentry(ap)
 	if (iflg)
 		printf("%5d ", p->lnum);
 	if (sflg)
-	printf("%4d ", nblock(p->lsize0, p->lsize));
+		printf("%4d ", nblock(p->lsize));
 	if (lflg) {
 		pmode(p->lflags);
 		printf("%2d ", p->lnl);
@@ -224,71 +223,33 @@ pentry(ap)
 		if(gflg)
 			t = p->lgid;
 		t &= 0377;
-		if (getname(t, tbuf)==0)
-			printf("%-6.6s", tbuf);
-		else
-			printf("%-6d", t);
+		printf("%-6d", t);
 		if (p->lflags & (BLK|CHR))
-			printf("%3d,%3d", p->lsize.dmajor&0377,
-			    p->lsize.dminor&0377);
+			printf("%3d,%3d", major((int)p->lsize),
+				minor((int)p->lsize));
 		else
-			printf("%7s", locv(p->lsize0, p->lsize));
-		cp = ctime(p->lmtime);
-		if(p->lmtime[0] < year)
+			printf("%7ld", p->lsize);
+		cp = ctime(&p->lmtime);
+		if(p->lmtime < year)
 			printf(" %-7.7s %-4.4s ", cp+4, cp+20); else
 			printf(" %-12.12s ", cp+4);
 	}
 	if (p->lflags&ISARG)
-		printf("%s\n", p->namep);
+		printf("%s\n", p->ln.namep);
 	else
-		printf("%.14s\n", p->lname);
+		printf("%.14s\n", p->ln.lname);
 }
 
 int
-getname(uid, buf)
-	int uid;
-	char buf[];
-{
-	int j, c, n, i;
-
-	if (uid==lastuid)
-		return(0);
-	inf.fdes = uidfil;
-	seek(inf.fdes, 0, 0);
-	inf.nleft = 0;
-	lastuid = -1;
-	do {
-		i = 0;
-		j = 0;
-		n = 0;
-		while((c=getc(&inf)) != '\n') {
-			if (c<0)
-				return(-1);
-			if (c==':') {
-				j++;
-				c = '0';
-			}
-			if (j==0)
-				buf[i++] = c;
-			if (j==2)
-				n = n*10 + c - '0';
-		}
-	} while (n != uid);
-	buf[i++] = '\0';
-	lastuid = uid;
-	return(0);
-}
-
-int
-nblock(size0, size)
-	char *size0, *size;
+nblock(size)
+	long size;
 {
 	register int n;
 
-	n = ldiv(size0, size, 512);
-	if (size&0777)
+	n = size / 512;
+	if (size & 0777)
 		n++;
-	if (n>8)
+	if (n > 8)
 		n += (n+255)/256;
 	return(n);
 }
@@ -322,12 +283,14 @@ select(pairp)
 	int *pairp;
 {
 	register int n, *ap;
+	char c;
 
 	ap = pairp;
 	n = *ap++;
 	while (--n>=0 && (flags&*ap++)==0)
 		ap++;
-	putchar(*ap);
+	c = *ap;
+	write (1, &c, 1);
 }
 
 char *
@@ -358,21 +321,23 @@ readdir(dir)
 		int	dinode;
 		char	dname[14];
 	} dentry;
-	register char *p;
 	register int j;
 	register struct lbuf *ep;
+	int fdes;
 
-	if (fopen(dir, &inf) < 0) {
+	fdes = open (dir, 0);
+	if (fdes < 0) {
 		printf("%s unreadable\n", dir);
 		return;
 	}
 	tblocks = 0;
 	for(;;) {
-		p = &dentry;
-		for (j=0; j<16; j++)
-			*p++ = getc(&inf);
-		if (dentry.dinode==0
-		 || aflg==0 && dentry.dname[0]=='.')
+		if (read(fdes, (char*) &dentry, 16) < 0) {
+			printf("%s read error\n", dir);
+			break;
+		}
+		if (dentry.dinode==0 ||
+		    (aflg==0 && dentry.dname[0]=='.'))
 			continue;
 		if (dentry.dinode == -1)
 			break;
@@ -380,9 +345,9 @@ readdir(dir)
 		if (ep->lnum != -1)
 			ep->lnum = dentry.dinode;
 		for (j=0; j<14; j++)
-			ep->lname[j] = dentry.dname[j];
+			ep->ln.lname[j] = dentry.dname[j];
 	}
-	close(inf.fdes);
+	close(fdes);
 }
 
 struct lbuf *
@@ -390,12 +355,12 @@ gstat(file, argfl)
 	char *file;
 {
 	struct ibuf statb;
-	register ino;
+	register int ino;
 	register struct lbuf *rep;
 
 	if (lastp+1 >= rlastp) {
 		sbrk(512);
-		rlastp.idev += 512;
+		((struct ibuf*) rlastp)->idev += 512;
 	}
 	rep = lastp;
 	lastp++;
@@ -406,8 +371,8 @@ gstat(file, argfl)
 			ino = atoi(file);
 			seek(filsys, (ino+31)/16, 3);
 			seek(filsys, 32*((ino+31)%16), 1);
-			read(filsys, &statb.iflags, sizeof(statb)-2*sizeof(0));
-		} else if (stat(file, &statb)<0) {
+			read(filsys, (char*) &statb.iflags, sizeof(statb)-2*sizeof(0));
+		} else if (stat(file, (int*) &statb)<0) {
 			printf("%s not found\n", file);
 			statb.inum = -1;
 			statb.isize0 = 0;
@@ -434,17 +399,23 @@ gstat(file, argfl)
 		rep->luid = statb.iuid;
 		rep->lgid = statb.igid;
 		rep->lnl = statb.inl;
-		rep->lsize0 = statb.isize0;
-		rep->lsize = statb.isize;
 		if (rep->lflags & (BLK|CHR) && lflg)
 			rep->lsize = statb.iaddr[0];
-		rep->lmtime[0] = statb.imtime[0];
-		rep->lmtime[1] = statb.imtime[1];
-		if(uflg) {
-			rep->lmtime[0] = statb.iatime[0];
-			rep->lmtime[1] = statb.iatime[1];
+		else {
+			rep->lsize = statb.isize0;
+			rep->lsize <<= 16;
+			rep->lsize = (unsigned) statb.isize;
+			tblocks += nblock(rep->lsize);
 		}
-		tblocks += nblock(statb.isize0, statb.isize);
+		if(uflg) {
+			rep->lmtime = statb.iatime[0];
+			rep->lmtime <<= 16;
+			rep->lmtime |= (unsigned) statb.iatime[1];
+		} else {
+			rep->lmtime = statb.imtime[0];
+			rep->lmtime <<= 16;
+			rep->lmtime |= (unsigned) statb.imtime[1];
+		}
 	}
 	return(rep);
 }
@@ -455,8 +426,6 @@ compar(ap1, ap2)
 {
 	register struct lbuf *p1, *p2;
 	register int i;
-	int j;
-	struct { char *charp;};
 
 	p1 = ap1;
 	p2 = ap2;
@@ -471,26 +440,12 @@ compar(ap1, ap2)
 	}
 	if (tflg) {
 		i = 0;
-		if (p2->lmtime[0] > p1->lmtime[0])
+		if (p2->lmtime > p1->lmtime)
 			i++;
-		else if (p2->lmtime[0] < p1->lmtime[0])
-			i--;
-		else if (p2->lmtime[1] > p1->lmtime[1])
-			i++;
-		else if (p2->lmtime[1] < p1->lmtime[1])
+		else if (p2->lmtime < p1->lmtime)
 			i--;
 		return(i*rflg);
 	}
-	if (p1->lflags&ISARG)
-		p1 = p1->namep;
-	else
-		p1 = p1->lname;
-	if (p2->lflags&ISARG)
-		p2 = p2->namep;
-	else
-		p2 = p2->lname;
-	for (;;)
-		if ((j = *p1.charp++ - *p2.charp++) || p1.charp[-1]==0)
-			return(rflg*j);
-	return(0);
+	return rflg * strcmp((p1->lflags & ISARG) ? p1->ln.namep : p1->ln.lname,
+		(p2->lflags & ISARG) ? p2->ln.namep : p2->ln.lname);
 }
