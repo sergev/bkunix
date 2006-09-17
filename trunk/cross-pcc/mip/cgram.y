@@ -278,7 +278,7 @@ fdeclarator:	   MUL fdeclarator
 			={  goto bary; }
 		|   LP  fdeclarator  RP
 			={ $$ = $2; }
-		|  name_lp  type_list  RP
+		|  name_lp  name_list  RP
 			={
 				if( blevel!=0 ) uerror("function declaration in bad context");
 				$$ = bdty( UNARY CALL, bdty(NAME,NIL,$1), 0 );
@@ -300,10 +300,14 @@ name_lp:	  NAME LP
 				}
 		;
 
-type_list:	   cast_type
-			={ tfree( $1 );  stwart = SEENAME; }
-		|  type_list  CM  cast_type
-			={ tfree( $3 );  stwart = SEENAME; }
+name_list:	   NAME
+			={ ftnarg( $1 );  stwart = SEENAME; }
+		|  cast_type
+			={ psave( -1 ); tfree( $1 ); stwart = SEENAME; }
+		|  name_list  CM  NAME
+			={ ftnarg( $3 );  stwart = SEENAME; }
+		|  name_list  CM  cast_type
+			={ psave( -1 ); tfree( $3 ); stwart = SEENAME; }
 		| error
 		;
 		/* always preceeded by attributes: thus the $<nodep>0's */
@@ -324,7 +328,7 @@ init_declarator:   nfdeclarator
 		|  fdeclarator
 			={  defid( tymerge($<nodep>0,$1), uclass(curclass) );
 			    if( paramno > 0 ){
-				uerror("illegal argument" );
+				/* Allow function declarations with arguments */
 				paramno = 0;
 				}
 			}
