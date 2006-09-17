@@ -1,12 +1,10 @@
 # GNU compiler.
 #CC		= pdp11-gcc -Wall
 #CFLAGS		= -Os -fomit-frame-pointer -fno-builtin -I../include
-#LIBS		=
 
 # Johnson's portable compiler.
 CC		= pdp11-pcc
-CFLAGS		= -I../include
-LIBS		= -L/usr/local/lib/pdp11 -lpcc
+CFLAGS		= -I../lib/libc
 
 # Using GNU binutils.
 AS		= pdp11-as
@@ -14,17 +12,19 @@ LD		= pdp11-ld
 SIZE		= pdp11-size -o
 LDFLAGS		= --omagic
 
-PROGS		= ls sh sync
+PROGS		= sync ls sh
 # TODO: check cp date ed mkdir mv od rm rmdir size strip stty
 
 all:		$(PROGS)
 
 clean:
-		rm -f *~ *.o
+		rm -f *~ *.o a.out $(PROGS)
 
 #sh:		sh.o
 #		$(CC) $(LDFLAGS) $< -o $@
 
+.c.s:
+		$(CC) $(CFLAGS) -S $<
 depend:
 		@cp Makefile Makefile~~
 		(sed '/^### DO NOT DELETE THIS LINE/,$$d' Makefile;\
