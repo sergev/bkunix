@@ -55,7 +55,9 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 	register int i, a;
 	register struct sysent *callp;
 
-debug_printf ("trap dev=%x sp=%x r0=%x pc=%x ps=%x\n", dev, sp, r0, pc, ps);
+#ifdef DEBUG
+	debug_printf ("trap dev=%x sp=%x r0=%x pc=%x ps=%x\n", dev, sp, r0, pc, ps);
+#endif
 	if(pc > (char*) TOPSYS)
 		dev |= USER;
 	u.u_ar0 = &r0;
@@ -99,7 +101,9 @@ debug_printf ("trap dev=%x sp=%x r0=%x pc=%x ps=%x\n", dev, sp, r0, pc, ps);
 		break;
 
 	case 6+USER: /* sys call */
-debug_printf ("sys call\n");
+#ifdef DEBUG
+		debug_printf ("sys call\n");
+#endif
 		u.u_error = 0;
 		ps &= ~EBIT;
 		callp = &sysent[fetch_word(pc-2)&077];
@@ -119,7 +123,9 @@ debug_printf ("sys call\n");
 			}
 		}
 		u.u_dirp = (char*) u.u_arg[0];
-debug_printf ("arg: %s\n", u.u_dirp);
+#ifdef DEBUG
+		debug_printf ("arg: %s\n", u.u_dirp);
+#endif
 		trap1(callp->call);
 		if(u.u_intflg)
 			u.u_error = EINTR;

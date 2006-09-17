@@ -66,8 +66,6 @@ void debug_putchar();
 void debug_printf();
 #define panic(x)		panichalt(x)
 #else
-#define debug_putchar(...)	/* empty */
-#define debug_printf(...)	/* empty */
 #define panic(x)		panichalt()
 #endif
 
