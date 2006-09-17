@@ -57,7 +57,7 @@ int chdir(char*);
 /*
  * Get time of day.
  */
-void time(int*);
+void time(long*);
 
 /*
  * Make a special file node.
@@ -97,7 +97,7 @@ int getuid(void);
 /*
  * Set time of day.
  */
-int stime(int*);
+int stime(long*);
 
 /*
  * Get/set value of process alarm timer.
