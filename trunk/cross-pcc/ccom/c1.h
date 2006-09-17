@@ -6,7 +6,6 @@
 #include <setjmp.h>
 
 #define	LTYPE	long	/* change to int for no long consts */
-#define	NULL	0
 #define	TNULL	(union tree *)NULL
 #define	UNS(x)	((unsigned short)(x))
 
@@ -119,21 +118,21 @@ struct	swtab {
 	int	swval;
 };
 
-char	maprel[];
-char	notrel[];
+extern char	maprel[];
+extern char	notrel[];
 int	nreg;
 int	isn;
 int	line;
 int	nerror;			/* number of hard errors */
-struct	table	cctab[];
-struct	table	efftab[];
-struct	table	regtab[];
-struct	table	sptab[];
+extern struct	table	cctab[];
+extern struct	table	efftab[];
+extern struct	table	regtab[];
+extern struct	table	sptab[];
 struct	table	lsptab[1];
-struct	instab	instab[];
-struct	instab	branchtab[];
-int	opdope[];
-char	*opntab[];
+extern struct	instab	instab[];
+extern struct	instab	branchtab[];
+extern int	opdope[];
+extern char	*opntab[];
 int	nstack;
 int	nfloat;
 struct	tname	sfuncr;

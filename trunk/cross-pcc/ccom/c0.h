@@ -163,8 +163,8 @@ struct swtab {
 
 char	cvtab[4][4];
 char	filename[64];
-int	opdope[];
-char	ctab[];
+extern int	opdope[];
+extern char	ctab[];
 char	symbuf[MAXCPS+2];
 struct	nmlist	*hshtab[HSHSIZ];
 int	kwhash[(HSHSIZ+LNBPW-1)/LNBPW];
@@ -205,7 +205,7 @@ FILE	*sbufp;
 int	regvar;
 int	bitoffs;
 struct	tnode	funcblk;
-char	cvntab[];
+extern char	cvntab[];
 char	numbuf[64];
 struct	nmlist **memlist;
 union	str *sparent;
