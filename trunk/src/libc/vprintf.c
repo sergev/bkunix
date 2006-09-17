@@ -68,7 +68,7 @@ vprintf (fmt, ap)
 
 	retval = 0;
 	for (;;) {
-		while ((ch = FETCH (fmt++)) != '%') {
+		while ((ch = *fmt++) != '%') {
 			if (! ch)
 				return retval;
 			PUTC (ch);
@@ -77,7 +77,7 @@ vprintf (fmt, ap)
 		width = 0; extrazeros = 0;
 		lflag = 0; ladjust = 0; sharpflag = 0; neg = 0;
 		sign = 0; dot = 0; uppercase = 0; dwidth = -1;
-reswitch:	switch (ch = FETCH (fmt++)) {
+reswitch:	switch (ch = *fmt++) {
 		case '.':
 			dot = 1;
 			padding = ' ';
@@ -121,7 +121,7 @@ reswitch:	switch (ch = FETCH (fmt++)) {
 		case '5': case '6': case '7': case '8': case '9':
 			for (n=0; ; ++fmt) {
 				n = n * 10 + ch - '0';
-				ch = FETCH (fmt);
+				ch = *fmt;
 				if (ch < '0' || ch > '9')
 					break;
 			}
