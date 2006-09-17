@@ -1,10 +1,10 @@
 # GNU compiler.
 #CC		= pdp11-gcc -Wall
-#CFLAGS		= -Os -fomit-frame-pointer -fno-builtin -I../include
+#CFLAGS		= -Os -fomit-frame-pointer -fno-builtin -I../libc
 
 # Johnson's portable compiler.
-CC		= pdp11-pcc
-CFLAGS		= -I../lib/libc
+CC		= pdp11-pcc -v
+CFLAGS		= -I../libc
 
 # Using GNU binutils.
 AS		= pdp11-as
@@ -42,14 +42,17 @@ cp.o: cp.c
 cpfp.o: cpfp.c
 date.o: date.c
 ed.o: ed.c
-ls.o: ls.c
+ls.o: ls.c ../libc/unistd.h
+mkdir.o: mkdir.c
 mv.o: mv.c
 od.o: od.c
 rm.o: rm.c
-sh.o: sh.c ../include/unistd.h
+rmdir.o: rmdir.c
+sh.o: sh.c ../libc/unistd.h
 size.o: size.c
+strip.o: strip.c
 stty.o: stty.c
-sync.o: sync.c
+sync.o: sync.c ../libc/unistd.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
 # see make depend above

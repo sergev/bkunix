@@ -1,6 +1,7 @@
 /*
  * Modified for fake on-disk 'pipes'
  */
+#include <stdlib.h>
 #include <unistd.h>
 
 #define	INTR	2
@@ -103,7 +104,7 @@ int equal(char*, char*);
 void pwait(int, int*);
 void prn(int);
 void texec(char*, int*);
-void putc(char c);
+void putc(char);
 void acct(int*);
 void enacct(char*);
 
