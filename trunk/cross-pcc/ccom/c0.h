@@ -3,6 +3,8 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /*
  * This parameter is the _only_ one which affects the recognized length
@@ -487,3 +489,71 @@ unsigned hash();
 union	tree *structident();
 struct	nmlist *gentemp();
 union	tree *nblock();
+
+/* Used in c00.c */
+void error();
+void blkend();
+void build();
+int decl1();
+void endtree();
+void errflush();
+void extdef();
+int findkw();
+int getcc();
+int getkeywords();
+int getnum();
+int mapch();
+int nextchar();
+void outcode();
+int spnextchar();
+int subseq();
+
+/* Used in c01.c */
+int length();
+int fold();
+int decref();
+int incref();
+void setype();
+void chkw();
+void chklval();
+int lintyp();
+void assignop();
+void werror();
+int plength();
+int rlength();
+
+/* User in c02.c */
+int symbol();
+void setinit();
+void cfunc();
+int cinit();
+void statement();
+int declist();
+void funchead();
+void branch();
+void label();
+void putstr();
+void strinit();
+void rcexpr();
+void blockhead();
+int simplegoto();
+void dogoto();
+void doret();
+void cbranch();
+void chconbrk();
+int conexp();
+void pswitch();
+int forstmt();
+void redec();
+int goodreg();
+void prste();
+void nameconflict();
+
+/* Used in c03.c */
+int declare();
+int align();
+void decsyn();
+int getype();
+void typov();
+
+void treeout();

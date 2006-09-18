@@ -9,6 +9,7 @@
 static	char	sccsid[] = "@(#)c10.c	2.1 (2.11BSD GTE) 10/4/94";
 #endif
 
+#include <stdlib.h>
 #include "c1.h"
 
 #ifdef	DEBUG
@@ -17,7 +18,7 @@ static	char	sccsid[] = "@(#)c10.c	2.1 (2.11BSD GTE) 10/4/94";
 #define	dbprint(op)	/* */
 #endif
 
-static int debug = 0;
+/* static int debug = 0; */
 
 char	maprel[] = {	EQUAL, NEQUAL, GREATEQ, GREAT, LESSEQ,
 			LESS, GREATQP, GREATP, LESSEQP, LESSP
@@ -37,6 +38,7 @@ struct	table	*cregtab;
 int	nreg	= 3;
 int	isn	= 10000;
 
+int
 main(argc, argv)
 int	argc;
 char	*argv[];
@@ -99,8 +101,8 @@ struct table *table;
 {
 #define	NOCVL	1
 #define	NOCVR	2
-	int op, d1, d2, dope;
-	union tree *p2;
+	int op, d1, d2 = 0, dope;
+	union tree *p2 = 0;
 	register union tree *p1;
 	register struct optab *opt;
 
@@ -128,13 +130,13 @@ struct table *table;
 		if (opdope[p2->t.op]&CNVRT && (nocvt&NOCVR)==0
 			 && (opdope[p2->t.tr1->t.op]&CNVRT)==0) {
 			tree->t.tr2 = p2->t.tr1;
-			if (opt = match(tree, table, nrleft, NOCVL))
+			if ( (opt = match(tree, table, nrleft, NOCVL)) )
 				return(opt);
 			tree->t.tr2 = p2;
 		} else if (opdope[p1->t.op]&CNVRT && (nocvt&NOCVL)==0
 		 && (opdope[p1->t.tr1->t.op]&CNVRT)==0) {
 			tree->t.tr1 = p1->t.tr1;
-			if (opt = match(tree, table, nrleft, NOCVR))
+			if ( (opt = match(tree, table, nrleft, NOCVR)) )
 				return(opt);
 			tree->t.tr1 = p1;
 		}
@@ -151,7 +153,7 @@ struct table *table;
 			continue;
 		if ((opdope[op]&BINARY)!=0 && p2!=0) {
 			if (d2 > (opt->tabdeg2&077)
-			 || (opt->tabdeg2 >= 0100) && (p2->t.op != STAR) )
+			 || ((opt->tabdeg2 >= 0100) && (p2->t.op != STAR)) )
 				continue;
 			if (notcompat(p2,opt->tabtyp2, opt->tabdeg2, 0))
 				continue;
@@ -184,11 +186,12 @@ struct table *table;
  * A number of special cases are recognized, and
  * there is an interaction with the optimizer routines.
  */
+int
 rcexpr(atree, atable, reg)
 union tree *atree;
 struct table *atable;
 {
-	register r;
+	register int r;
 	int modf, nargs, recurf;
 	register union tree *tree;
 	register struct table *table;
@@ -381,7 +384,7 @@ again:
 	 */
 	if (table!=cctab && table!=cregtab && recurf<2
 	 && (opdope[tree->t.op]&LEAF)==0) {
-		if (r=delay(&atree, table, reg)) {
+		if ( (r=delay(&atree, table, reg)) ) {
 			tree = atree;
 			table = efftab;
 			reg = r-1;
@@ -461,9 +464,11 @@ again:
  * Most of the work is the macro-expansion of the
  * code table.
  */
+int
 cexpr(tree, table, areg)
 register union tree *tree;
 struct table *table;
+int areg;
 {
 	int c, r;
 	register union tree *p, *p1;
@@ -510,7 +515,8 @@ struct table *table;
 	/*
 	 * long values take 2 registers.
 	 */
-	if ((tree->t.type==LONG||tree->t.type==UNLONG||opd&RELAT&&(tree->t.tr1->t.type==LONG||tree->t.tr1->t.type==UNLONG))
+	if ((tree->t.type==LONG||tree->t.type==UNLONG||
+		(opd&RELAT&&(tree->t.tr1->t.type==LONG||tree->t.tr1->t.type==UNLONG)))
 	   && tree->t.op!=ITOL)
 		reg1++;
 	/*
@@ -752,16 +758,17 @@ loop:
 				movreg(rreg, reg1, p);
 			else
 				reg1 = rreg;
-		} else if (rreg!=reg)
+		} else if (rreg!=reg) {
 			if ((c&020)==0 && oddreg(tree, 0)==0 && tree->t.type!=LONG
 			&& tree->t.type!=UNLONG
 			&& (flag&04
-			  || flag&01&&xdcalc(p2,nreg-rreg-1)<=(opt->tabdeg2&077)
-			  || flag&02&&xdcalc(p1,nreg-rreg-1)<=(opt->tabdeg1&077))) {
+			  || (flag&01&&xdcalc(p2,nreg-rreg-1)<=(opt->tabdeg2&077))
+			  || (flag&02&&xdcalc(p1,nreg-rreg-1)<=(opt->tabdeg1&077)))) {
 				reg = rreg;
 				reg1 = rreg+1;
 			} else
 				movreg(rreg, reg, p);
+		}
 		goto loop;
 
 	/* R */
@@ -781,7 +788,7 @@ loop:
 			string++;
 			r++;
 		}
-		if (r>nreg || r>=4 && tree->t.type==DOUBLE) {
+		if (r>nreg || (r>=4 && tree->t.type==DOUBLE)) {
 			if (regpanic)
 				error("Register overflow: simplify expression");
 			else
@@ -907,11 +914,12 @@ loop:
  * on the subtrees and then on the tree itself.
  * It returns non-zero if anything changed.
  */
+int
 reorder(treep, table, reg)
 union tree **treep;
 struct table *table;
 {
-	register r, o;
+	register int r, o;
 	register union tree *p;
 
 	p = *treep;
@@ -941,6 +949,7 @@ struct table *table;
  * Moreover, expressions like "reg = x+y" are best done as
  * "reg = x; reg += y" (so long as "reg" and "y" are not the same!).
  */
+int
 sreorder(treep, table, reg, recurf)
 union tree **treep;
 struct table *table;
@@ -989,9 +998,9 @@ struct table *table;
 			caseGEN:
 				p1 = p->t.tr2->t.tr2;
 				if (xdcalc(p1, 16) > 12
-				 || p1->t.op==NAME
-				 &&(p1->n.nloc==p->t.tr1->n.nloc
-				  || p1->n.regno==p->t.tr1->n.nloc))
+				 || (p1->t.op==NAME
+				     &&(p1->n.nloc==p->t.tr1->n.nloc
+				        || p1->n.regno==p->t.tr1->n.nloc)))
 					return(0);
 				p1 = p->t.tr2;
 				p->t.tr2 = p1->t.tr1;
@@ -1038,19 +1047,22 @@ struct table *table;
  * Otherwise it uses sdelay to search for inc/dec
  * among the operands.
  */
+int
 delay(treep, table, reg)
 union tree **treep;
 struct table *table;
+int reg;
 {
 	register union tree *p, *p1;
-	register r;
+	register int r;
 
 	p = *treep;
 	if ((p->t.op==INCAFT||p->t.op==DECAFT)
 	 && p->t.tr1->t.op==NAME) {
 		r = p->t.tr1->n.class;
-		if (r == EXTERN || r == OFFS || r == STATIC &&
-				p->t.tr1->t.type == UNCHAR)
+		/* Should all r == ... be in parens? */
+		if (r == EXTERN || r == OFFS || (r == STATIC &&
+				p->t.tr1->t.type == UNCHAR))
 			return(1+rcexpr(p->t.tr1, table, reg));
 		else
 			return(1+rcexpr(paint(p->t.tr1, p->t.type), table,reg));
@@ -1096,7 +1108,7 @@ union tree **ap;
 		return(p);
 	}
 	if (p->t.op==STAR || p->t.op==PLUS)
-		if (p1=sdelay(&p->t.tr1))
+		if ( (p1=sdelay(&p->t.tr1)) )
 			return(p1);
 	if (p->t.op==PLUS)
 		return(sdelay(&p->t.tr2));
@@ -1109,7 +1121,7 @@ union tree **ap;
 union tree *
 paint(tp, type)
 register union tree *tp;
-register type;
+register int type;
 {
 
 	if (tp->t.type==type)
@@ -1160,6 +1172,7 @@ register union tree *p;
  * If the tree can be immediately loaded into a register,
  * produce code to do so and return success.
  */
+int
 chkleaf(tree, table, reg)
 register union tree *tree;
 struct table *table;
@@ -1182,11 +1195,12 @@ struct table *table;
  * Return the number of bytes pushed,
  * for future popping.
  */
+int
 comarg(tree, flagp)
 register union tree *tree;
 int *flagp;
 {
-	register retval;
+	register int retval;
 	int i;
 	int size;
 
@@ -1249,8 +1263,9 @@ register union tree *tp;
 /*
  * Compile an initializing expression
  */
+void
 doinit(type, tree)
-register type;
+register int type;
 register union tree *tree;
 {
 	float sfval;
@@ -1348,6 +1363,7 @@ illinit:
 	error("Illegal initialization");
 }
 
+void
 movreg(r0, r1, tree)
 union tree *tree;
 {

@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 #include <setjmp.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define	LTYPE	long	/* change to int for no long consts */
 #define	TNULL	(union tree *)NULL
@@ -145,7 +147,7 @@ int	regpanic;		/* set when SU register alg. fails */
 int	panicposs;		/* set when there might be need for regpanic */
 jmp_buf	jmpbuf;
 long	ftell();
-char	*sbrk();
+void	*sbrk();
 struct	optab *match();
 union	tree *optim();
 union	tree *unoptim();
@@ -268,9 +270,9 @@ int	xlab1, xlab2, xop, xzero;
 #define	LASMOD	88
 
 #define	QUEST	90
-/* #define	MAX	93	/* not used; wanted macros in param.h */
+/* #define	MAX	93	*/ /* not used; wanted macros in param.h */
 #define	MAXP	94
-/* #define	MIN	95	/* not used; wanted macros in param.h */
+/* #define	MIN	95	*/ /* not used; wanted macros in param.h */
 #define	MINP	96
 #define	LLSHIFT	91
 #define	ASLSHL	92
@@ -384,3 +386,50 @@ int	xlab1, xlab2, xop, xzero;
 #define	RASSOC	0200
 #define	LEAF	0400
 #define	CNVRT	01000
+
+/* External definitions */
+
+int arlength();
+void branch();
+void breq();
+void cbranch();
+int cexpr();
+int chkleaf();
+int collcon();
+int comarg();
+int dcalc();
+int decref();
+int degree();
+int delay();
+void distrib();
+void doinit();
+void error();
+int geti();
+void getree();
+int incref();
+void insert();
+int isfloat();
+int islong();
+int ispow2();
+void label();
+void longrel();
+void movreg();
+int notcompat();
+int oddreg();
+void pbase();
+void pconst();
+void pname();
+void popstk();
+int prins();
+void psoct();
+int rcexpr();
+int reorder();
+int sideeffects();
+int sort();
+void squash();
+int sreorder();
+void strasg();
+int uns();
+void werror();
+int xdcalc();
+int xlongrel();

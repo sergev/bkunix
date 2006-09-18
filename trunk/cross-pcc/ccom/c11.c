@@ -4,6 +4,7 @@
 
 #include "c1.h"
 
+int
 degree(t)
 register union tree *t;
 {
@@ -29,10 +30,11 @@ register union tree *t;
 	return(t->t.degree);
 }
 
+void
 pname(p, flag)
 register union tree *p;
 {
-	register i;
+	register int i;
 
 loop:
 	switch(p->t.op) {
@@ -110,6 +112,7 @@ loop:
 	error("compiler error: bad pname");
 }
 
+void
 pbase(p)
 register union tree *p;
 {
@@ -120,10 +123,11 @@ register union tree *p;
 		printf("%s", p->x.name);
 }
 
+int
 xdcalc(p, nrleft)
 register union tree *p;
 {
-	register d;
+	register int d;
 
 	if (p==NULL)
 		return(0);
@@ -137,8 +141,10 @@ register union tree *p;
 	return(d);
 }
 
+int
 dcalc(p, nrleft)
 register union tree *p;
+int nrleft;
 {
 	register union tree *p1;
 
@@ -178,8 +184,10 @@ register union tree *p;
 	return(p->t.degree <= nrleft? 20: 24);
 }
 
+int
 notcompat(p, ast, deg, op)
 register union tree *p;
+int ast, deg, op;
 {
 	unsigned register at, st;
 
@@ -201,7 +209,7 @@ register union tree *p;
 	if ((at&(~(TYPE+XTYPE))) != 0)
 		at = 020;
 	if ((at&(~TYPE)) != 0)
-		at = at&TYPE | 020;
+		at = (at&TYPE) | 020;
 	if (st==FLOAT && at==DOUBLE)
 		at = FLOAT;
 	if (p->t.op==NAME && p->n.class==REG && op==ASSIGN && st==CHAR)
@@ -209,6 +217,7 @@ register union tree *p;
 	return(st != at);
 }
 
+int
 prins(op, c, itable, lbl)
 struct instab *itable;
 {
@@ -237,10 +246,11 @@ struct instab *itable;
  	return(skip);
 }
 
+int
 collcon(p)
 register union tree *p;
 {
-	register op;
+	register int op;
 
 	if (p==NULL)
 		return(0);
@@ -257,6 +267,7 @@ register union tree *p;
 	return(0);
 }
 
+int
 isfloat(t)
 register union tree *t;
 {
@@ -270,9 +281,10 @@ register union tree *t;
 	return(0);
 }
 
+int
 oddreg(t, reg)
 register union tree *t;
-register reg;
+register int reg;
 {
 
 	if (!isfloat(t)) {
@@ -305,6 +317,7 @@ register reg;
 	return(reg);
 }
 
+int
 arlength(t)
 {
 	if (t>=PTR)
@@ -363,10 +376,12 @@ L%d:\
  * try using the calls to lrem and ldiv.
  */
 
+void
 pswitch(afp, alp, deflab)
 struct swtab *afp, *alp;
+int deflab;
 {
-	int ncase, i, j, tabs, worst, best, range;
+	int ncase, i, j, tabs = 0, worst, best, range;
 	register struct swtab *swp, *fp, *lp;
 	int *poctab;
 
@@ -444,6 +459,7 @@ struct swtab *afp, *alp;
 	}
 }
 
+void
 breq(v, l)
 {
 	if (v==0)
@@ -453,6 +469,7 @@ breq(v, l)
 	printf("jeq	L%d\n", l);
 }
 
+int
 sort(afp, alp)
 struct swtab *afp, *alp;
 {
@@ -484,6 +501,7 @@ struct swtab *afp, *alp;
 	return(0);
 }
 
+int
 ispow2(tree)
 register union tree *tree;
 {
@@ -503,7 +521,7 @@ register union tree *tree;
 {
 	register int d, i;
 
-	if (d = ispow2(tree)) {
+	if ( (d = ispow2(tree)) ) {
 		for (i=0; (d>>=1)!=0; i++);
 		tree->t.tr2->c.value = i;
 		switch (tree->t.op) {
@@ -557,9 +575,10 @@ register union tree *tree;
 	return(tree);
 }
 
+void
 cbranch(atree, lbl, cond, reg)
 union tree *atree;
-register lbl, reg;
+register int lbl, reg, cond;
 {
 	int l1, op;
 	register union tree *tree;
@@ -627,7 +646,7 @@ again:
 			tree->t.op = op = op+LESSEQP-LESSEQ;
 	}
 	if (tree->t.type==LONG || tree->t.type==UNLONG
-	  || opdope[op]&RELAT&&(tree->t.tr1->t.type==LONG || tree->t.tr1->t.type==UNLONG)) {
+	  || (opdope[op]&RELAT&&(tree->t.tr1->t.type==LONG || tree->t.tr1->t.type==UNLONG))) {
 		longrel(tree, lbl, cond, reg);
 		return;
 	}
@@ -647,12 +666,13 @@ again:
 	branch(lbl, op, !cond);
 }
 
+void
 branch(lbl, aop, c)
 {
 	register int	op,
 			skip;
 
-	if(op = aop) {
+	if( (op = aop) ) {
 		skip = prins(op, c, branchtab, lbl);
 	} else {
 		printf("jbr");
@@ -664,8 +684,10 @@ branch(lbl, aop, c)
 		printf("\tL%d\n", lbl);
 }
 
+void
 longrel(atree, lbl, cond, reg)
 union tree *atree;
+int lbl, cond, reg;
 {
 	int xl1, xl2, xo, xz;
 	register int op, isrel;
@@ -733,24 +755,27 @@ union tree *atree;
  * Third dimension (lrtab[][][x]) indexed by "x - EQUAL".
  */
 char	lrtab[2][3][10] = {
-	0, NEQUAL, LESS, LESS, GREAT, GREAT, LESSP, LESSP, GREATP, GREATP,
-	NEQUAL,	0, GREAT, GREAT, LESS, LESS, GREATP, GREATP, LESSP, LESSP,
-	EQUAL,NEQUAL,LESSEQP,LESSP, GREATQP,GREATP,LESSEQP,LESSP,GREATQP,GREATP,
-
-	0, NEQUAL, LESS, LESS,	GREATEQ,GREAT, LESSP, LESSP, GREATQP, GREATP,
-	NEQUAL,	0, GREAT, 0, 0,	LESS, GREATP, 0, 0, LESSP,
-	EQUAL,	NEQUAL,	EQUAL,	0, 0, NEQUAL, EQUAL, 0, 0, NEQUAL,
+    {
+	{ 0, NEQUAL, LESS, LESS, GREAT, GREAT, LESSP, LESSP, GREATP, GREATP },
+	{ NEQUAL, 0, GREAT, GREAT, LESS, LESS, GREATP, GREATP, LESSP, LESSP },
+	{ EQUAL,NEQUAL, LESSEQP,LESSP, GREATQP,GREATP, LESSEQP,LESSP, GREATQP,GREATP },
+    }, {
+	{ 0, NEQUAL, LESS, LESS, GREATEQ,GREAT, LESSP, LESSP, GREATQP, GREATP },
+	{ NEQUAL, 0, GREAT, 0, 0, LESS, GREATP, 0, 0, LESSP },
+	{ EQUAL, NEQUAL, EQUAL, 0, 0, NEQUAL, EQUAL, 0, 0, NEQUAL }
+    }
 };
 
+int
 xlongrel(f)
 {
 	register int op, bno;
 
 	op = xop;
 	if (f==0) {
-		if (bno = lrtab[xzero][0][op-EQUAL])
+		if ( (bno = lrtab[xzero][0][op-EQUAL]) )
 			branch(xlab1, bno, 0);
-		if (bno = lrtab[xzero][1][op-EQUAL]) {
+		if ( (bno = lrtab[xzero][1][op-EQUAL]) ) {
 			xlab2 = isn++;
 			branch(xlab2, bno, 0);
 		}
@@ -764,11 +789,13 @@ xlongrel(f)
 	return(0);
 }
 
+void
 label(l)
 {
 	printf("L%d:", l);
 }
 
+void
 popstk(a)
 {
 	switch(a) {
@@ -787,6 +814,7 @@ popstk(a)
 	printf("add	$%o,sp\n", UNS(a));
 }
 
+void
 werror(s)
 char *s;
 {
@@ -795,6 +823,7 @@ char *s;
 }
 
 /* VARARGS1 */
+void
 error(s, p1, p2, p3, p4, p5, p6)
 char *s;
 {
@@ -805,6 +834,7 @@ char *s;
 	putc('\n', stderr);
 }
 
+void
 psoct(an)
 {
 	register int n;
@@ -818,13 +848,13 @@ psoct(an)
 	printf("%s%o", sign, n);
 }
 
-static
+static void
 outname(s)
 register char *s;
 {
 	register int c;
 
-	while (c = getchar())
+	while ( (c = getchar()) )
 		*s++ = c;
 	*s++ = '\0';
 }
@@ -833,6 +863,7 @@ register char *s;
  * Read in an intermediate file.
  */
 #define	STKS	100
+void
 getree()
 {
 	union tree *expstack[STKS], **sp;
@@ -840,8 +871,8 @@ getree()
 	register int t, op;
 	char s[80];		/* big for asm() stuff & long variable names */
 	struct swtab *swp;
-	long outloc;
-	int lbl, cond, lbl2, lbl3;
+	long outloc = 0;
+	int lbl, cond = 0, lbl2 = 0, lbl3 = 0;
 	double atof();
 
 	curbase = funcbase;
@@ -1037,7 +1068,7 @@ getree()
 		geti();	/* ignore type, assume long */
 		t = geti();
 		op = geti();
-		if (t==0 && op>=0 || t == -1 && op<0) {
+		if ((t==0 && op>=0) || (t == -1 && op<0)) {
 			*sp++ = tnode(ITOL, LONG, tconst(op, INT), TNULL);
 			break;
 		}
@@ -1111,7 +1142,8 @@ getree()
 				exit(1);
 			}
 			tp = *--sp;
-			*sp++ = tnode(op, geti(), *--sp, tp);
+			/* Was *sp++ = tnode(op, geti(), *--sp, tp); */
+			sp[-1] = tnode(op, geti(), sp[-1], tp); 
 		} else
 			sp[-1] = tnode(op, geti(), sp[-1], TNULL);
 		break;
@@ -1119,6 +1151,7 @@ getree()
 	}
 }
 
+int
 geti()
 {
 	register short i;
@@ -1128,11 +1161,12 @@ geti()
 	return(i);
 }
 
+void
 strasg(atp)
 union tree *atp;
 {
 	register union tree *tp;
-	register nwords, i;
+	register int nwords, i;
 
 	nwords = atp->F.mask/sizeof(short);
 	tp = atp->t.tr1;
@@ -1165,8 +1199,8 @@ union tree *atp;
 	else if (nwords==sizeof(short))
 		paint(tp, LONG);
 	else {
-		if (tp->t.tr1->t.op!=NAME && tp->t.tr1->t.op!=STAR
-		 || tp->t.tr2->t.op!=NAME && tp->t.tr2->t.op!=STAR) {
+		if ((tp->t.tr1->t.op!=NAME && tp->t.tr1->t.op!=STAR)
+		 || (tp->t.tr2->t.op!=NAME && tp->t.tr2->t.op!=STAR)) {
 			error("unimplemented structure assignment");
 			return;
 		}
@@ -1197,20 +1231,22 @@ union tree *atp;
  * Reduce the degree-of-reference by one.
  * e.g. turn "ptr-to-int" into "int".
  */
+int
 decref(t)
-register t;
+register int t;
 {
 	if ((t & ~TYPE) == 0) {
 		error("Illegal indirection");
 		return(t);
 	}
-	return(((unsigned)t>>TYLEN) & ~TYPE | t&TYPE);
+	return((((unsigned)t>>TYLEN) & ~TYPE) | (t&TYPE));
 }
 
 /*
  * Increase the degree of reference by
  * one; e.g. turn "int" to "ptr-to-int".
  */
+int
 incref(t)
 {
 	return(((t&~TYPE)<<TYLEN) | (t&TYPE) | PTR);

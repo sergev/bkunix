@@ -11,11 +11,12 @@
  * Essentially all the work is in inserting
  * appropriate conversions.
  */
+void
 build(op)
 {
 	register int t1;
 	int t2, t;
-	register union tree *p1, *p2, *p3;
+	register union tree *p1, *p2 = 0, *p3;
 	int dope, leftc, cvn, pcvn;
 
 	/*
@@ -187,8 +188,9 @@ build(op)
 		   p1, cblock(p2->t.tr1->n.hoffset));
 		build(STAR);
 		if (p2->t.tr1->n.hflag&FFIELD)
-			*cp++ = block(FSEL, UNSIGN, (int *)NULL, (union str *)NULL,
-			    *--cp, p2->t.tr1->n.hstrp);
+			cp[-1] = block(FSEL, UNSIGN, (int *)NULL, (union str *)NULL,
+			    cp[-1], p2->t.tr1->n.hstrp);
+		/* was *cp++ = block( ..., *--cp, ...); */
 		return;
 	}
 	if ((dope&LVALUE)!=0)
@@ -306,8 +308,8 @@ build(op)
 			}
 		}
 	} else if (dope&RELAT) {
-		if (op>=LESSEQ && (t1>=PTR||t2>=PTR||(t1==UNSIGN||t1==UNLONG||t2==UNSIGN||t2==UNLONG)
-		 && (t==INT||t==CHAR||t==UNSIGN||t==UNLONG)))
+		if (op>=LESSEQ && (t1>=PTR||t2>=PTR||t1==UNSIGN||t1==UNLONG||t2==UNSIGN||t2==UNLONG)
+		 && (t==INT||t==CHAR||t==UNSIGN||t==UNLONG))
 			op += LESSEQP-LESSEQ;
 		if (cvn==ITP || cvn==PTI)
 			cvn = 0;
@@ -434,9 +436,10 @@ union tree *p;
  * type at.
  * Used with structure references.
  */
+void
 setype(p, t, newp)
 register union tree *p, *newp;
-register t;
+register int t;
 {
 	for (;; p = p->t.tr1) {
 		p->t.subsp = newp->t.subsp;
@@ -480,7 +483,7 @@ register union tree *p;
 		return(p);
 	/* check array & not MOS and not typer */
 	if (((t = p->t.type)&XTYPE)!=ARRAY
-	 || p->t.op==NAME && p->t.tr1->n.hclass==MOS
+	 || (p->t.op==NAME && p->t.tr1->n.hclass==MOS)
 	 || p->t.op==ETYPE)
 		return(p);
 	p->t.subsp++;
@@ -496,6 +499,7 @@ register union tree *p;
  * okt might be nonexistent or 'long'
  * (e.g. for <<).
  */
+void
 chkw(p, okt)
 union tree *p;
 {
@@ -512,6 +516,7 @@ union tree *p;
  *'linearize' a type for looking up in the
  * conversion table
  */
+int
 lintyp(t)
 {
 	switch(t) {
@@ -542,6 +547,7 @@ lintyp(t)
 int Wflag = 0;	/* Non-zero means do not print warnings */
 
 /* VARARGS1 */
+void
 werror(s, p1, p2, p3, p4, p5, p6)
 char *s;
 {
@@ -555,6 +561,7 @@ char *s;
 }
 
 /* VARARGS1 */
+void
 error(s, p1, p2, p3, p4, p5, p6)
 char *s;
 {
@@ -669,6 +676,7 @@ starttree()
 	return(st);
 }
 
+void
 endtree(tp)
 char *tp;
 {
@@ -704,6 +712,7 @@ Dblock(n)
 /*
  * Check that a tree can be used as an lvalue.
  */
+void
 chklval(p)
 register union tree *p;
 {
@@ -719,11 +728,12 @@ register union tree *p;
  * but this is used to allow constant expressions
  * to be used in switches and array bounds.
  */
+int
 fold(op, p1, p2)
 register union tree *p1;
 union tree *p2;
 {
-	register int v1, v2;
+	register int v1, v2 = 0;
 	int unsignf;
 
 	if (p1->t.op!=CON)
@@ -885,12 +895,13 @@ union tree *p2;
  * Compile an expression expected to have constant value,
  * for example an array bound or a case value.
  */
+int
 conexp()
 {
 	register union tree *t;
 
 	initflg++;
-	if (t = tree(1))
+	if ( (t = tree(1)) )
 		if (t->t.op != CON)
 			error("Constant required");
 	initflg--;
@@ -900,6 +911,7 @@ conexp()
 /*
  * Handle peculiar assignment ops that need a temporary.
  */
+void
 assignop(op, p1, p2)
 register union tree *p1, *p2;
 {

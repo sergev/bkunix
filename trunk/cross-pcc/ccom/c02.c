@@ -7,9 +7,10 @@
 /*
  * Process a single external definition
  */
+void
 extdef()
 {
-	register o;
+	register int o;
 	int sclass, scflag;
 	struct nmlist typer;
 	register struct nmlist *ds;
@@ -92,10 +93,11 @@ syntax:
 /*
  * Process a function definition.
  */
+void
 cfunc()
 {
 	register char *cb;
-	register sloc;
+	register int sloc;
 
 	sloc = isn;
 	isn += 2;
@@ -128,11 +130,12 @@ cfunc()
 /*
  * Process the initializers for an external definition.
  */
+int
 cinit(anp, flex, sclass)
 struct nmlist *anp;
 {
 	struct nmlist np;
-	register nel, ninit;
+	register int nel, ninit;
 	int width, isarray, o, brace, realtype;
 	union tree *s;
 
@@ -233,6 +236,7 @@ struct nmlist *anp;
 /*
  * Initialize a structure
  */
+void
 strinit(np, sclass)
 struct nmlist *np;
 {
@@ -282,6 +286,7 @@ struct nmlist *np;
 /*
  * Mark already initialized
  */
+void
 setinit(np)
 register struct nmlist *np;
 {
@@ -294,9 +299,10 @@ register struct nmlist *np;
 /*
  * Process one statement in a function.
  */
+void
 statement()
 {
-	register o, o1;
+	register int o, o1;
 	int sauto, sreg;
 
 stmt:
@@ -330,7 +336,7 @@ stmt:
 		switch(cval) {
 
 		case GOTO:
-			if (o1 = simplegoto())
+			if ( (o1 = simplegoto()) )
 				branch(o1);
 			else 
 				dogoto();
@@ -357,14 +363,14 @@ stmt:
 		}
 
 		case IF: {
-			register o2;
+			register int o2;
 			register union tree *np;
 
 			np = pexpr(1);
 			o2 = 0;
 			if ((o1=symbol())==KEYW) switch (cval) {
 			case GOTO:
-				if (o2=simplegoto())
+				if ( (o2=simplegoto()) )
 					goto simpif;
 				cbranch(np, o2=isn++, 0);
 				dogoto();
@@ -416,7 +422,7 @@ stmt:
 		}
 
 		case WHILE: {
-			register o2;
+			register int o2;
 			o1 = contlab;
 			o2 = brklab;
 			label(contlab = isn++);
@@ -507,7 +513,7 @@ stmt:
 			o2 = brklab;
 			contlab = isn++;
 			brklab = isn++;
-			if (o=forstmt())
+			if ( (o=forstmt()) )
 				goto syntax;
 			contlab = o1;
 			brklab = o2;
@@ -561,12 +567,13 @@ syntax:
 /*
  * Process a for statement.
  */
+int
 forstmt()
 {
 	register int o;
 	register union tree *st;
-	register l;
-	char *ss;
+	register int l;
+	char *ss = 0;
 
 	if ((o=symbol()) != LPARN)
 		return(o);
@@ -622,7 +629,7 @@ forstmt()
 union tree *
 pexpr(eflag)
 {
-	register o;
+	register int o;
 	register union tree *t;
 
 	if ((o=symbol())!=LPARN)
@@ -643,6 +650,7 @@ syntax:
  * The switch statement, which involves collecting the
  * constants and labels for the cases.
  */
+void
 pswitch()
 {
 	register struct swtab *cswp, *sswp;
@@ -680,9 +688,11 @@ pswitch()
  */
 struct	nmlist	hreg	= { REG, 0, 0, NULL, NULL, 0 };
 struct	tnode	areg	= { NAME, 0, NULL, NULL, (union tree *)&hreg};
+
+void
 funchead()
 {
-	register pl;
+	register int pl;
 	register struct nmlist *cs;
 	register char *st;
 
@@ -724,9 +734,10 @@ funchead()
 	outcode("BN", SETREG, regvar);
 }
 
+void
 blockhead()
 {
-	register r;
+	register int r;
 
 	r = regvar;
 	blklev++;
@@ -740,10 +751,11 @@ blockhead()
  * symbols;
  * Also complain about undefined labels.
  */
+void
 blkend()
 {
 	register struct nmlist *cs, **lcs;
-	register i;
+	register int i;
 
 	blklev--;
 	for (i = 0; i < HSHSIZ; i++) {
@@ -764,6 +776,7 @@ blkend()
 	}
 }
 
+void
 nameconflict(ocs, cs)
 register struct nmlist *ocs, *cs;
 {
@@ -779,10 +792,11 @@ register struct nmlist *ocs, *cs;
  * benefit of the debugger.  None of these are used
  * by the assembler except to save them.
  */
+void
 prste(cs)
 struct nmlist *cs;
 {
-	register nkind;
+	register int nkind;
 
 	switch (cs->hclass) {
 	case REG:
@@ -808,9 +822,10 @@ struct nmlist *cs;
  * In case of error, skip to the next
  * statement delimiter.
  */
+void
 errflush(ao)
 {
-	register o;
+	register int o;
 
 	o = ao;
 	while(o>RBRACE) {	/* ; { } */

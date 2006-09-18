@@ -10,9 +10,10 @@
 /*
  * Process a sequence of declaration statements
  */
+int
 declist(sclass)
 {
-	register sc, offset;
+	register int sc, offset;
 	struct nmlist typer;
 
 	offset = 0;
@@ -29,11 +30,12 @@ declist(sclass)
  * Store back the storage class, and fill in the type
  * entry, which looks like a hash table entry.
  */
+int
 getkeywords(scptr, tptr)
 int *scptr;
 struct nmlist *tptr;
 {
-	register skw, tkw, longf;
+	register int skw, tkw, longf;
 	int o, isadecl, ismos, unsignf;
 
 	isadecl = 0;
@@ -147,7 +149,7 @@ struct nmlist *tptr;
 union str *
 strdec(mosf, kind)
 {
-	register elsize, o;
+	register int elsize = 0, o;
 	register struct nmlist *ssym;
 	int savebits;
 	struct nmlist **savememlist;
@@ -240,6 +242,7 @@ strdec(mosf, kind)
 /*
  * Process a comma-separated list of declarators
  */
+int
 declare(askw, tptr, offset)
 struct nmlist *tptr;
 {
@@ -298,10 +301,11 @@ struct nmlist *tptr;
 /*
  * Process a single declarator
  */
+int
 decl1(askw, atptr, offset, absname)
 struct nmlist *atptr, *absname;
 {
-	int t1, a, elsize;
+	int t1, a, elsize = 0;
 	register int skw;
 	int type;
 	register struct nmlist *dsym;
@@ -368,7 +372,7 @@ struct nmlist *atptr, *absname;
 		return(0);
 	}
 	if (defsym)
-	if (dsym->hblklev<blklev || dsym->hclass==MOS && skw==MOS) {
+	if (dsym->hblklev<blklev || (dsym->hclass==MOS && skw==MOS)) {
 		if (skw==MOS && dsym->sparent==sparent)
 			redec();
 		defsym = dsym;
@@ -559,6 +563,7 @@ register struct nmlist *sp;
 /*
  * Read a declarator and get the implied type
  */
+int
 getype(dimp, absname)
 register struct tdim *dimp;
 struct nmlist *absname;
@@ -656,6 +661,7 @@ syntax:
 /*
  * More bits required for type than allowed.
  */
+void
 typov()
 {
 	error("Type is too complicated");
@@ -665,9 +671,10 @@ typov()
  * Enforce alignment restrictions in structures,
  * including bit-field considerations.
  */
+int
 align(type, offset, aflen)
 {
-	register a, t, flen;
+	register int a, t, flen;
 	char *ftl;
 
 	flen = aflen;
@@ -709,6 +716,7 @@ align(type, offset, aflen)
 /*
  * Complain about syntax error in declaration
  */
+void
 decsyn(o)
 {
 	error("Declaration syntax");
@@ -718,6 +726,7 @@ decsyn(o)
 /*
  * Complain about a redeclaration
  */
+void
 redec()
 {
 	error("%s redeclared", defsym->name);
@@ -727,6 +736,7 @@ redec()
  * Determine if a variable is suitable for storage in
  * a register; if so return the register number
  */
+int
 goodreg(hp)
 struct nmlist *hp;
 {

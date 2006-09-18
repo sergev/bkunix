@@ -9,7 +9,7 @@ union tree *
 optim(tree)
 register union tree *tree;
 {
-	register op, dope;
+	register int op, dope;
 	int d1, d2;
 	union tree *t;
 	union { double dv; int iv[4];} fp11;
@@ -96,7 +96,7 @@ register union tree *tree;
 		 * long & pos-int is simpler
 		 */
 		if ((tree->t.type==LONG || tree->t.type==UNLONG) && tree->t.tr2->t.op==ITOL
-		 && (tree->t.tr2->t.tr1->t.op==CON && tree->t.tr2->t.tr1->c.value>=0
+		 && ((tree->t.tr2->t.tr1->t.op==CON && tree->t.tr2->t.tr1->c.value>=0)
 		   || uns(tree->t.tr2->t.tr1))) {
 			tree->t.type = UNSIGN;
 			t = tree->t.tr2;
@@ -128,7 +128,7 @@ register union tree *tree;
 	}
 	if ((dope&RELAT) != 0) {
 		if ((d1=degree(tree->t.tr1)) < (d2=degree(tree->t.tr2))
-		 || d1==d2 && tree->t.tr1->t.op==NAME && tree->t.tr2->t.op!=NAME) {
+		 || (d1==d2 && tree->t.tr1->t.op==NAME && tree->t.tr2->t.op!=NAME)) {
 			t = tree->t.tr1;
 			tree->t.tr1 = tree->t.tr2;
 			tree->t.tr2 = t;
@@ -674,7 +674,7 @@ register union tree *tree;
 				t2--;
 				pconst(op, &t2[0]->c.value, t2[1]->c.value, d);
 				t2[0]->t.type = d;
-			} else if (t = lconst(op, t2[-1], t2[0])) {
+			} else if ( (t = lconst(op, t2[-1], t2[0])) ) {
 				acl.nextl--;
 				t2--;
 				t2[0] = t;
@@ -683,8 +683,8 @@ register union tree *tree;
 	}
 	if (op==PLUS || op==OR) {
 		/* toss out "+0" */
-		if (acl.nextl>0 && ((t1 = isconstant(*t2)) && t1->c.value==0
-		 || (*t2)->t.op==LCON && (*t2)->l.lvalue==0)) {
+		if (acl.nextl>0 && ( ((t1 = isconstant(*t2)) && t1->c.value==0)
+		 || ((*t2)->t.op==LCON && (*t2)->l.lvalue==0))) {
 			acl.nextl--;
 			t2--;
 		}
@@ -761,10 +761,11 @@ register union tree *tree;
 	return(tree);
 }
 
+int
 sideeffects(tp)
 register union tree *tp;
 {
-	register dope;
+	register int dope;
 
 	if (tp==NULL)
 		return(0);
@@ -789,6 +790,7 @@ register union tree *tp;
 	return(0);
 }
 
+void
 distrib(list)
 struct acl *list;
 {
@@ -802,8 +804,8 @@ struct acl *list;
 	register union tree **p1, **p2;
 	union tree *t;
 	int ndmaj, ndmin;
-	union tree **dividend, **divisor;
-	union tree **maxnod, **mindiv;
+	union tree **dividend = 0, **divisor = 0;
+	union tree **maxnod = 0, **mindiv = 0;
 
     loop:
 	maxnod = &list->llist[list->nextl];
@@ -862,6 +864,7 @@ struct acl *list;
 	goto loop;
 }
 
+void
 squash(p, maxp)
 union tree **p, **maxp;
 {
@@ -871,6 +874,7 @@ union tree **p, **maxp;
 		*np = *(np+1);
 }
 
+void
 pconst(op, vp, v, type)
 register int *vp, v;
 {
@@ -1063,11 +1067,12 @@ register union tree *lp, *rp;
 	return(lp);
 }
 
+void
 insert(op, tree, list)
 register union tree *tree;
 register struct acl *list;
 {
-	register d;
+	register int d;
 	int d1, i;
 	union tree *t;
 
@@ -1155,6 +1160,7 @@ getblk(size)
 	return(p);
 }
 
+int
 islong(t)
 {
 	if (t==LONG || t==UNLONG)
@@ -1207,10 +1213,11 @@ register union tree *t;
 /*
  * Is tree of unsigned type?
  */
+int
 uns(tp)
 union tree *tp;
 {
-	register t;
+	register int t;
 
 	t = tp->t.type;
 	if (t==UNSIGN || t==UNCHAR || t==UNLONG || t&XTYPE)

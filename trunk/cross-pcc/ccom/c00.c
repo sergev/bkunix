@@ -8,6 +8,8 @@
  * strings are put on temp2, which c1 reads after temp1.
  */
 
+#include <stdlib.h>
+#include <string.h>
 #include "c0.h"
 
 int	isn	= 1;
@@ -19,43 +21,44 @@ struct kwtab {
 	char	*kwname;
 	int	kwval;
 } kwtab[] = {
-	"int",		INT,
-	"char",		CHAR,
-	"float",	FLOAT,
-	"double",	DOUBLE,
-	"struct",	STRUCT,
-	"long",		LONG,
-	"unsigned",	UNSIGN,
-	"union",	UNION,
-	"short",	INT,
-	"void",		VOID,
-	"auto",		AUTO,
-	"extern",	EXTERN,
-	"static",	STATIC,
-	"register",	REG,
-	"goto",		GOTO,
-	"return",	RETURN,
-	"if",		IF,
-	"while",	WHILE,
-	"else",		ELSE,
-	"switch",	SWITCH,
-	"case",		CASE,
-	"break",	BREAK,
-	"continue",	CONTIN,
-	"do",		DO,
-	"default",	DEFAULT,
-	"for",		FOR,
-	"sizeof",	SIZEOF,
-	"typedef",	TYPEDEF,
-	"enum",		ENUM,
-	"asm",		ASM,
-	0,		0,
+	{ "int",	INT },
+	{ "char",	CHAR },
+	{ "float",	FLOAT },
+	{ "double",	DOUBLE },
+	{ "struct",	STRUCT },
+	{ "long",	LONG },
+	{ "unsigned",	UNSIGN },
+	{ "union",	UNION },
+	{ "short",	INT },
+	{ "void",	VOID },
+	{ "auto",	AUTO },
+	{ "extern",	EXTERN },
+	{ "static",	STATIC },
+	{ "register",	REG },
+	{ "goto",	GOTO },
+	{ "return",	RETURN },
+	{ "if",		IF },
+	{ "while",	WHILE },
+	{ "else",	ELSE },
+	{ "switch",	SWITCH },
+	{ "case",	CASE },
+	{ "break",	BREAK },
+	{ "continue",	CONTIN },
+	{ "do",		DO },
+	{ "default",	DEFAULT },
+	{ "for",	FOR },
+	{ "sizeof",	SIZEOF },
+	{ "typedef",	TYPEDEF },
+	{ "enum",	ENUM },
+	{ "asm",	ASM },
+	{ 0,		0 },
 };
 
 union	tree *cmst[CMSIZ];
 union	tree **cp = cmst;
 int	Wflag;			/* print warning messages */
 
+int
 main(argc, argv)
 int	argc;
 char	*argv[];
@@ -130,6 +133,7 @@ char	*argv[];
  * first.
  * Return is a ptr to the symbol table entry.
  */
+int
 lookup()
 {
 	unsigned ihash;
@@ -170,6 +174,7 @@ lookup()
 /*
  * Search the keyword table.
  */
+int
 findkw()
 {
 	register struct kwtab *kp;
@@ -191,11 +196,12 @@ findkw()
  * mosflg means that the next symbol, if an identifier,
  * is a member of structure or a structure tag or an enum tag
  */
+int
 symbol()
 {
-	register c;
+	register int c;
 	register char *sp;
-	register tline;
+	register int tline;
 
 	if (peeksym>=0) {
 		c = peeksym;
@@ -344,10 +350,11 @@ loop:
 /*
  * Read a number.  Return kind.
  */
+int
 getnum()
 {
 	register char *np;
-	register c, base;
+	register int c, base;
 	int expseen, sym, ndigit;
 	char *nsyn;
 	int maxdigit;
@@ -364,7 +371,8 @@ getnum()
 		base = 8;
 	for (;; c = getchar()) {
 		*np++ = c;
-		if (ctab[c]==DIGIT || (base==16) && ('a'<=c&&c<='f'||'A'<=c&&c<='F')) {
+		if (ctab[c]==DIGIT || 
+		    ((base==16) && (('a'<=c&&c<='f') || ('A'<=c&&c<='F')))) {
 			if (base==8)
 				lcval <<= 3;
 			else if (base==10)
@@ -422,7 +430,7 @@ getnum()
 		cval = np-numbuf;
 		return(FCON);
 	}
-	if (sym==CON && (lcval<0 || lcval>MAXINT&&base==10 || (lcval>>1)>MAXINT)) {
+	if (sym==CON && (lcval<0 || (lcval>MAXINT&&base==10) || (lcval>>1)>MAXINT)) {
 		sym = LCON;
 	}
 	cval = lcval;
@@ -433,6 +441,7 @@ getnum()
  * If the next input character is c, return b and advance.
  * Otherwise push back the character and return a.
  */
+int
 subseq(c,a,b)
 {
 	if (spnextchar() != c)
@@ -446,8 +455,9 @@ subseq(c,a,b)
  * or in the string temp file labelled by
  * lab.
  */
+void
 putstr(lab, max)
-register max;
+register int max;
 {
 	register int c;
 
@@ -474,6 +484,7 @@ register max;
 	strflg = 0;
 }
 
+void
 cntstr()
 {
 	register int c;
@@ -489,6 +500,7 @@ cntstr()
  * The routine is sensitive to the layout of
  * characters in a word.
  */
+int
 getcc()
 {
 	register int c, cc;
@@ -515,13 +527,14 @@ getcc()
  * detecting the end of the string.
  * It implements the escape sequences.
  */
+int
 mapch(ac)
 {
 	register int a, c, n;
-	static mpeek;
+	static int mpeek;
 
 	c = ac;
-	if (a = mpeek)
+	if ((a = mpeek))
 		mpeek = 0;
 	else
 		a = getchar();
@@ -613,7 +626,7 @@ advanc:
 			*cp++ = cblock(cs->hoffset);
 			goto tand;
 		}
-		if (cs->hclass==0 && cs->htype==0)
+		if (cs->hclass==0 && cs->htype==0) {
 			if(nextchar()=='(') {
 				/* set function */
 				cs->hclass = EXTERN;
@@ -623,6 +636,7 @@ advanc:
 				error("%s undefined; func. %s", cs->name,
 					funcsym ? funcsym->name : "(none)");
 			}
+		}
 		*cp++ = nblock(cs);
 		goto tand;
 
@@ -781,7 +795,7 @@ opon1:
 		pp -= 2;
 	}
 	ps = *pp;
-	if (p>ps || p==ps && (opdope[o]&RASSOC)!=0) {
+	if (p>ps || (p==ps && (opdope[o]&RASSOC)!=0)) {
 		switch (o) {
 
 		case INCAFT:
@@ -810,7 +824,9 @@ opon1:
 	}
 	--pp;
 	os = *op--;
-	if (andflg==0 && p>5 && ((opdope[o]&BINARY)==0 || o>=INCBEF&&o<=DECAFT) && opdope[os]&BINARY)
+	if (andflg==0 && p>5 &&
+	    ((opdope[o]&BINARY)==0 || (o>=INCBEF&&o<=DECAFT)) &&
+	    opdope[os]&BINARY)
 		goto syntax;
 	switch (os) {
 

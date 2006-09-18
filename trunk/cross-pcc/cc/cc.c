@@ -14,7 +14,7 @@
 char	*cpp = "/usr/bin/cpp";
 char	*ccom = "/usr/local/lib/pdp11/c0";
 char	*ccom1 = "/usr/local/lib/pdp11/c1";
-char	*c2 = "/usr/local/lib/pdp11/c2";
+char	*c2 = "/usr/local/lib/pdp11/c2o";
 char	*as = "/usr/local/bin/pdp11-as";
 char	*ld = "/usr/local/bin/pdp11-ld";
 char	*crt0 = "/usr/local/lib/pdp11/crt0.o";
@@ -302,8 +302,9 @@ int main(argc, argv)
 			assource = tmp3;
 		if (pflag)
 			tmp4 = setsuf(clist[i], 'i');
-		av[0] = "cpp"; av[1] = clist[i];
-		na = 2;
+		/* Have to use -P - old CC does not grok # line directives */
+		av[0] = "cpp"; av[1] = "-P"; av[2] = clist[i];
+		na = 3;
 		if (!exflag)
 			av[na++] = tmp4;
 		for (j = 0; j < np; j++)
