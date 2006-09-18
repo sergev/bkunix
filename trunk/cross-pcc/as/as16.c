@@ -13,11 +13,11 @@
 */
 void opline()
 {
-	struct value v,express();
+	struct value v;
 	int t;
 
 	if(tok.u <= TOKSYMBOL) {		/* Operator */
-		if(tok.u != '<') {	
+		if(tok.u != '<') {
 			express();
 			dot += 2;
 			return;
@@ -174,7 +174,7 @@ void opline()
 int address()
 {
 	int i;
-	struct value v,express();
+	struct value v;
 
 	switch(tok.i) {
 
@@ -242,7 +242,7 @@ int address()
 	Routine to check that a value is in range for a register
 */
 void checkreg(v)
-struct value v;
+	struct value v;
 {
 	if(v.val.u > 7 || (v.type.u != TYPEABS && v.type.u <= TYPEBSS))
 		aerror('a');

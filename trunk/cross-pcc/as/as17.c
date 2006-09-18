@@ -7,8 +7,6 @@
 #include "as.h"
 #include "as1.h"
 
-int combine();
-
 /*
 	Routine to parse and evaluate an expression
 	Returns value as a type/value structure
@@ -76,16 +74,16 @@ struct value express()
 	operand:
 
 		++opfound;
-		ttype = combine(v.type.i,rv.type.i,0);	/* tentative */
+		ttype = combine(v.type.i, rv.type.i, 0); /* tentative */
 		switch(oldop) {
 
 		case '+':
 			v.type.i = ttype;
 			v.val.i += rv.val.i;
 			break;
-		
+
 		case '-':
-			v.type.i = combine(v.type.i,rv.type.i,1);
+			v.type.i = combine(v.type.i, rv.type.i, 1);
 			v.val.i -= rv.val.i;
 			break;
 
@@ -147,8 +145,8 @@ struct value express()
 /*
 	Routine to determine type after combining to operands
 */
-int combine(left,right,sflag)
-int left,right,sflag;
+int combine(left, right, sflag)
+	int left, right, sflag;
 {
 	int ext,t;
 
@@ -168,5 +166,3 @@ int left,right,sflag;
 		return(left | ext);
 	return(ext | TYPEABS);			/* subtract like types */
 }
-
-		

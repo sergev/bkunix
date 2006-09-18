@@ -8,12 +8,12 @@
 /*
 	Symbol table
 */
-struct symtab *hshtab[HSHSIZ];		/* Hash Table			  */
-struct symtab symtab[SYMBOLS];		/* Permanent Symbol Table */
-struct symtab usymtab[USERSYMBOLS];	/* Normal Symbol Table	  */
+struct symtab *hshtab[HSHSIZ];		/* Hash Table		  */
+struct symtab symtab[SYMBOLS+USERSYMBOLS]; /* Permanent Symbol Table */
+struct symtab *usymtab = symtab + SYMBOLS; /* Normal Symbol Table */
 
-struct symtab *symend = symtab + SYMBOLS;	/* Points past last entry */
-char symbol[8];						/* Symbol assembly line	  */
+struct symtab *symend = symtab + SYMBOLS; /* Points past last entry */
+char symbol[8];				/* Symbol assembly line	  */
 unsigned savdot[3] = {0,0,0};		/* Saved . for txt/dat/bss*/
 
 /*
@@ -21,40 +21,40 @@ unsigned savdot[3] = {0,0,0};		/* Saved . for txt/dat/bss*/
 */
 char curfbr[10] = {0,0,0,0,0,0,0,0,0,0};  /* Relocation		  */
 int curfb[10] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};  /* Value	  */
-struct fb_tab nxtfb = {0,0,0};		/* Entry descriptor		  */
+struct fb_tab nxtfb = {0,0,0};		/* Entry descriptor	  */
 
 /*
 	Files
 */
-FILE * fin;							/* Input file			  */
-int fbfil;							/* Forward branch output  */
-int pof;							/* Token output file	  */
-char fileflg;						/* (unused) file counter  */
+FILE * fin;				/* Input file		  */
+int fbfil;				/* Forward branch output  */
+int pof;				/* Token output file	  */
+char fileflg;				/* (unused) file counter  */
 
 /*
 	Flags
 */
-int errflg = 0;						/* Error counter		  */
-int ifflg = 0;						/* Nested .if counter	  */
-char globflag = 0;					/* true if pass 2 und->gbl*/
-int eos_flag = 0;					/* true if at end of stmt */
+int errflg = 0;				/* Error counter	  */
+int ifflg = 0;				/* Nested .if counter	  */
+char globflag = 0;			/* true if pass 2 und->gbl*/
+int eos_flag = 0;			/* true if at end of stmt */
 
 /*
 	Scanning/Parsing variables
 */
-union token tok;					/* scanned token		  */
-int line = 0;						/* Line in source file	  */
-int savop = 0;						/* token lookahead		  */
-char ch = 0;						/* character lookahead	  */
-int numval = 0;						/* number / string length */
-int num_rtn;						/* return val from number */
+union token tok;			/* scanned token	  */
+int line = 0;				/* Line in source file	  */
+int savop = 0;				/* token lookahead	  */
+char ch = 0;				/* character lookahead	  */
+int numval = 0;				/* number / string length */
+int num_rtn;				/* return val from number */
 
 
 /*
 	File name / arguments
 */
-int nargs;							/* number of files to go  */
-char **curarg;						/* current file name	  */
+int nargs;				/* number of files to go  */
+char **curarg;				/* current file name	  */
 
 /*
 	Tables
@@ -90,7 +90,7 @@ char chartab[] = {
 */
 
 char schar[] = {'n',012,'t',011,'e',TOKEOF,'0',0,
-			    'r',015,'a',006,'p',033,0,-1};
+		'r',015,'a',006,'p',033,0,-1};
 
 
 /*

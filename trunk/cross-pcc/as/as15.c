@@ -14,7 +14,6 @@ void readop()
 {
 	unsigned char c;
 	int i;
-	char rsch();
 
 	if((tok.i = savop) != 0) {
 		savop = 0;
@@ -57,7 +56,7 @@ void readop()
 		rdname:
 			ch = tok.i;
 			if(c < '0' || c > '9') {
-				rname();
+				rname(c);
 				return;
 			}
 			/* fall thru since it is a number */

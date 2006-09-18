@@ -14,13 +14,13 @@
 	contained in variable c
 */
 void rname(c)
-unsigned char c;
+	unsigned char c;
 {
 	char *sp;
 	unsigned char tc;
-	unsigned short hash(),hv,next;
-	struct value * stok;
-	int no_hash,sl,probe;
+	unsigned short hv, next;
+	struct value *stok;
+	int no_hash, sl, probe;
 	char debug = 0;
 
 	sl = 8;
@@ -39,7 +39,7 @@ unsigned char c;
 	ch = tc;
 	if(no_hash) {
 		tok.s = symend;
-		add_symbol(tok.s,symbol);
+		add_symbol(tok.s, symbol);
 	}
 	else {
 		probe = hv % HSHSIZ;
@@ -47,11 +47,11 @@ unsigned char c;
 		while(1) {
 			if((probe -= next) < 0)
 				probe += HSHSIZ;
-			if(debug) 
+			if(debug)
 				printf("rname debug probe %d next %u\n",probe,next);
 			if(hshtab[probe] == 0) {
 				hshtab[probe] = tok.s = symend;
-				add_symbol(tok.s,symbol);
+				add_symbol(tok.s, symbol);
 				break;
 			}
 			if(debug)
@@ -78,11 +78,11 @@ unsigned char c;
 */
 char number()
 {
-	int num,decimal;
-	unsigned char rch(),c;
+	int num, decimal;
+	unsigned char c;
 
 	num = decimal = 0;
-	while(isdigit(c = rch())) {
+	while((c = rch()) >= '0' && c <= '9') {
 		c -= '0';
 		decimal = decimal*10 + c;
 		num = (num << 3) + c;
@@ -157,13 +157,13 @@ unsigned char rch()
 	Routine to hash a symbol and enter into hash table
 */
 void hash_enter(p)
-struct symtab *p;
+	struct symtab *p;
 {
-	unsigned short hash(),hv,next;
+	unsigned short hv, next;
 	int probe;
 	char debug = 0;
 
-	hv = hash(p);
+	hv = hash(p->name);
 	probe = hv % HSHSIZ;
 	next = hv / HSHSIZ;
 	while(TRUE) {
@@ -183,13 +183,13 @@ struct symtab *p;
 	Routine to hash a symbol
 */
 unsigned short hash(p)
-struct symtab *p;
+	char *p;
 {
 	int i;
 
 	unsigned h = 0;
-	for(i = 0; i < 8 && p->name[i] != '\0'; ++i) {
-		h += p->name[i];
+	for(i = 0; i < 8 && p[i] != '\0'; ++i) {
+		h += p[i];
 		h = (h  << 8) | ((h >> 8) & 0xFF);
 	}
 	return(h);
@@ -200,11 +200,11 @@ struct symtab *p;
 	Routine to add a symbol to the symbol table and bump
 	the symbol table pointer
 */
-void add_symbol(p,s)
-struct symtab *p;
-char *s;
+void add_symbol(p, s)
+	struct symtab *p;
+	char *s;
 {
-	strncpy(p->name,s,8);
+	strncpy(p->name, s, 8);
 	if(++symend - usymtab > USERSYMBOLS) {
 		fprintf(stderr,"add_symbol: symbol table overflow.\n");
 		aexit();
