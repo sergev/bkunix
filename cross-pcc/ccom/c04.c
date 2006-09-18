@@ -8,6 +8,7 @@
  * Reduce the degree-of-reference by one.
  * e.g. turn "ptr-to-int" into "int".
  */
+int
 decref(t)
 register int t;
 {
@@ -15,13 +16,14 @@ register int t;
 		error("Illegal indirection");
 		return(t);
 	}
-	return((t>>TYLEN) & ~TYPE | t&TYPE);
+	return ((t>>TYLEN) & ~TYPE) | (t&TYPE);
 }
 
 /*
  * Increase the degree of reference by
  * one; e.g. turn "int" to "ptr-to-int".
  */
+int
 incref(t)
 register int t;
 {
@@ -32,6 +34,7 @@ register int t;
  * Make a tree that causes a branch to lbl
  * if the tree's value is non-zero together with the cond.
  */
+void
 cbranch(t, lbl, cond)
 union tree *t;
 {
@@ -42,6 +45,7 @@ union tree *t;
 /*
  * Write out a tree.
  */
+void
 rcexpr(tp)
 register union tree *tp;
 {
@@ -61,11 +65,12 @@ register union tree *tp;
 	outcode("BN", EXPR, line);
 }
 
+void
 treeout(tp, isstruct)
 register union tree *tp;
 {
 	register struct nmlist *hp;
-	register nextisstruct;
+	register int nextisstruct;
 
 	if (tp == NULL || tp->t.op==NULLOP) {
 		outcode("B", XNULLOP);
@@ -138,6 +143,7 @@ register union tree *tp;
 /*
  * Generate a branch
  */
+void
 branch(lab)
 {
 	outcode("BN", BRANCH, lab);
@@ -146,6 +152,7 @@ branch(lab)
 /*
  * Generate a label
  */
+void
 label(l)
 {
 	outcode("BN", LABEL, l);
@@ -156,10 +163,11 @@ label(l)
  * is some kind of pointer; return the size of the object
  * to which the pointer points.
  */
+int
 plength(p)
 register union tree *p;
 {
-	register t, l;
+	register int t, l;
 
 	if (p==0 || ((t=p->t.type)&~TYPE) == 0)		/* not a reference */
 		return(1);
@@ -173,10 +181,11 @@ register union tree *p;
  * return the number of bytes in the object
  * whose tree node is acs.
  */
+int
 length(cs)
 union tree *cs;
 {
-	register t, elsz;
+	register int t, elsz;
 	long n;
 	int nd;
 
@@ -237,6 +246,7 @@ union tree *cs;
 /*
  * The number of bytes in an object, rounded up to a word.
  */
+int
 rlength(cs)
 union tree *cs;
 {
@@ -247,6 +257,7 @@ union tree *cs;
  * After an "if (...) goto", look to see if the transfer
  * is to a simple label.
  */
+int
 simplegoto()
 {
 	register struct nmlist *csp;
@@ -273,6 +284,7 @@ simplegoto()
 /*
  * Return the next non-white-space character
  */
+int
 nextchar()
 {
 	while (spnextchar()==' ')
@@ -284,9 +296,10 @@ nextchar()
  * Return the next character, translating all white space
  * to blank and handling line-ends.
  */
+int
 spnextchar()
 {
-	register c;
+	register int c;
 
 	if ((c = peekc)==0)
 		c = getchar();
@@ -303,7 +316,9 @@ spnextchar()
 /*
  * is a break or continue legal?
  */
+void
 chconbrk(l)
+int l;
 {
 	if (l==0)
 		error("Break/continue error");
@@ -312,6 +327,7 @@ chconbrk(l)
 /*
  * The goto statement.
  */
+void
 dogoto()
 {
 	register union tree *np;
@@ -329,6 +345,7 @@ dogoto()
  * The return statement, which has to convert
  * the returned object to the function's type.
  */
+void
 doret()
 {
 	if (nextchar() != ';') {
@@ -358,10 +375,11 @@ doret()
  *   0: number 0
  */
 /* VARARGS1 */
+void
 outcode(s, a)
 char *s;
 {
-	register *ap;
+	register int *ap;
 	register FILE *bufp;
 	register char *np;
 	int n;

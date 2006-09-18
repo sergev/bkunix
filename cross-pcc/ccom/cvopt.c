@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 int	tabflg;
 int	labno	= 1;
@@ -6,11 +8,13 @@ int opno;
 FILE	*curbuf;
 FILE	*obuf;
 FILE	*oobuf;
-char  oname[]="/tmp/cvoptaXXXXXX";
-char ooname[]="/tmp/cvoptbXXXXXX";
 char lbuf[BUFSIZ];
 char *lbufp = lbuf;
 
+void put(), comment();
+int flag();
+
+int
 main(argc, argv)
 char **argv;
 {
@@ -58,14 +62,12 @@ char **argv;
 			fprintf(stderr, "%s?\n", argv[2]);
 			return(1);
 		}
-	mktemp(oname);
-	if ((obuf = fopen(oname, "w")) == NULL) {
-		fprintf(stderr, "%s?\n", oname);
+	if ((obuf = tmpfile()) == NULL) {
+		perror("temp file 1");
 		exit(1);
 	}
-	mktemp(ooname);
-	if ((oobuf = fopen(ooname, "w")) == NULL) {
-		fprintf(stderr, "%s?\n", ooname);
+	if ((oobuf = tmpfile()) == NULL) {
+		perror("temp file 2");
 		exit(1);
 	}
 	printf("#include \"c1.h\"");
@@ -83,22 +85,12 @@ loop:
 
 	case EOF:
 		fprintf(obuf, "\t{0},\n};\n");
-		fclose(obuf);
-		if (freopen(oname, "r", stdin) == NULL) {
-			fprintf(stderr, "%s?\n",oname);
-			exit(1);
-		}
-		while ((c = getchar()) != EOF)
+		rewind(obuf);
+		while ((c = getc(obuf)) != EOF)
 			putchar(c);
-		unlink(oname);
-		fclose(oobuf);
-		if (freopen(ooname, "r", stdin) == NULL) {
-			fprintf(stderr, "%s?\n",ooname);
-			exit(1);
-		}
-		while ((c = getchar()) != EOF)
+		rewind(oobuf);
+		while ((c = getc(oobuf)) != EOF)
 			putchar(c);
-		unlink(ooname);
 		return(0);
 
 	case 'A':
@@ -354,8 +346,9 @@ pf:
 	goto loop;
 }
 
+int
 flag() {
-	register c, f;
+	register int c, f;
 
 	f = 0;
 l1:
@@ -412,6 +405,7 @@ l1:
 	return(f);
 }
 
+void
 put(c)
 {
 	if (tabflg) {
@@ -423,6 +417,7 @@ put(c)
 	}
 }
 
+void
 comment(c)
 register char c;
 {
