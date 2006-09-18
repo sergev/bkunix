@@ -11,11 +11,9 @@
 void opline()
 {
 	struct value v;
-	unsigned topcode,ttype,tb,a1;
+	unsigned topcode, ttype, tb, a1;
 	char *pf;
 	struct value *ttok;
-	struct value express();
-	unsigned address();
 
 	/*
 		Handle non symbol tokens
@@ -41,7 +39,7 @@ void opline()
 		Handle non-opcode symbols
 	*/
 	tb = tok.v->type.b;
-	if(tb == TYPEREGIS || tb == TYPEOPEST || 
+	if(tb == TYPEREGIS || tb == TYPEOPEST ||
 	   tb == TYPEOPESD || tb <  TYPEOPFD ||
 	   tb >  TYPEOPJCC) {
 	   v = express();
@@ -55,7 +53,7 @@ void opline()
 	topcode = tok.v->val.u;
 	ttype = tb;
 	readop();
-	padrb = &adrbuf;
+	padrb = &adrbuf[0];
 	swapf = 0;
 	rlimit = -1;
 
@@ -286,10 +284,9 @@ void opline()
 	Routine to do a 2 operand op code
 */
 void op2a(op)
-unsigned op;
+	unsigned op;
 {
 	unsigned a1;
-	unsigned address();
 
 	a1 = address();
 	readop();
@@ -300,12 +297,11 @@ unsigned op;
 /*
 	routine to do second (or only) operand
 */
-void op2b(a1,op)
-unsigned a1,op;
+void op2b(a1, op)
+	unsigned a1, op;
 {
 	unsigned a2,t;
-	int *p;
-	unsigned address();
+	unsigned *p;
 
 	a2 = address();
 	if(swapf) {
@@ -319,7 +315,7 @@ unsigned a1,op;
 		aerror('x');
 	a2 |= a1 | op;
 	outw(0,a2);
-	for(p = &adrbuf; p < padrb; p += 3) {
+	for(p = &adrbuf[0]; p < padrb; p += 3) {
 		xsymbol = p[2];
 		outw(p[1],p[0]);
 	}
@@ -334,7 +330,6 @@ unsigned address()
 {
 	struct value v;
 	int t;
-	struct value express();
 
 	t = 0;
 	while(1) {
@@ -423,7 +418,7 @@ unsigned address()
 
 	v.type.u |= 0100000;	/* relative address */
 	v.val.u -= (dot+4);
-	if(padrb != &adrbuf)
+	if(padrb != &adrbuf[0])
 		v.val.u -= 2;
 	if(padrb - adrbuf > 6)
 		addrovf();
@@ -451,7 +446,7 @@ void addrovf()
 	Routine to check that a value is a valid register
 */
 void checkreg(v)
-struct value *v;
+	struct value *v;
 {
 	if(v->val.u > 7 ||
 	   (v->type.u > TYPEABS && v->type.u < TYPEOPFD)) {
@@ -482,7 +477,7 @@ void checkrp()
 	means that a branch over a jmp must be used.
 */
 int setbr(v)
-int v;
+	int v;
 {
 	if(brtabp > BRLEN)	/* no more room in table... */
 		return(2);

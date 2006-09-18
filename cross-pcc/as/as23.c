@@ -57,15 +57,14 @@ void assem()
 	Subroutine to process assignment  (label = value)
 */
 void doequal(t)
-union token *t;
+	union token *t;
 {
 	struct value v;
 	int i;
-	struct value express();
 
 	readop();
 	v = express();
-	if(t->v == &symtab) {	/* .= */
+	if(t->v == &symtab[0]) {	/* .= */
 		v.type.u &= ~TYPEEXT;
 		if(v.type.u != dotrel) {
 			aerror('.');
@@ -102,7 +101,7 @@ union token *t;
 	Subroutine to handle a label definition
 */
 void docolon(t)
-union token *t;
+	union token *t;
 {
 	unsigned ttype;
 
@@ -123,7 +122,7 @@ union token *t;
 	if(passno == 0) {
 		ttype = tok.v->type.b & 037;
 		if(ttype != 0 &&
-			(ttype < TYPEOPEST || ttype > TYPEOPESD) )
+		    (ttype < TYPEOPEST || ttype > TYPEOPESD))
 			aerror('m');
 		tok.v->type.b &= ~037;
 		tok.v->type.b |= dotrel;
