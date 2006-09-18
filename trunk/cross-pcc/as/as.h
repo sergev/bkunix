@@ -18,10 +18,8 @@
 /*
 	Files
 */
-#define	ATMP1		"/tmp/atm1"
-#define ATMP2		"/tmp/atm2"
-#define	ATMP3		"/tmp/atm3"
 #define OPTABL		"/usr/local/lib/pdp11/opcode.tbl"
+#define PASS2		"/usr/local/lib/pdp11/asm2"
 
 /*
 	Special Flags
