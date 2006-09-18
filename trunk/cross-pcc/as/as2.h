@@ -44,17 +44,17 @@ extern struct hdr {
 /*
 	File seek locations
 */
-extern int aseek[3];				/* seek for "absolute"	  */
-extern int relseek[3];				/* seek for reloc. data	  */
-extern int symseek;				/* seek for symbol table  */
+extern unsigned aseek[3];			/* seek for "absolute"	  */
+extern unsigned relseek[3];			/* seek for reloc. data	  */
+extern unsigned symseek;			/* seek for symbol table  */
 
 #define txtseek		(aseek[0])		/* seek for txt abs data  */
 #define datseek		(aseek[1])		/* seek for data abs data */
 #define trelseek	(relseek[0])		/* seek for txt reloc.	  */
 #define drelseek	(relseek[1])		/* seek for data reloc.	  */
 
-extern int *tseekp;				/* ptr to abs seek entry  */
-extern int *rseekp;				/* ptr to reloc. seek ent.*/
+extern unsigned *tseekp;			/* ptr to abs seek entry  */
+extern unsigned *rseekp;			/* ptr to reloc. seek ent.*/
 
 /*
 	br/jmp table
@@ -68,10 +68,10 @@ extern int brdelt;				/* current displacement	  */
 	output buffer structure
 */
 struct out_buf {
-	int *slot;				/* current word in buffer */
-	int *max;				/* &(end of buffer)		  */
-	int seek;				/* file seek location	  */
-	int buf[256];				/* data buffer			  */
+	char *slot;				/* current word in buffer */
+	char *max;				/* &(end of buffer)		  */
+	unsigned seek;				/* file seek location	  */
+	char buf[512];				/* data buffer			  */
 };
 
 extern struct out_buf txtp;			/* abs data buffer		  */

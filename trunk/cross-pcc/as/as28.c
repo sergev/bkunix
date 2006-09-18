@@ -33,12 +33,12 @@ struct hdr hdr = {0407, { 0,0,0 }, 0,0,0,0};
 /*
 	File seek locations
 */
-int aseek[3];					/* seek for "absolute"	  */
-int relseek[3];					/* seek for reloc. data	  */
-int symseek;					/* seek for symbol table  */
+unsigned aseek[3];					/* seek for "absolute"	  */
+unsigned relseek[3];					/* seek for reloc. data	  */
+unsigned symseek;					/* seek for symbol table  */
 
-int *tseekp = &txtseek;				/* ptr to abs seek entry  */
-int *rseekp = &trelseek;			/* ptr to reloc. seek ent.*/
+unsigned *tseekp = &txtseek;				/* ptr to abs seek entry  */
+unsigned *rseekp = &trelseek;			/* ptr to reloc. seek ent.*/
 
 /*
 	br/jmp table

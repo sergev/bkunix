@@ -38,9 +38,25 @@ main(argc,argv)
 	if(errflg)
 		aexit();
 	fsym = f_create(ATMP3);
-	write(fsym,usymtab,(char *)symend - (char *)usymtab);
+	write_syms(fsym);
 	close(fsym);
 	exit(0);
+}
+
+void write_syms (fd)
+	int fd;
+{
+	struct symtab *s;
+	char buf[4];
+
+	for (s=usymtab; s<symend; ++s) {
+		write(fd, s->name, sizeof(s->name));
+		buf[0] = s->v.type.u;
+		buf[1] = s->v.type.u >> 8;
+		buf[2] = s->v.val.u;
+		buf[3] = s->v.val.u >> 8;
+		write(fd, buf, 4);
+	}
 }
 
 

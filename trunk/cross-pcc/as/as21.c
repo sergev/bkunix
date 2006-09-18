@@ -73,6 +73,7 @@ main(argc, argv)
 		Do pass 2	(pass 0 of second phase...)
 	*/
 	setup();
+	fin = txtfil;
 	assem();
 	if(outmod != 0777)
 		aexit();
@@ -84,10 +85,9 @@ main(argc, argv)
 	dotrel = TYPETXT;
 	dotdot = 0;
 	brtabp = 0;
-	close(fin);
-	fin = ofile(ATMP1);
 	++passno;
 	setup();
+	lseek(fin,0L,0);
 	bsssiz = (bsssiz + 1) & ~1;
 	txtsiz = (txtsiz + 1) & ~1;
 	datsiz = (datsiz + 1) & ~1;
@@ -95,7 +95,6 @@ main(argc, argv)
 	savdot[1] = datbase;		/* .data goes after text */
 	bssbase = txtsiz + datsiz;
 	savdot[2] = bssbase;		/* .bss after text, data */
-
 	symseek  = 2*txtsiz + 2*datsiz + 020;
 	drelseek = 2*txtsiz + datsiz + 020;
 	trelseek = txtsiz + datsiz + 020;
@@ -112,8 +111,8 @@ main(argc, argv)
 	for(fp = fbtab; fp < endtable; ++fp)
 		doreloc((struct value*) fp);
 
-	oset(&txtp,0);
-	oset(&relp,trelseek);
+	oset(&txtp, 0);
+	oset(&relp, trelseek);
 	for(i=8, pi = (int *)&hdr; i > 0; --i, ++pi) {
 		aputw(&txtp,*pi);
 	}
@@ -127,18 +126,18 @@ main(argc, argv)
 	flush(&relp);
 	fin = symf;
 	lseek(fin,0L,0);
-	oset(&txtp,symseek);
+	oset(&txtp, symseek);
 	sp = usymtab;
 	while(agetw()) {
-		aputw(&txtp,tok.u);
+		aputw(&txtp, tok.u);
 		agetw();
-		aputw(&txtp,tok.u);
+		aputw(&txtp, tok.u);
 		agetw();
-		aputw(&txtp,tok.u);
+		aputw(&txtp, tok.u);
 		agetw();
-		aputw(&txtp,tok.u);
-		aputw(&txtp,sp->type.u);
-		aputw(&txtp,sp->val.u);
+		aputw(&txtp, tok.u);
+		aputw(&txtp, sp->type.u);
+		aputw(&txtp, sp->val.u);
 		++sp;
 		agetw();
 		agetw();
@@ -232,7 +231,6 @@ void setup()
 
 	for(i=0; i<10; ++i)
 		nxtfb[i] = curfb[i] = 0;
-	fin = txtfil;
 	for(i=0; i<10; ++i) {
 		tok.i = i;
 		fbadv();

@@ -74,8 +74,7 @@ void assem()
 			nxtfb.val = dot;
 			nxtfb.lblix = i;
 			curfb[i] = dot;
-			if(write(fbfil,&nxtfb,sizeof nxtfb) != sizeof nxtfb)
-				fprintf(stderr,"assem: error writing to fb file.\n");
+			write_fb(fbfil, &nxtfb);
 			continue;
 		}	/* : */
 
@@ -101,6 +100,20 @@ ealoop:
 			aerror('x');
 		return;
 	}
+}
+
+void write_fb(f, b)
+	int f;
+	struct fb_tab *b;
+{
+	char buf[4];
+
+	buf[0] = b->rel;
+	buf[1] = b->lblix;
+	buf[2] = b->val;
+	buf[3] = b->val >> 8;
+	if(write(f, buf, 4) != 4)
+		fprintf(stderr,"assem: error writing to fb file.\n");
 }
 
 

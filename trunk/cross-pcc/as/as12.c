@@ -44,8 +44,12 @@ void aerror(c)
 */
 void aputw()
 {
+	char buf[2];
+
 	if(!ifflg || tok.i == '\n') {
-		if(write(pof,&tok.i,2) != 2)
+		buf[0] = tok.i;
+		buf[1] = tok.i >> 8;
+		if(write(pof, buf, 2) != 2)
 			fprintf(stderr,"aputw: write error\n");
 	}
 }
