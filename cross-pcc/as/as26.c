@@ -437,7 +437,7 @@ unsigned address()
 void addrovf()
 {
 	printf("addrovf: address over flow, line %d\n",line);
-	aexit();
+	aexit(1);
 }
 
 

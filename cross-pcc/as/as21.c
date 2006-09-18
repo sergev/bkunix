@@ -8,6 +8,7 @@
 #include "as.h"
 #include "as2.h"
 
+char *atmp1, *atmp2, *atmp3;
 /*
 	Main program.
 */
@@ -21,11 +22,15 @@ main(argc, argv)
 	struct fb_tab *fp;
 	int *pi,i;
 
-	if(argc > 1)
+	if (argc < 4) {
+		fprintf(stderr, "Need 3 files\n");
+		exit(1);
+	}
+	if(argc > 4)
 		defund = TYPEEXT;
-	txtfil = ofile(ATMP1);
-	fbfil  = ofile(ATMP2);
-	symf   = ofile(ATMP3);
+	txtfil = ofile(atmp1 = argv[1]);
+	fbfil  = ofile(atmp2 = argv[2]);
+	symf   = ofile(atmp3 = argv[3]);
 	fin = symf;
 	if((fout = creat("a.out", 0644)) <= 0)
 		filerr("a.out");
@@ -76,7 +81,7 @@ main(argc, argv)
 	fin = txtfil;
 	assem();
 	if(outmod != 0777)
-		aexit();
+		aexit(1);
 
 	/*
 		Now set up for pass 3, including header for a.out
@@ -143,22 +148,21 @@ main(argc, argv)
 		agetw();
 	}
 	flush(&txtp);
-	exit(0);
+	aexit(0);
+	return 0;
 }
 
 
 /*
 	Routine to delete temp files and exit
 */
-void aexit()
+void aexit(code)
+	int code;
 {
-	/*
-	unlink(ATMP1);
-	unlink(ATMP2);
-	unlink(ATMP3);
-	*/
-	/* chmod("a.out",outmod); */
-	exit(1);
+	unlink(atmp1);
+	unlink(atmp2);
+	unlink(atmp3);
+	exit(code);
 }
 
 
@@ -169,7 +173,7 @@ void filerr(name)
 	char *name;
 {
 	printf("filerr: File error in file %s\n",name);
-	aexit();
+	aexit(1);
 }
 
 
@@ -208,7 +212,7 @@ void setup()
 	if(passno == 0) {
 		if((fd = fopen(OPTABL,"r")) == NULL) {
 			fprintf(stderr,"setup: can't open %s\n",OPTABL);
-			aexit();
+			aexit(1);
 		}
 		p = &symtab[0];
 		while(p-symtab < SYMBOLS &&
@@ -218,13 +222,13 @@ void setup()
 		}
 		if(p-symtab >= SYMBOLS) {
 			fprintf(stderr,"setup: Permanent symbol table overflow\n");
-			aexit();
+			aexit(1);
 		}
 		if(n != -1) {
 			fprintf(stderr,
 			   "setup: scanned only %d elements after %d symbols\n",
 				n,p-symtab);
-			aexit();
+			aexit(1);
 		}
 		fclose(fd);
 	}

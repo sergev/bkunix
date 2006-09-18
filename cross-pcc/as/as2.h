@@ -113,7 +113,7 @@ extern union token tok;				/* token from token file  */
 
 void addrovf(void);
 void aerror(int);
-void aexit(void);
+void aexit(int);
 int agetw(void);
 void aputw(struct out_buf*, int);
 void assem(void);

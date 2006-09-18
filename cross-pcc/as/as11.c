@@ -6,6 +6,9 @@
 #include "as.h"
 #include "as1.h"
 
+char atmp1[] = "/tmp/atm1XXXXXX";
+char atmp2[] = "/tmp/atm2XXXXXX";
+char atmp3[] = "/tmp/atm3XXXXXX";
 int
 main(argc,argv)
 	int argc;
@@ -22,8 +25,8 @@ main(argc,argv)
 		globflag = FALSE;
 	nargs = argc;
 	curarg = argv;
-	pof = f_create(ATMP1);
-	fbfil = f_create(ATMP2);
+	pof = f_create(atmp1);
+	fbfil = f_create(atmp2);
 	fin = 0;
 	memset(hshtab, 0, sizeof hshtab);
 	setup();
@@ -37,10 +40,12 @@ main(argc,argv)
 	close(fbfil);
 	if(errflg)
 		aexit();
-	fsym = f_create(ATMP3);
+	fsym = f_create(atmp3);
 	write_syms(fsym);
 	close(fsym);
-	exit(0);
+	execl(PASS2, PASS2, atmp1, atmp2, atmp3, NULL);
+	fprintf(stderr, "Could not exec %s\n", PASS2);
+	exit(1);
 }
 
 void write_syms (fd)
@@ -94,7 +99,7 @@ int f_create(name)
 {
 	int fd;
 
-	if((fd = creat(name, 0600)) < 0) {
+	if((fd = mkstemp(name)) < 0) {
 		filerr(name,"f_create: can't create file.");
 		exit(2);
 	}
