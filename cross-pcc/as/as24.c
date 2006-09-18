@@ -15,12 +15,12 @@ void oset(p, o)
 	struct out_buf *p;
 	int o;
 {
-	p->slot = (int*) ((char*)p + (o & 0777) + 6);
-	p->max = (int*) ((char*)p->buf + sizeof p->buf);
+	p->slot = p->buf + (o & 0777);
+	p->max = p->buf + sizeof p->buf;
 	p->seek = o;
 	if(DEBUG)
-		printf("oset offset %x slot %d seek %d ",
-			o,p->slot - p->buf,p->seek);
+		printf("\noset: offset %x slot %d seek %d\n",
+			o, (p->slot - p->buf) / 2, p->seek);
 }
 
 
@@ -31,19 +31,22 @@ void aputw(p, v)
 	struct out_buf *p;
 	int v;
 {
-	int *pi;
+	char *pi;
 
-	if((pi = p->slot) < p->max) {
+	pi = p->slot;
+	if(pi < p->max) {
 		*pi++ = v;
+		*pi++ = v >> 8;
 		p->slot = pi;
 	}
 	else {
 		flush(p);
 		*(p->slot++) = v;
+		*(p->slot++) = v >> 8;
 	}
 	if(DEBUG)
-		printf("aputw  %s %o slot %d ",
-			(p == &relp) ? "rel" : "txt",v,p->slot - p->buf);
+		printf("aputw  %s %o slot %d ", (p == &relp) ? "rel" : "txt",
+			v, (p->slot - p->buf) / 2);
 }
 
 
@@ -53,17 +56,21 @@ void aputw(p, v)
 void flush(p)
 	struct out_buf *p;
 {
-	char *wb;
-	int wc;
+	char *addr;
+	int bytes;
+
+	addr = p->buf + (p->seek & 0777);
+	bytes = p->slot - addr;
 
 	if(DEBUG)
-		printf("flush seek to %x ",p->seek);
-	lseek(fout,(long)p->seek,0);
-	wb = (char *)&p->buf + (p->seek & 0777);
+		printf("\nflush: write %d bytes, seek to %x\n", bytes, p->seek);
+	if (bytes == 0)
+		return;
+	lseek(fout, (long)p->seek, 0);
+	write(fout, addr, bytes);
+
 	p->seek = (p->seek | 0777) + 1;
-	wc = (char *)p->slot - wb;
-	p->slot = (int*) &p->buf;
-	write(fout,wb,wc);
+	p->slot = p->buf;
 }
 
 
@@ -97,13 +104,17 @@ void readop()
 */
 int agetw()
 {
-	if( (tok.u = savop) ) {
+	unsigned char buf[2];
+
+	tok.u = savop;
+	if(tok.u != 0) {
 		savop = 0;
 		return(TRUE);
 	}
-	if(read(fin,&tok.u,2) < 2) {
+	if(read(fin, buf, 2) < 2) {
 		tok.u = TOKEOF;
 		return(FALSE);
 	}
+	tok.u = buf[0] | buf[1] << 8;
 	return(TRUE);
 }

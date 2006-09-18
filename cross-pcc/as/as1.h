@@ -91,3 +91,5 @@ struct value express(void);
 unsigned short hash(char*);
 char rsch(void);
 int combine(int, int, int);
+void write_syms(int);
+void write_fb(int, struct fb_tab*);

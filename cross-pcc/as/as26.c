@@ -21,7 +21,7 @@ void opline()
 	if(tok.u < TOKSYMBOL) {
 		if(tok.u == TOKFILE) {
 			line = 1;
-			for(pf = argb; agetw(), tok.i >= 0; ++pf) {
+			for(pf = argb; agetw() && tok.u != 0xffff; ++pf) {
 				*pf = tok.u;
 			}
 			*pf = '\0';
@@ -198,9 +198,9 @@ void opline()
 			flush(&txtp);
 			flush(&relp);
 			tseekp = &aseek[ttype-TYPEOPTXT];
-			oset(&txtp,*tseekp);
+			oset(&txtp, *tseekp);
 			rseekp = &relseek[ttype-TYPEOPTXT];
-			oset(&relp,*rseekp);
+			oset(&relp, *rseekp);
 		}
 		dot = savdot[ttype-TYPEOPTXT];
 		dotrel = ttype-TYPEOPTXT+TYPETXT;
