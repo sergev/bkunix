@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <fcntl.h>
 
 /*
 	Magic Numbers (Limits)
@@ -20,7 +21,7 @@
 #define	ATMP1		"/tmp/atm1"
 #define ATMP2		"/tmp/atm2"
 #define	ATMP3		"/tmp/atm3"
-#define OPTABL		"opcode.tbl"
+#define OPTABL		"/usr/local/lib/pdp11/opcode.tbl"
 
 /*
 	Special Flags
@@ -151,4 +152,3 @@ struct fb_tab {
 
 #define TRUE (1)
 #define FALSE (0)
-

@@ -1,4 +1,4 @@
-/*	
+/*
 	AS - PDP/11 assember, Part II
 
 	Main program and associated routines
@@ -28,7 +28,7 @@ char *argv[];
 	fbfil  = ofile(ATMP2);
 	symf   = ofile(ATMP3);
 	fin = symf;
-	if((fout = creat("a.out")) <= 0)
+	if((fout = creat("a.out", 0644)) <= 0)
 		filerr("a.out");
 
 	/*
@@ -253,5 +253,3 @@ char *name;
 		filerr(name);
 	return(fd);
 }
-
-

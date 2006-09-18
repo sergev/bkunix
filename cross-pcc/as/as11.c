@@ -8,8 +8,8 @@
 
 int
 main(argc,argv)
-int argc;
-char *argv[];
+	int argc;
+	char *argv[];
 {
 	int fsym;
 
@@ -38,7 +38,7 @@ char *argv[];
 	if(errflg)
 		aexit();
 	fsym = f_create(ATMP3);
-	write(fsym,&usymtab,(char *)symend - (char *)usymtab);
+	write(fsym,usymtab,(char *)symend - (char *)usymtab);
 	close(fsym);
 	exit(0);
 }
@@ -48,7 +48,7 @@ char *argv[];
 	Routine to "handle" an error on a file
 */
 void filerr(name,msg)
-char *name,*msg;
+	char *name, *msg;
 {
 	fprintf(stderr,"%s %s\n",name,msg);
 	return;
@@ -74,11 +74,11 @@ aexit()
 	Routine to create one of the temporary files
 */
 int f_create(name)
-char *name;
+	char *name;
 {
 	int fd;
 
-	if((fd = creat(name)) < 0) {
+	if((fd = creat(name, 0600)) < 0) {
 		filerr(name,"f_create: can't create file.");
 		exit(2);
 	}

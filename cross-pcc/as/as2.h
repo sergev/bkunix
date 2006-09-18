@@ -14,7 +14,7 @@ extern struct value usymtab[USERSYMBOLS];  /* User symbol table	*/
 extern struct value *endtable;			/* End of symbol tables */
 
 #define dotrel	(symtab[0].type.u)		/* Relocation factor for .*/
-#define dot		(symtab[0].val.u)		/* Assembler PC			  */
+#define dot	(symtab[0].val.u)		/* Assembler PC			  */
 #define dotdot	(symtab[1].val.u)		/* Origin location counter*/
 
 /*

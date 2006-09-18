@@ -13,7 +13,6 @@ void assem()
 	struct value v;
 	union token savtok;
 	int i;
-	struct value express();
 
 	while(1) {
 		readop();
@@ -76,7 +75,7 @@ void assem()
 			nxtfb.lblix = i;
 			curfb[i] = dot;
 			if(write(fbfil,&nxtfb,sizeof nxtfb) != sizeof nxtfb)
-				fprintf(stderr,"assem: error writing to fb fbile.\n");
+				fprintf(stderr,"assem: error writing to fb file.\n");
 			continue;
 		}	/* : */
 
@@ -110,7 +109,7 @@ ealoop:
 	a temporary label
 */
 unsigned fbcheck(u)
-unsigned u;
+	unsigned u;
 {
 	if(u > 9) {
 		aerror('f');
