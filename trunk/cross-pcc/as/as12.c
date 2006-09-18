@@ -14,7 +14,7 @@
 void aerror(c)
 	int c;
 {
-	char *msg;
+	char *msg = 0;
 
 	switch (c) {
 	case 'x': msg = "Syntax error"; break;
@@ -30,10 +30,13 @@ void aerror(c)
 	case '*': msg = "Error at '*'"; break;
 	case ')': msg = "Expected ')'"; break;
 	case 'e': msg = "Invalid expression"; break;
-	case ']': msg = "Unknown error"; break;
-	default:  msg = "Expected ']'"; break;
+	case ']': msg = "Expected ']'"; break;
 	}
-	printf("%s:%d: %s\n", *curarg, line, msg);
+	printf("%s:%d: ", *curarg, line);
+	if (msg)
+		printf("%s\n", msg);
+	else
+		printf("Error '%c'\n", c);
 	++errflg;
 }
 
