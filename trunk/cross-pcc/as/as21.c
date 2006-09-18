@@ -11,11 +11,10 @@
 /*
 	Main program.
 */
-
 int
-main(argc,argv)
-int argc;
-char *argv[];
+main(argc, argv)
+	int argc;
+	char *argv[];
 {
 	struct value *sp,*p;			/* Pointer into symbol table*/
 	unsigned t;
@@ -110,8 +109,8 @@ char *argv[];
 		We have to relocate fb-table separately, since we moved
 		it off from the end of the symbol table.
 	*/
-	for(p = fbtab; p < endtable; ++p)
-		doreloc(p);
+	for(fp = fbtab; fp < endtable; ++fp)
+		doreloc((struct value*) fp);
 
 	oset(&txtp,0);
 	oset(&relp,trelseek);
@@ -168,7 +167,7 @@ void aexit()
 	Routine to "handle" a file error
 */
 void filerr(name)
-char *name;
+	char *name;
 {
 	printf("filerr: File error in file %s\n",name);
 	aexit();
@@ -179,7 +178,7 @@ char *name;
 	Routine to add appropriate relocation factor to symbol value
 */
 void doreloc(p)
-struct value *p;
+	struct value *p;
 {
 	int t;
 
@@ -212,7 +211,7 @@ void setup()
 			fprintf(stderr,"setup: can't open %s\n",OPTABL);
 			aexit();
 		}
-		p = &symtab;
+		p = &symtab[0];
 		while(p-symtab < SYMBOLS &&
 			  (n = fscanf(fd,"%s %o %o",dummy,
 			  	&p->type.u,&p->val.u)) == 3) {
@@ -245,7 +244,7 @@ void setup()
 	Routine to open an input file
 */
 int ofile(name)
-char *name;
+	char *name;
 {
 	int fd;
 

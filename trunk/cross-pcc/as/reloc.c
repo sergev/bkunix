@@ -32,7 +32,6 @@ int     txtw;
 void
 advance()
 {
-        
         relp++;
         relloc += 2;
         if (relp == &rbuf[256]) {
@@ -63,7 +62,7 @@ adv6()
 
 int
 main(argc, argv)
-char *argv[];
+	char *argv[];
 {
         int sign, c;
 
@@ -165,4 +164,3 @@ char *argv[];
                 write(fout, &tbuf[0], txtw);
 	return 0;
 }
-

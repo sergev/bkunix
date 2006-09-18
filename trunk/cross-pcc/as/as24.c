@@ -11,12 +11,12 @@
 /*
 	Routine to set up a buffered file, with an initial offset
 */
-void oset(p,o)
-struct out_buf *p;
-int o;
+void oset(p, o)
+	struct out_buf *p;
+	int o;
 {
-	p->slot = (char *)p + (o & 0777) + 6;
-	p->max = (char *)&p->buf + sizeof p->buf;
+	p->slot = (int*) ((char*)p + (o & 0777) + 6);
+	p->max = (int*) ((char*)p->buf + sizeof p->buf);
 	p->seek = o;
 	if(DEBUG)
 		printf("oset offset %x slot %d seek %d ",
@@ -27,9 +27,9 @@ int o;
 /*
 	Routine to write a word to a buffered file
 */
-void aputw(p,v)
-struct out_buf *p;
-int v;
+void aputw(p, v)
+	struct out_buf *p;
+	int v;
 {
 	int *pi;
 
@@ -51,7 +51,7 @@ int v;
 	Routine to flush a buferred file
 */
 void flush(p)
-struct out_buf *p;
+	struct out_buf *p;
 {
 	char *wb;
 	int wc;
@@ -62,7 +62,7 @@ struct out_buf *p;
 	wb = (char *)&p->buf + (p->seek & 0777);
 	p->seek = (p->seek | 0777) + 1;
 	wc = (char *)p->slot - wb;
-	p->slot = &p->buf;
+	p->slot = (int*) &p->buf;
 	write(fout,wb,wc);
 }
 
@@ -73,7 +73,8 @@ struct out_buf *p;
 */
 void readop()
 {
-	if(tok.i = savop) {
+	tok.i = savop;
+	if(tok.i != 0) {
 		savop = 0;
 		return;
 	}
@@ -81,11 +82,11 @@ void readop()
 	if(tok.u > TOKSYMBOL) {
 		if(tok.u >= USYMFLAG) {
 			tok.u -= USYMFLAG;
-			tok.s = &usymtab + tok.u;
+			tok.v = &usymtab[tok.u];
 		}
 		else {
 			tok.u -= PSYMFLAG;
-			tok.s = &symtab + tok.u;
+			tok.v = &symtab[tok.u];
 		}
 	}
 }

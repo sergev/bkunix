@@ -10,8 +10,6 @@
 
 struct value express()
 {
-	struct value expres1();
-
 	xsymbol = 0;
 	return(expres1());
 }
@@ -153,9 +151,9 @@ struct value expres1()
 /*
 	Routine to determine type after an operation
 */
-int combine(left,right,table)
-int left,right;
-int table[6][6];
+int combine(left, right, table)
+	int left, right;
+	int *table;
 {
 	int t,t2;
 
@@ -170,13 +168,13 @@ int table[6][6];
 		}
 		if(right == TYPEUNDEF)
 			return(t);
-		if(table != &reltm2 || left != right)
+		if(table != &reltm2[0] || left != right)
 			return(t | left);
 		return(t | TYPEABS);
 	}
 
 	maxtyp = 0;
-	left = table[maprel(right)][maprel(left)];
+	left = table[maprel(right)*6 + maprel(left)];
 	if(left < 0) {
 		if(left != -1)
 			aerror('r');
@@ -192,6 +190,7 @@ int table[6][6];
 	table index, and calculate "max" type
 */
 int maprel(type)
+	int type;
 {
 	if(type == TYPEEXT)
 		return(5);

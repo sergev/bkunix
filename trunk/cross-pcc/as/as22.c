@@ -11,8 +11,8 @@
 /*
 	Routine to output a word to output, with relocation
 */
-void outw(type,val)
-int type, val;
+void outw(type, val)
+	int type, val;
 {
 	unsigned t;
 
@@ -66,9 +66,8 @@ int type, val;
 /*
 	Routine to output a byte value
 */
-void outb(type,val)
-int type;
-char val;
+void outb(type, val)
+	int type, val;
 {
 	if(dotrel == TYPEBSS) {
 		aerror('x');
@@ -95,9 +94,8 @@ char val;
 	Display file, line and error code for errors
 */
 void aerror(c)
-char c;
+	int c;
 {
 	outmod = 0666;		/* not executable */
 	printf("%s %c %d\n",argb,c,line);
 }
-
