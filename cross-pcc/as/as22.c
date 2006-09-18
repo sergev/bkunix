@@ -96,6 +96,25 @@ void outb(type, val)
 void aerror(c)
 	int c;
 {
+	char *msg = 0;
+
+	switch (c) {
+	case 'u': msg = "Unknown symbol"; break;
+	case 'x': msg = "Data in .bss section"; break;
+	case 'o': msg = "Odd address"; break;
+	case 'r': msg = "Relocatable value not allowed"; break;
+	case '.': msg = "Dot-relative expression required"; break;
+	case 'b': msg = "Branch offset too big"; break;
+	case 'a': msg = "Incorrect operand value"; break;
+	case ')': msg = "Requred ')'"; break;
+	case ']': msg = "Requred ']'"; break;
+	case 'e': msg = "Bad expression"; break;
+	}
+	printf("%s:%d: ", argb, line);
+	if (msg)
+		printf("%s\n", msg);
+	else
+		printf("Error '%c'\n", c);
+
 	outmod = 0666;		/* not executable */
-	printf("%s %c %d\n",argb,c,line);
 }
