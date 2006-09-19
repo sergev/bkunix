@@ -9,6 +9,16 @@
 #include "as2.h"
 
 char *atmp1, *atmp2, *atmp3;
+
+char *outfile = "a.out";
+
+void
+usage()
+{
+	fprintf(stderr, "Usage: asm2 [-u] [-o outfile] tmpfile1 tmpfile2 tmpfile3\n");
+	exit(1);
+}
+
 /*
 	Main program.
 */
@@ -22,18 +32,35 @@ main(argc, argv)
 	struct fb_tab *fp;
 	int *pi,i;
 
-	if (argc < 4) {
-		fprintf(stderr, "Need 3 files\n");
-		exit(1);
+	while(argv[1] && argv[1][0] == '-') {
+		switch (argv[1][1]) {
+		case 'u':
+			/* Option -u: treat undefined name as external */
+			defund = TYPEEXT;
+			break;
+		case 'o':
+			outfile = argv[2];
+			if (! outfile)
+				usage();
+			++argv;
+			--argc;
+			break;
+		default:
+			usage();
+		}
+		++argv;
+		--argc;
 	}
-	if(argc > 4)
-		defund = TYPEEXT;
+	if (argc < 4)
+		usage();
+
 	txtfil = ofile(atmp1 = argv[1]);
 	fbfil  = ofile(atmp2 = argv[2]);
 	symf   = ofile(atmp3 = argv[3]);
 	fin = symf;
-	if((fout = creat("a.out", 0644)) <= 0)
-		filerr("a.out");
+	fout = creat(outfile, 0644);
+	if(fout <= 0)
+		filerr(outfile);
 
 	/*
 		Read in the symbol table, dropping the name part

@@ -138,5 +138,5 @@ unsigned fbcheck(u)
 */
 int checkeos()
 {
-	return(tok.i == '\n' || tok.i == ';' || tok.i == TOKEOF);
+	return(tok.i == '\n' || tok.i == ';' || tok.i == '#' || tok.i == TOKEOF);
 }

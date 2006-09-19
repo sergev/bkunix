@@ -14,7 +14,7 @@
 char	*cpp = "/usr/bin/cpp";
 char	*ccom = "/usr/local/lib/pdp11/ccom";
 char	*c2 = "/usr/local/lib/pdp11/c2";
-char	*as = "/usr/local/bin/pdp11-as";
+char	*as = "/usr/local/bin/pdp11-asm";
 char	*ld = "/usr/local/bin/pdp11-ld";
 char	*crt0 = "/usr/local/lib/pdp11/crt0.o";
 
@@ -95,7 +95,7 @@ int inlist(l, os)
 
 void cleanup()
 {
-	if (!Pflag) {
+	if (! Pflag) {
 		if (Sflag==0 && tmp_as)
 			unlink(tmp_as);
 		if (tmp_cpp)
@@ -228,10 +228,9 @@ int main(argc, argv)
 		signal(SIGTERM, killed);
 	if (signal(SIGHUP, SIG_IGN) != SIG_IGN)
 		signal(SIGHUP, killed);
-	if (Pflag==0)
-		sprintf(tmp0, "/tmp/ctm%05d", getpid());
+	sprintf(tmp0, "/tmp/ctm%05d", getpid());
 	tmp_as = strspl(tmp0, "3");
-	if (Pflag==0)
+	if (! Pflag)
 		tmp_cpp = strspl(tmp0, "4");
 	if (Oflag)
 		tmp_opt = strspl(tmp0, "5");
@@ -260,9 +259,11 @@ int main(argc, argv)
 		for (j = 0; j < np; j++)
 			av[na++] = plist[j];
 		/* Some versions of cpp require no space between -o and file name. */
-		if (getsuf(clist[i]) == 'S')
+		if (Eflag)
+			/* to stdout */;
+		else if (getsuf(clist[i]) == 'S' && ! Pflag)
 			av[na++] = concat("-o", tmp_as);
-		else if (! Eflag)
+		else
 			av[na++] = concat("-o", tmp_cpp);
 		av[na++] = clist[i];
 		av[na] = 0;
@@ -313,6 +314,7 @@ assemble:
 		/* Assembler. */
 		av[0] = "as";
 		na = 1;
+		av[na++] = "-u";
 		av[na++] = "-o";
 		if (cflag && nc==1 && outfile)
 			av[na++] = outfile;

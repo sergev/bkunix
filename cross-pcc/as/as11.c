@@ -9,20 +9,43 @@
 char atmp1[] = "/tmp/atm1XXXXXX";
 char atmp2[] = "/tmp/atm2XXXXXX";
 char atmp3[] = "/tmp/atm3XXXXXX";
+
+char *outfile;
+
+void
+usage()
+{
+	fprintf(stderr, "Usage: asm [-u] [-o outfile] [infile...]\n");
+	exit(1);
+}
+
 int
 main(argc,argv)
 	int argc;
 	char *argv[];
 {
-	int fsym;
+	int fsym, n;
+	char *av[8];
 
-	globflag = TRUE;
-	if(*argv[1] == '-') {
+	while(argv[1] && argv[1][0] == '-') {
+		switch (argv[1][1]) {
+		case 'u':
+			/* Option -u: treat undefined name as external */
+			globflag = TRUE;
+			break;
+		case 'o':
+			outfile = argv[2];
+			if (! outfile)
+				usage();
+			++argv;
+			--argc;
+			break;
+		default:
+			usage();
+		}
 		++argv;
 		--argc;
 	}
-	else
-		globflag = FALSE;
 	nargs = argc;
 	curarg = argv;
 	pof = f_create(atmp1);
@@ -43,7 +66,21 @@ main(argc,argv)
 	fsym = f_create(atmp3);
 	write_syms(fsym);
 	close(fsym);
-	execl(PASS2, PASS2, atmp1, atmp2, atmp3, NULL);
+
+	/* Run pass 2. */
+	n = 0;
+	av[n++] = PASS2;
+	if (globflag)
+		av[n++] = "-u";
+	if (outfile) {
+		av[n++] = "-o";
+		av[n++] = outfile;
+	}
+	av[n++] = atmp1;
+	av[n++] = atmp2;
+	av[n++] = atmp3;
+	av[n] = 0;
+	execv(PASS2, av);
 	fprintf(stderr, "Could not exec %s\n", PASS2);
 	exit(1);
 }
@@ -82,11 +119,9 @@ void filerr(name,msg)
 void
 aexit()
 {
-/*
-	unlink(ATMP1);
-	unlink(ATMP2);
-	unlink(ATMP3);
-*/
+	unlink(atmp1);
+	unlink(atmp2);
+	unlink(atmp3);
 	exit(1);
 }
 
