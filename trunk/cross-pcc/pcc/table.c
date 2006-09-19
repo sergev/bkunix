@@ -802,7 +802,7 @@ GOTO,	FOREFF,
 	SCON,	TANY,
 	SANY,	TANY,
 		0,	RNOP,
-		"	br	CL\n",
+		"	jbr	CL\n",
 
 GOTO,	FOREFF,
 	SNAME,	TLONG|TULONG,

@@ -75,33 +75,46 @@ void rname(c)
 
 /*
 	Routine to handle numbers and temporary labels
+	Numbers starting from 0 are treated as octal.
 */
 char number()
 {
-	int num, decimal;
+	int num, base;
 	unsigned char c;
 
-	num = decimal = 0;
-	while((c = rch()) >= '0' && c <= '9') {
-		c -= '0';
-		decimal = decimal*10 + c;
-		num = (num << 3) + c;
+	if ((c = rch()) != '0') {
+		base = 10;
+		ch = c;
+	} else if ((c = rch()) != 'x' && c != 'X') {
+		base = 8;
+		ch = c;
+	} else {
+		base = 16;
+	}
+	num = 0;
+	for (;;) {
+		c = rch();
+		if (c >= '0' && c <= '7')
+			c -= '0';
+		else if (base >= 10 && c >= '8' && c <= '9')
+			c -= '0';
+		else if (base == 16 && c >= 'a' && c <= 'f')
+			c -= 'a' - 10;
+		else if (base == 16 && c >= 'A' && c <= 'F')
+			c -= 'A' - 10;
+		else
+			break;
+		num = num * base + c;
 	}
 	if(c != 'b' && c != 'f') {
-		if(c == '.') {
-			num_rtn = decimal;
-			ch = 0;
-		}
-		else {
-			num_rtn = num;
-			ch = c;
-		}
+		num_rtn = num;
+		ch = c;
 		return(TRUE);
 	}
 	/*
 		Temporary label reference
 	*/
-	tok.i = fbcheck(decimal) + (c == 'b' ? FBBASE : FBFWD);
+	tok.i = fbcheck(num) + (c == 'b' ? FBBASE : FBFWD);
 	return(FALSE);
 }
 

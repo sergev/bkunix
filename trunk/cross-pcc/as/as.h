@@ -100,7 +100,8 @@
 #define TYPEOPEST	033
 #define TYPEOPESD	034
 #define TYPEOPJBR	035
-#define TYPEOPJCC	036
+#define TYPEOPWORD	036
+#define TYPEOPJCC	037
 
 /*
 	Certain Opcode values

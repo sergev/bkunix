@@ -20,8 +20,8 @@ struct value usymtab[USERSYMBOLS];		/* User symbol table	*/
 */
 struct fb_tab fbtab[1024];			/* forward branch table	  */
 struct fb_tab *fbbufp;				/* current loc in fbtab	  */
-struct fb_tab *curfb[10];			/* entries for back refs  */
-struct fb_tab *nxtfb[10];			/* entries for forward ref*/
+struct fb_tab *curfb[20];			/* entries for back refs  */
+struct fb_tab **nxtfb = curfb + 10;		/* entries for forward ref*/
 struct fb_tab *endtable;			/* end of branch table */
 
 /*

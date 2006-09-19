@@ -21,8 +21,8 @@ extern struct value usymtab[USERSYMBOLS];	/* User symbol table	*/
 */
 extern struct fb_tab fbtab[1024];		/* forward branch table	  */
 extern struct fb_tab *fbbufp;			/* current loc in fbtab	  */
-extern struct fb_tab *curfb[10];		/* entries for back refs  */
-extern struct fb_tab *nxtfb[10];		/* entries for forward ref*/
+extern struct fb_tab *curfb[20];		/* entries for back refs  */
+extern struct fb_tab **nxtfb;			/* entries for forward ref*/
 extern struct fb_tab *endtable;			/* end of branch table */
 
 /*

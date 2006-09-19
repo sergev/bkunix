@@ -17,7 +17,7 @@ branch( n ){
 	if( n == retlab && !strftn ){
 		putstr( "	jmp	cret\n" );
 		}
-	else printf( "	br	L%d\n", n );
+	else printf( "	jbr	L%d\n", n );
 	}
 
 int lastloc = { -1 };
@@ -357,7 +357,7 @@ genswitch(p,n) register struct sw *p;{
 		   for numbers below range as well as out of range.
 		   */
 		printf( "	cmp	r0,$%ld\n", range );
-		printf( "	bhi	L%d\n", dlab );
+		printf( "	jhi	L%d\n", dlab );
 
 		printf( "	asl	r0\n" );
 		printf( "	jmp	*L%d(r0)\n", swlab );

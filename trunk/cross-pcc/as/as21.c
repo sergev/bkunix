@@ -9,8 +9,8 @@
 #include "as2.h"
 
 char *atmp1, *atmp2, *atmp3;
-
 char *outfile = "a.out";
+int debug;
 
 void
 usage()
@@ -37,6 +37,10 @@ main(argc, argv)
 		case 'u':
 			/* Option -u: treat undefined name as external */
 			defund = TYPEEXT;
+			break;
+		case 'D':
+			/* Option -D: debug mode (leave tmp files) */
+			debug = 1;
 			break;
 		case 'o':
 			outfile = argv[2];
@@ -186,9 +190,11 @@ main(argc, argv)
 void aexit(code)
 	int code;
 {
-	unlink(atmp1);
-	unlink(atmp2);
-	unlink(atmp3);
+	if (! debug) {
+		unlink(atmp1);
+		unlink(atmp2);
+		unlink(atmp3);
+	}
 	exit(code);
 }
 
