@@ -13,7 +13,7 @@
 DESTDIR		= /usr/local/lib/pdp11
 M		= ../mip
 CFLAGS		= -O -g -I. -I$(M) -DONEPASS -DFIXSTRUCT="outstruct" \
-		  -DASSTRINGS -DFLEXNAMES
+		  -DFLEXNAMES
 LDFLAGS 	= -g
 YACC		= byacc
 

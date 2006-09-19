@@ -9,7 +9,7 @@
 #include <syscall.h>
 
 NSIG = 20
-	.lcomm	dvect, NSIG*2
+	.comm	__sigvect, NSIG*2
 
 	.globl	_signal, cerror
 _signal:
@@ -21,8 +21,8 @@ _signal:
 	mov	6(r5),r0
 	mov	r1,4f
 	asl	r1
-	mov	dvect(r1),-(sp)
-	mov	r0,dvect(r1)
+	mov	__sigvect(r1),-(sp)
+	mov	r0,__sigvect(r1)
 	mov	r0,5f
 	beq	1f
 	bit	$1,r0
@@ -50,26 +50,26 @@ _signal:
 	jmp	cerror
 
 tvect:
-	mov r0,-(sp); mov dvect+[0*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[1*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[2*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[3*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[4*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[5*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[6*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[7*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[8*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[9*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[10*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[11*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[12*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[13*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[14*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[15*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[16*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[17*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[18*2],r0; br 1f;
-	mov r0,-(sp); mov dvect+[19*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[0*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[1*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[2*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[3*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[4*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[5*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[6*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[7*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[8*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[9*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[10*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[11*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[12*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[13*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[14*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[15*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[16*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[17*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[18*2],r0; br 1f;
+	mov r0,-(sp); mov __sigvect+[19*2],r0; br 1f;
 1:
 	mov	r1,-(sp)
 	mov	r2,-(sp)

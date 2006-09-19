@@ -42,9 +42,9 @@ void opline()
 	if(tb == TYPEREGIS || tb == TYPEOPEST ||
 	   tb == TYPEOPESD || tb <  TYPEOPFD ||
 	   tb >  TYPEOPJCC) {
-	   v = express();
-	   outw(v.type.i,v.val.i);
-	   return;
+		v = express();
+		outw(v.type.i,v.val.i);
+		return;
 	}
 
 	/*
@@ -140,6 +140,13 @@ void opline()
 		do {
 			v = express();
 			outb(v.type.u,v.val.u);
+		} while(tok.u == ',' && (readop(),1));
+		return;
+
+	case TYPEOPWORD:
+		do {
+			v = express();
+			outw(v.type.u,v.val.u);
 		} while(tok.u == ',' && (readop(),1));
 		return;
 

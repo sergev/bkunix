@@ -689,16 +689,16 @@ popargs( size ) register size; {
 
 char *
 ccbranches[] = {
-	"	beq	L%d\n",
-	"	bne	L%d\n",
-	"	ble	L%d\n",
-	"	blt	L%d\n",
-	"	bge	L%d\n",
-	"	bgt	L%d\n",
-	"	blos	L%d\n",
-	"	blo	L%d\n",
-	"	bhis	L%d\n",
-	"	bhi	L%d\n",
+	"	jeq	L%d\n",
+	"	jne	L%d\n",
+	"	jle	L%d\n",
+	"	jlt	L%d\n",
+	"	jge	L%d\n",
+	"	jgt	L%d\n",
+	"	jlos	L%d\n",
+	"	jlo	L%d\n",
+	"	jhis	L%d\n",
+	"	jhi	L%d\n",
 	};
 
 /*	long branch table
@@ -740,7 +740,7 @@ cbgen( o, lab, mode ) { /*   printf conditional and unconditional branches */
 	register *plb;
 	int lab1f;
 
-	if( o == 0 ) printf( "	br	L%d\n", lab );
+	if( o == 0 ) printf( "	jbr	L%d\n", lab );
 	else	if( o > UGT ) cerror( "bad conditional branch: %s", opst[o] );
 	else {
 		switch( brcase ) {

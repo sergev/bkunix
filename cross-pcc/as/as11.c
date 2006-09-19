@@ -24,7 +24,7 @@ main(argc,argv)
 	int argc;
 	char *argv[];
 {
-	int fsym, n;
+	int fsym, n, debug = 0;
 	char *av[8];
 
 	while(argv[1] && argv[1][0] == '-') {
@@ -32,6 +32,10 @@ main(argc,argv)
 		case 'u':
 			/* Option -u: treat undefined name as external */
 			globflag = TRUE;
+			break;
+		case 'D':
+			/* Option -D: debug mode (do not run pass 2) */
+			debug = 1;
 			break;
 		case 'o':
 			outfile = argv[2];
@@ -68,6 +72,8 @@ main(argc,argv)
 	close(fsym);
 
 	/* Run pass 2. */
+	if (debug)
+		exit(0);
 	n = 0;
 	av[n++] = PASS2;
 	if (globflag)

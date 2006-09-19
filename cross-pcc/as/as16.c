@@ -74,6 +74,16 @@ void opline()
 		}
 		return;
 
+	case TYPEOPWORD:				/* .word	*/
+		while(1) {
+			express();
+			dot += 2;
+			if(tok.i != ',')
+				break;
+			readop();
+		}
+		return;
+
 	case TYPEOPASC:					/* <...>	*/
 		dot += numval;
 		readop();
