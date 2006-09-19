@@ -15,7 +15,7 @@ char	*cpp = "/usr/bin/cpp";
 char	*ccom = "/usr/local/lib/pdp11/c0";
 char	*ccom1 = "/usr/local/lib/pdp11/c1";
 char	*c2 = "/usr/local/lib/pdp11/c2o";
-char	*as = "/usr/local/bin/pdp11-as";
+char	*as = "/usr/local/bin/pdp11-asm";
 char	*ld = "/usr/local/bin/pdp11-ld";
 char	*crt0 = "/usr/local/lib/pdp11/crt0.o";
 
@@ -357,14 +357,15 @@ int main(argc, argv)
 			continue;
 assemble:
 		cunlink(tmp1); cunlink(tmp2); cunlink(tmp4);
-		av[0] = "as"; av[1] = "-V";
-		av[2] = "-u"; av[3] = "-o";
+		av[0] = "as";
+		av[1] = "-u";
+		av[2] = "-o";
 		if (cflag && nc==1 && outfile)
-			av[4] = outfile;
+			av[3] = outfile;
 		else
-			av[4] = setsuf(clist[i], 'o');
-		av[5] = assource;
-		av[6] = 0;
+			av[3] = setsuf(clist[i], 'o');
+		av[4] = assource;
+		av[5] = 0;
 		if (callsys(as, av) > 1) {
 			cflag++;
 			eflag++;

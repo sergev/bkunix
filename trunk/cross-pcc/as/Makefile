@@ -4,7 +4,7 @@ DESTDIR		= /usr/local
 all:		pdp11-asm pdp11-asm2 pdp11-reloc
 
 install:	pdp11-asm pdp11-asm2 pdp11-reloc opcode.tbl
-		install -s pdp11-asm ${DESTDIR}/lib/pdp11/asm
+		install -s pdp11-asm ${DESTDIR}/bin/pdp11-asm
 		install -s pdp11-asm2 ${DESTDIR}/lib/pdp11/asm2
 		install -s pdp11-reloc ${DESTDIR}/bin/pdp11-reloc
 		install opcode.tbl ${DESTDIR}/lib/pdp11/opcode.tbl

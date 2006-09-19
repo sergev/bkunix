@@ -8,7 +8,7 @@
 #
 DESTDIR		= /usr/local/lib/pdp11
 CC		= pdp11-pcc
-AS		= pdp11-as
+AS		= pdp11-asm
 STRIP		= pdp11-strip
 RANLIB		= pdp11-ranlib
 CPP		= cpp
