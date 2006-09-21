@@ -437,7 +437,7 @@ praddr (address, rel)
 	char *name;
 
 	if ((rel & A_RMASK) == A_REXT) {
-		sym = stab + A_RINDEX (rel) - 1;
+		sym = stab + A_RINDEX (rel);
 		name = "???";
 		if (sym >= stab && sym < stab + stabindex)
 			name = sym->n_name;
