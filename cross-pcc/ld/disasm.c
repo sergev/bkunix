@@ -283,10 +283,14 @@ struct exec hdr;
 FILE *textfd, *relfd;
 int rflag;
 unsigned int relcode, srccode, dstcode, srcrel, dstrel;
+unsigned int baseaddr;
 
 /* Symbol table, dynamically allocated. */
 struct nlist *stab;
 int stabindex, stablen;
+struct nlist symtext = { ".text", N_TEXT, 0 };
+struct nlist symdata = { ".data", N_DATA, 0 };
+struct nlist symbss = { ".bss", N_BSS, 0 };
 
 /*
  * Add a name to symbol table.
@@ -351,18 +355,10 @@ findsym (addr)
 	unsigned int addr;
 {
 	struct nlist *p, *last;
-	static struct nlist symtext = { ".text", N_TEXT, 0 };
-	static struct nlist symdata = { ".data", N_DATA, 0 };
-	static struct nlist symbss = { ".bss", N_BSS, 0 };
 
-	if (symdata.n_value == 0)
-		symdata.n_value = hdr.a_text;
-	if (symbss.n_value == 0)
-		symbss.n_value = hdr.a_text + hdr.a_data;
 	if (stabindex <= 0)
 		return addr < symdata.n_value ? &symtext :
 			addr < symbss.n_value ? &symdata : &symbss;
-
 	last = stab;
 	for (p=stab; p<stab+stabindex; ++p) {
 		if (p->n_type != N_TEXT && p->n_type != N_DATA)
@@ -823,6 +819,9 @@ disasm (fname)
 		}
 		addsym (sym.n_name, sym.n_type, sym.n_value);
 	}
+	symtext.n_value = baseaddr;
+	symdata.n_value = baseaddr + hdr.a_text;
+	symbss.n_value = baseaddr + hdr.a_text + hdr.a_data;
 
 	/* Prepare text and relocation files. */
 	fseek (textfd, N_TXTOFF (hdr), 0);
@@ -860,10 +859,10 @@ disasm (fname)
 	printf (" Section .bss: %d bytes\n", hdr.a_bss);
 	printf (" Symbol table: %d names (%d bytes)\n",
 		hdr.a_syms / sizeof(struct nlist), hdr.a_syms);
-	printf ("Entry address: %#o\n", hdr.a_entry);
+	printf ("Entry address: %#o\n", hdr.a_entry + baseaddr);
 
 	/* Print sections. */
-	addr = 0;
+	addr = baseaddr;
 	printf ("\nDisassembly of section .text:\n");
 	prsection (&addr, hdr.a_text);
 	printf ("\nDisassembly of section .data:\n");
@@ -891,8 +890,15 @@ main (argc, argv)
 		}
 		for (cp = *argv+1; *cp; cp++) {
 			switch (*cp) {
-			case 'r':       /* print relocation info */
+			case 'r':       /* -r: print relocation info */
 				rflag++;
+				break;
+			case 'b':       /* -bN: base address */
+				while (cp[1] >= '0' && cp[1] <= '7') {
+					baseaddr <<= 3;
+					baseaddr += cp[1] - '0';
+					++cp;
+				}
 				break;
 			default:
 				fprintf (stderr, "Usage: disasm [-r] file...\n");
