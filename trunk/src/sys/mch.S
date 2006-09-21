@@ -42,11 +42,11 @@ call:
 	add	$10,(sp)
 	mov	4(sp),-(sp)
 	bic	$0340,(sp)	/ trap type
-	cmp	10(sp),$TOPSYS
+	cmp	10(sp),$ TOPSYS
 	blo	1f		/ trap from system
 	inc	_user
 	mov	2(sp),r1	/ trap from user, get user stack
-	mov	$TOPSYS,sp
+	mov	$ TOPSYS,sp
 	mov	-(r1),-(sp)	/ copy user stack to system stack
 	mov	-(r1),-(sp)
 	mov	-(r1),-(sp)
@@ -74,7 +74,7 @@ call:
 2:
 	tst	(sp)+
 	mov	(sp)+,r1	/ new user stack pointer
-	cmp	6(sp),$TOPSYS
+	cmp	6(sp),$ TOPSYS
 	blo	1f		/ return from system trap
 	sub	$10,r1		/ begin. of system stack to be copied to user stack
 	mov	(sp)+,(r1)+	/ copy system stack to user stack
@@ -276,7 +276,7 @@ start:
 	mov	$_edata,r0
 1:
 	clr	(r0)+
-	cmp	r0,$TOPSYS
+	cmp	r0,$ TOPSYS
 	blo	1b
 
 / set up stack pointer
@@ -291,9 +291,9 @@ start:
 / on return, enter user mode at 040000
 
 	jsr	pc,_unixmain
-	mov	$TOPSYS+8192,sp	/ set stack at first 8kbytes of user space
+	mov	$ TOPSYS+8192,sp	/ set stack at first 8kbytes of user space
 	clr	-(sp)
-	mov	$TOPSYS,-(sp)
+	mov	$ TOPSYS,-(sp)
 	rti
 
 /-----------------------
