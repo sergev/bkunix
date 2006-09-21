@@ -8,6 +8,8 @@
 #endif
 #endif
 #include <sys/file.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef FORT
 #undef BUFSTDERR

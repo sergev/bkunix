@@ -6,6 +6,8 @@ static char *sccsid ="@(#)scan.c	2.1.1 (2.11BSD GTE) 1/17/95";
 # include <stab.h>
 # include <ctype.h>
 # include <signal.h>
+# include <stdlib.h>
+# include <string.h>
 
 	/* temporarily */
 

@@ -54,7 +54,7 @@ main(argc,argv)
 	curarg = argv;
 	pof = f_create(atmp1);
 	fbfil = f_create(atmp2);
-	fin = 0;
+	fin = argc > 1 ? 0 : stdin;
 	memset(hshtab, 0, sizeof hshtab);
 	setup();
 	ch = 0;
