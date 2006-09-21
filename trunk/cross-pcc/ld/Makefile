@@ -1,7 +1,8 @@
 CC		= gcc -g -Wall
 CFLAGS		=
 DESTDIR		= /usr/local
-PROG		= pdp11-size pdp11-strip pdp11-disasm #pdp11-reloc pdp11-ld pdp11-ar pdp11-nm
+PROG		= pdp11-size pdp11-strip pdp11-disasm pdp11-reloc \
+		  pdp11-nm #pdp11-ld pdp11-ar
 
 all:		$(PROG)
 
@@ -27,6 +28,9 @@ pdp11-reloc:	reloc.o
 		$(CC) $(LDFLAGS) -o $@ $<
 
 pdp11-disasm:	disasm.o
+		$(CC) $(LDFLAGS) -o $@ $<
+
+pdp11-nm:	nm.o
 		$(CC) $(LDFLAGS) -o $@ $<
 
 depend:

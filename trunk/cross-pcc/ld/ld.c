@@ -2,85 +2,34 @@
  *  link editor
  */
 #include "a.out.h"
+#include "ar.h"
 
-#define TOPSYS	040000
-#define	ARCMAGIC 0177545
-
-#define	NROUT	256
 #define	NSYM	501
 #define	NSYMPR	500
 
-#define	RONLY	0400
+FILE *text;
+FILE *reloc;
 
-char	premeof[] "Premature EOF on %s";
-
-struct	page {
-	int	nuser;
-	int	bno;
-	int	nibuf;
-	int	buff[256];
-} page[2];
-
-struct	{
-	int	nuser;
-	int	bno;
-} fpage;
-
-struct	stream {
-	int	*ptr;
-	int	bno;
-	int	nibuf;
-	int	size;
-	struct	page *pno;
-};
-
-struct	stream text;
-struct	stream reloc;
-
-struct	archdr {
-	char	aname[14];
-	int	atime[2];
-	char	auid, agid;
-	int	amode;
-	int	asize[2];
-} archdr;
-
-struct	filhdr {
-	int	fmagic;
-	int	tsize;
-	int	dsize;
-	int	bsize;
-	int	ssize;
-	int	entry;
-	int	pad;
-	int	relflg;
-} filhdr;
-
-struct	liblist {
+struct liblist {
 	int	off;
 	int	bno;
 };
 
-struct	liblist	liblist[NROUT];
+struct	liblist	liblist[256];
 struct	liblist	*libp { &liblist[0] };
 
-struct	symbol {
-	char	sname[8];
-	char	stype;
-	char	spad;
-	int	svalue;
-};
+struct	exec	filhdr;
 
-struct	symbol	cursym;
-struct	symbol	symtab[NSYM];
-struct	symbol	*hshtab[NSYM+2];
-struct	symbol	*symp { symtab };
-struct	symbol	**local[NSYMPR];
-struct	symbol	*p_etext;
-struct	symbol	*p_edata;
-struct	symbol	*p_end;
+struct	nlist	cursym;
+struct	nlist	symtab[NSYM];
+struct	nlist	*hshtab[NSYM+2];
+struct	nlist	*symp = { symtab };
+struct	nlist	**local[NSYMPR];
+struct	nlist	*p_etext;
+struct	nlist	*p_edata;
+struct	nlist	*p_end;
 
-int	aflag;		/* relocate to absolute 0, otherwise to TOPSYS */
+unsigned aflag;		/* address to relocate, default absolute 0 */
 int	xflag;		/* discard local symbols */
 int	Xflag;		/* discard locals starting with 'L' */
 int	rflag;		/* preserve relocation bits, don't define common */
@@ -108,107 +57,15 @@ int	cdrel;
 int	cbrel;
 
 int	errlev;
-int	delarg	4;
-char	tfname[]	"/tmp/lxyyyyy";
+int	delarg = 4;
+char	tfname[] = "/tmp/lxXXXXXX";
 int	toutb[259];
 int	doutb[259];
 int	troutb[259];
 int	droutb[259];
 int	soutb[259];
 
-struct	symbol	**lookup();
-struct	symbol	**slookup();
-
-main(argc, argv)
-char **argv;
-{
-	extern int delexit();
-	register c;
-	register char *ap, **p;
-	struct symbol **hp;
-
-	if ((signal(SIGINT, 1) & 01) == 0)
-		signal(SIGINT, delexit);
-	if (argc == 1)
-		exit(4);
-	p = argv + 1;
-	for (c = 1; c<argc; c++) {
-		filname = 0;
-		ap = *p++;
-		if (*ap == '-') switch (ap[1]) {
-
-		case 'u':
-			if (++c >= argc)
-				error(1, "Bad 'use'");
-			if (*(hp = slookup(*p++)) == 0) {
-				*hp = symp;
-				enter();
-			}
-			continue;
-
-		case 'l':
-			break;
-
-		case 'x':
-			xflag++;
-			continue;
-
-		case 'X':
-			Xflag++;
-			continue;
-
-		case 'r':
-			rflag++;
-			arflag++;
-			continue;
-
-		case 's':
-			sflag++;
-			xflag++;
-			continue;
-
-		case 'n':
-			nflag++;
-			continue;
-
-		case 'd':
-			dflag++;
-			continue;
-
-		case 'i':
-			iflag++;
-			continue;
-
-		case 'a':
-			aflag++;
-			continue;
-		}
-		load1arg(ap);
-		close(infil);
-	}
-	middle();
-	setupout();
-	p = argv+1;
-	libp = liblist;
-	for (c=1; c<argc; c++) {
-		ap = *p++;
-		if (*ap == '-') switch (ap[1]) {
-
-		case 'u':
-			++c;
-			++p;
-		default:
-			continue;
-
-		case 'l':
-			break;
-		}
-		load2arg(ap);
-		close(infil);
-	}
-	finishout();
-}
-
+#if 0
 load1arg(acp)
 char *acp;
 {
@@ -235,39 +92,38 @@ char *acp;
 			libp->off = noff;
 			libp++;
 		}
-		noff =+ ((archdr.asize[1]&0777)+sizeof(archdr)+1) >> 1;
-		nbno =+ (archdr.asize[1] >> 9) & 0177;
-		nbno =+ (archdr.asize[0]) << 7;
-		nbno =+ noff >> 8;
-		noff =& 0377;
+		noff += ((archdr.ar_size & 0777) + sizeof(archdr) + 1) >> 1;
+		nbno += (archdr.ar_size >> 9) & 0177;
+		nbno += noff >> 8;
+		noff &= 0377;
 	}
 }
 
 load1(libflg, bno, off)
 {
-	register struct symbol *sp, **hp, ***cp;
-	struct symbol *ssymp;
+	register struct nlist *sp, **hp, ***cp;
+	struct nlist *ssymp;
 	int ndef, nloc;
 
 	readhdr(bno, off);
 	ctrel = tsize;
-	cdrel =+ dsize;
-	cbrel =+ bsize;
+	cdrel += dsize;
+	cbrel += bsize;
 	ndef = 0;
 	nloc = sizeof cursym;
 	cp = local;
 	ssymp = symp;
-	if (filhdr.relflg & A_NRELFLG) {
+	if (filhdr.a_flag & A_NRELFLG) {
 		error(0, "No relocation bits");
 		return(0);
 	}
-	off =+ (sizeof filhdr)/2 + filhdr.tsize + filhdr.dsize;
-	dseek(&text, bno, off, filhdr.ssize);
+	off += (sizeof filhdr)/2 + filhdr.a_text + filhdr.a_data;
+	dseek(&text, bno, off, filhdr.a_syms);
 	while (text.size > 0) {
 		mget(&cursym, sizeof cursym);
-		if ((cursym.stype&N_EXT)==0) {
-			if (Xflag==0 || cursym.sname[0]!='L')
-				nloc =+ sizeof cursym;
+		if ((cursym.n_type&N_EXT)==0) {
+			if (Xflag==0 || cursym.n_name[0]!='L')
+				nloc += sizeof cursym;
 			continue;
 		}
 		symreloc();
@@ -277,24 +133,24 @@ load1(libflg, bno, off)
 			*cp++ = hp;
 			continue;
 		}
-		if (sp->stype != N_EXT+N_UNDF)
+		if (sp->n_type != N_EXT+N_UNDF)
 			continue;
-		if (cursym.stype == N_EXT+N_UNDF) {
-			if (cursym.svalue > sp->svalue)
-				sp->svalue = cursym.svalue;
+		if (cursym.n_type == N_EXT+N_UNDF) {
+			if (cursym.n_value > sp->n_value)
+				sp->n_value = cursym.n_value;
 			continue;
 		}
-		if (sp->svalue != 0 && cursym.stype == N_EXT+N_TEXT)
+		if (sp->n_value != 0 && cursym.n_type == N_EXT+N_TEXT)
 			continue;
 		ndef++;
-		sp->stype = cursym.stype;
-		sp->svalue = cursym.svalue;
+		sp->n_type = cursym.n_type;
+		sp->n_value = cursym.n_value;
 	}
 	if (libflg==0 || ndef) {
-		tsize =+ filhdr.tsize;
-		dsize =+ filhdr.dsize;
-		bsize =+ filhdr.bsize;
-		ssize =+ nloc;
+		tsize += filhdr.a_text;
+		dsize += filhdr.a_data;
+		bsize += filhdr.a_bss;
+		ssize += nloc;
 		return(1);
 	}
 /*
@@ -309,7 +165,7 @@ load1(libflg, bno, off)
 
 middle()
 {
-	register struct symbol *sp;
+	register struct nlist *sp;
 	register t, csize;
 	int nund, corigin;
 
@@ -320,7 +176,7 @@ middle()
  * If there are any undefined symbols, save the relocation bits.
  */
 	if (rflag==0) for (sp=symtab; sp<symp; sp++)
-		if (sp->stype==N_EXT+N_UNDF && sp->svalue==0
+		if (sp->n_type==N_EXT+N_UNDF && sp->n_value==0
 		 && sp!=p_end && sp!=p_edata && sp!=p_etext) {
 			rflag++;
 			dflag = 0;
@@ -335,23 +191,23 @@ middle()
 	csize = 0;
 	if (dflag || rflag==0) {
 		for (sp=symtab; sp<symp; sp++)
-			if (sp->stype==N_EXT+N_UNDF && (t=sp->svalue)!=0) {
+			if (sp->n_type==N_EXT+N_UNDF && (t=sp->n_value)!=0) {
 				t = (t+1) & ~01;
-				sp->svalue = csize;
-				sp->stype = N_EXT+N_COMM;
-				csize =+ t;
+				sp->n_value = csize;
+				sp->n_type = N_EXT+N_COMM;
+				csize += t;
 			}
-		if (p_etext && p_etext->stype==N_EXT+N_UNDF) {
-			p_etext->stype = N_EXT+N_TEXT;
-			p_etext->svalue = tsize;
+		if (p_etext && p_etext->n_type==N_EXT+N_UNDF) {
+			p_etext->n_type = N_EXT+N_TEXT;
+			p_etext->n_value = tsize;
 		}
-		if (p_edata && p_edata->stype==N_EXT+N_UNDF) {
-			p_edata->stype = N_EXT+N_DATA;
-			p_edata->svalue = dsize;
+		if (p_edata && p_edata->n_type==N_EXT+N_UNDF) {
+			p_edata->n_type = N_EXT+N_DATA;
+			p_edata->n_value = dsize;
 		}
-		if (p_end && p_end->stype==N_EXT+N_UNDF) {
-			p_end->stype = N_EXT+N_BSS;
-			p_end->svalue = bsize;
+		if (p_end && p_end->n_type==N_EXT+N_UNDF) {
+			p_end->n_type = N_EXT+N_BSS;
+			p_end->n_value = bsize;
 		}
 	}
 /*
@@ -366,21 +222,20 @@ middle()
 		dorigin = 0;
 	corigin = dorigin + dsize;
 	borigin = corigin + csize;
-	if(!aflag) {
-		torigin =+ TOPSYS;
-		dorigin =+ TOPSYS;
-		corigin =+ TOPSYS;
-		borigin =+ TOPSYS;
-	}
+	torigin += aflag;
+	dorigin += aflag;
+	corigin += aflag;
+	borigin += aflag;
+
 	nund = 0;
-	for (sp=symtab; sp<symp; sp++) switch (sp->stype) {
+	for (sp=symtab; sp<symp; sp++) switch (sp->n_type) {
 	case N_EXT+N_UNDF:
-		errlev =| 01;
-		if (arflag==0 && sp->svalue==0) {
+		errlev |= 01;
+		if (arflag==0 && sp->n_value==0) {
 			if (nund==0)
 				printf("Undefined:\n");
 			nund++;
-			printf("%.8s\n", sp->sname);
+			printf("%.8s\n", sp->n_name);
 		}
 		continue;
 
@@ -389,25 +244,25 @@ middle()
 		continue;
 
 	case N_EXT+N_TEXT:
-		sp->svalue =+ torigin;
+		sp->n_value += torigin;
 		continue;
 
 	case N_EXT+N_DATA:
-		sp->svalue =+ dorigin;
+		sp->n_value += dorigin;
 		continue;
 
 	case N_EXT+N_BSS:
-		sp->svalue =+ borigin;
+		sp->n_value += borigin;
 		continue;
 
 	case N_EXT+N_COMM:
-		sp->stype = N_EXT+N_BSS;
-		sp->svalue =+ corigin;
+		sp->n_type = N_EXT+N_BSS;
+		sp->n_value += corigin;
 		continue;
 	}
 	if (sflag || xflag)
 		ssize = 0;
-	bsize =+ csize;
+	bsize += csize;
 	nsym = ssize / (sizeof cursym);
 }
 
@@ -430,18 +285,19 @@ setupout()
 		tcreat(troutb, 'c');
 		tcreat(droutb, 'd');
 	}
-	filhdr.fmagic = A_FMAGIC;
 	if (nflag)
-		filhdr.fmagic = A_NMAGIC;
-	if (iflag)
-		filhdr.fmagic = A_IMAGIC;
-	filhdr.tsize = tsize;
-	filhdr.dsize = dsize;
-	filhdr.bsize = bsize;
-	filhdr.ssize = sflag? 0: (ssize + (sizeof cursym)*(symp-symtab));
-	filhdr.entry = 0;
-	filhdr.pad = 0;
-	filhdr.relflg = (rflag==0);
+		filhdr.a_magic = A_NMAGIC;
+	else if (iflag)
+		filhdr.a_magic = A_IMAGIC;
+	else
+		filhdr.a_magic = A_FMAGIC;
+	filhdr.a_text = tsize;
+	filhdr.a_data = dsize;
+	filhdr.a_bss = bsize;
+	filhdr.a_syms = sflag ? 0 : (ssize + (sizeof cursym)*(symp-symtab));
+	filhdr.a_entry = 0;
+	filhdr.a_unused = 0;
+	filhdr.a_flag = rflag ? 0 : A_NRELFLG;
 	mput(toutb, &filhdr, sizeof filhdr);
 	return;
 }
@@ -450,7 +306,8 @@ tcreat(buf, letter)
 int *buf;
 {
 	tfname[6] = letter;
-	if ((buf[0] = creat(tfname, RONLY)) < 0)
+	*buf = creat(tfname, 0400);
+	if (*buf < 0)
 		error(1, "Can't create temp");
 }
 
@@ -472,7 +329,7 @@ char *acp;
 	for (lp = libp; lp->bno != -1; lp++) {
 		dseek(&text, lp->bno, lp->off, sizeof archdr);
 		mget(&archdr, sizeof archdr);
-		mkfsym(archdr.aname);
+		mkfsym(archdr.ar_name);
 		load2(lp->bno, lp->off + (sizeof archdr) / 2);
 	}
 	libp = ++lp;
@@ -480,60 +337,62 @@ char *acp;
 
 load2(bno, off)
 {
-	register struct symbol *sp;
+	register struct nlist *sp;
 	register int *lp, symno;
 
 	readhdr(bno, off);
 	ctrel = torigin;
-	cdrel =+ dorigin;
-	cbrel =+ borigin;
+	cdrel += dorigin;
+	cbrel += borigin;
 /*
  * Reread the symbol table, recording the numbering
  * of symbols for fixing external references.
  */
 	lp = local;
 	symno = -1;
-	off =+ (sizeof filhdr)/2;
-	dseek(&text, bno, off+filhdr.tsize+filhdr.dsize, filhdr.ssize);
+	off += (sizeof filhdr)/2;
+	dseek(&text, bno, off + filhdr.a_text + filhdr.a_data, filhdr.a_syms);
 	while (text.size > 0) {
 		symno++;
 		mget(&cursym, sizeof cursym);
 		symreloc();
-		if ((cursym.stype&N_EXT) == 0) {
-			if (!sflag&&!xflag&&(!Xflag||cursym.sname[0]!='L'))
+		if ((cursym.n_type&N_EXT) == 0) {
+			if (!sflag&&!xflag&&(!Xflag||cursym.n_name[0]!='L'))
 				mput(soutb, &cursym, sizeof cursym);
 			continue;
 		}
 		if ((sp = *lookup()) == 0)
 			error(1, "internal error: symbol not found");
-		if (cursym.stype == N_EXT+N_UNDF) {
+		if (cursym.n_type == N_EXT+N_UNDF) {
 			if (lp >= &local[NSYMPR])
 				error(1, "Local symbol overflow");
 			*lp++ = symno;
 			*lp++ = sp;
 			continue;
 		}
-		if (cursym.stype!=sp->stype || cursym.svalue!=sp->svalue) {
-			printf("%.8s: ", cursym.sname);
+		if (cursym.n_type!=sp->n_type || cursym.n_value!=sp->n_value) {
+			printf("%.8s: ", cursym.n_name);
 			error(0, "Multiply defined");
 		}
 	}
-	dseek(&text, bno, off, filhdr.tsize);
-	dseek(&reloc, bno, off+(filhdr.tsize+filhdr.dsize)/2, filhdr.tsize);
+	dseek(&text, bno, off, filhdr.a_text);
+	dseek(&reloc, bno, off + (filhdr.a_text + filhdr.a_data)/2,
+		filhdr.a_text);
 	load2td(lp, ctrel, toutb, troutb);
-	dseek(&text, bno, off+(filhdr.tsize/2), filhdr.dsize);
-	dseek(&reloc, bno, off+filhdr.tsize+(filhdr.dsize/2), filhdr.dsize);
+	dseek(&text, bno, off + (filhdr.a_text/2), filhdr.a_data);
+	dseek(&reloc, bno, off + filhdr.a_text + (filhdr.a_data/2),
+		filhdr.a_data);
 	load2td(lp, cdrel, doutb, droutb);
-	torigin =+ filhdr.tsize;
-	dorigin =+ filhdr.dsize;
-	borigin =+ filhdr.bsize;
+	torigin += filhdr.a_text;
+	dorigin += filhdr.a_data;
+	borigin += filhdr.a_bss;
 }
 
 load2td(lp, creloc, b1, b2)
 int *lp;
 {
 	register r, t;
-	register struct symbol *sp;
+	register struct nlist *sp;
 
 	for (;;) {
 	/*
@@ -564,29 +423,29 @@ int *lp;
 		switch (r & A_RMASK) {
 
 		case A_RTEXT:
-			t =+ ctrel;
+			t += ctrel;
 			break;
 
 		case A_RDATA:
-			t =+ cdrel;
+			t += cdrel;
 			break;
 
 		case A_RBSS:
-			t =+ cbrel;
+			t += cbrel;
 			break;
 
 		case A_REXT:
 			sp = lookloc(lp, r);
-			if (sp->stype==N_EXT+N_UNDF) {
+			if (sp->n_type==N_EXT+N_UNDF) {
 				r = (r&01) + ((nsym+(sp-symtab))<<4) + A_REXT;
 				break;
 			}
-			t =+ sp->svalue;
-			r = (r & A_RPCREL) + ((sp->stype - (N_EXT+N_ABS))<<1);
+			t += sp->n_value;
+			r = (r & A_RPCREL) + ((sp->n_type - (N_EXT+N_ABS))<<1);
 			break;
 		}
 		if (r & A_RPCREL)
-			t =- creloc;
+			t -= creloc;
 		putw(t, b1);
 		if (rflag)
 			putw(r, b2);
@@ -600,7 +459,7 @@ finishout()
 	if (nflag||iflag) {
 		n = torigin;
 		while (n&077) {
-			n =+ 2;
+			n += 2;
 			putw(0, toutb);
 			if (rflag)
 				putw(0, troutb);
@@ -623,20 +482,6 @@ finishout()
 	link("l.out", "a.out");
 	delarg = errlev;
 	delexit();
-}
-
-delexit()
-{
-	register c;
-
-	unlink("l.out");
-	for (c = 'a'; c <= 'd'; c++) {
-		tfname[6] = c;
-		unlink(tfname);
-	}
-	if (delarg==0)
-		chmod("a.out", 0777);
-	exit(delarg);
 }
 
 copy(buf, c)
@@ -664,9 +509,9 @@ char *s;
 
 	if (sflag || xflag)
 		return;
-	cp8c(s, cursym.sname);
-	cursym.stype = 037;
-	cursym.svalue = torigin;
+	cp8c(s, cursym.n_name);
+	cursym.n_type = 037;
+	cursym.n_value = torigin;
 	mput(soutb, &cursym, sizeof cursym);
 }
 
@@ -679,8 +524,8 @@ int *aloc;
 	n = an;
 	n =>> 1;
 	loc = aloc;
-	if ((text.nibuf =- n) >= 0) {
-		if ((text.size =- n) > 0) {
+	if ((text.nibuf -= n) >= 0) {
+		if ((text.size -= n) > 0) {
 			p = text.ptr;
 			do
 				*loc++ = *p++;
@@ -688,9 +533,9 @@ int *aloc;
 			text.ptr = p;
 			return;
 		} else
-			text.size =+ n;
+			text.size += n;
 	}
-	text.nibuf =+ n;
+	text.nibuf += n;
 	do {
 		*loc++ = get(&text);
 	} while (--n);
@@ -718,7 +563,7 @@ dseek(asp, ab, o, s)
 
 	sp = asp;
 	b = ab + ((o>>8) & 0377);
-	o =& 0377;
+	o &= 0377;
 	--sp->pno->nuser;
 	if ((p = &page[0])->bno!=b && (p = &page[1])->bno!=b)
 		if (p->nuser==0 || (p = &page[0])->nuser==0) {
@@ -754,7 +599,7 @@ struct stream *asp;
 	}
 	if (--sp->size <= 0) {
 		if (sp->size < 0)
-			error(1, premeof);
+			error(1, "Premature EOF on %s");
 		++fpage.nuser;
 		--sp->pno->nuser;
 		sp->pno = &fpage;
@@ -769,7 +614,7 @@ char *acp;
 	register c;
 
 	cp = acp;
-	archdr.aname[0] = '\0';
+	archdr.ar_name[0] = '\0';
 	filname = cp;
 	if (cp[0]=='-' && cp[1]=='l') {
 		if(cp[2] == '\0')
@@ -789,22 +634,22 @@ char *acp;
 	fpage.nuser = 2;
 	dseek(&text, 0, 0, 2);
 	if (text.size <= 0)
-		error(1, premeof);
+		error(1, "Premature EOF on file %s");
 	return(get(&text) == ARCMAGIC);
 }
 
-struct symbol **lookup()
+struct nlist **lookup()
 {
 	int i;
-	register struct symbol **hp;
+	register struct nlist **hp;
 	register char *cp, *cp1;
 
 	i = 0;
-	for (cp=cursym.sname; cp < &cursym.sname[8];)
+	for (cp=cursym.n_name; cp < &cursym.n_name[8];)
 		i = (i<<1) + *cp++;
 	for (hp = &hshtab[(i&077777)%NSYM+2]; *hp!=0;) {
-		cp1 = (*hp)->sname;
-		for (cp=cursym.sname; cp < &cursym.sname[8];)
+		cp1 = (*hp)->n_name;
+		for (cp=cursym.n_name; cp < &cursym.n_name[8];)
 			if (*cp++ != *cp1++)
 				goto no;
 		break;
@@ -815,52 +660,52 @@ struct symbol **lookup()
 	return(hp);
 }
 
-struct symbol **slookup(s)
+struct nlist **slookup(s)
 char *s;
 {
-	cp8c(s, cursym.sname);
-	cursym.stype = N_EXT+N_UNDF;
-	cursym.svalue = 0;
+	cp8c(s, cursym.n_name);
+	cursym.n_type = N_EXT+N_UNDF;
+	cursym.n_value = 0;
 	return(lookup());
 }
 
 enter()
 {
-	register struct symbol *sp;
+	register struct nlist *sp;
 
 	if ((sp=symp) >= &symtab[NSYM])
 		error(1, "Symbol table overflow");
-	cp8c(cursym.sname, sp->sname);
-	sp->stype = cursym.stype;
-	sp->svalue = cursym.svalue;
+	cp8c(cursym.n_name, sp->n_name);
+	sp->n_type = cursym.n_type;
+	sp->n_value = cursym.n_value;
 	symp++;
 	return(sp);
 }
 
 symreloc()
 {
-	switch (cursym.stype) {
+	switch (cursym.n_type) {
 
 	case N_TEXT:
 	case N_EXT+N_TEXT:
-		cursym.svalue =+ ctrel;
+		cursym.n_value += ctrel;
 		return;
 
 	case N_DATA:
 	case N_EXT+N_DATA:
-		cursym.svalue =+ cdrel;
+		cursym.n_value += cdrel;
 		return;
 
 	case N_BSS:
 	case N_EXT+N_BSS:
-		cursym.svalue =+ cbrel;
+		cursym.n_value += cbrel;
 		return;
 
 	case N_EXT+N_UNDF:
 		return;
 	}
-	if (cursym.stype&N_EXT)
-		cursym.stype = N_EXT+N_ABS;
+	if (cursym.n_type&N_EXT)
+		cursym.n_type = N_EXT+N_ABS;
 }
 
 error(n, s)
@@ -868,8 +713,8 @@ char *s;
 {
 	if (filname) {
 		printf("%s", filname);
-		if (archdr.aname[0])
-			printf("(%.14s)", archdr.aname);
+		if (archdr.ar_name[0])
+			printf("(%.14s)", archdr.ar_name);
 		printf(": ");
 	}
 	printf("%s\n", s);
@@ -885,7 +730,7 @@ lookloc(alp, r)
 
 	lp = alp;
 	sn = (r>>4) & 07777;
-	for (clp=local; clp<lp; clp =+ 2)
+	for (clp=local; clp<lp; clp += 2)
 		if (clp[0] == sn)
 			return(clp[1]);
 	error(1, "Local symbol botch");
@@ -897,14 +742,14 @@ readhdr(bno, off)
 
 	dseek(&text, bno, off, sizeof filhdr);
 	mget(&filhdr, sizeof filhdr);
-	if (filhdr.fmagic != A_FMAGIC)
+	if (filhdr.a_magic != A_FMAGIC)
 		error(1, "Bad format");
-	st = (filhdr.tsize+01) & ~01;
-	filhdr.tsize = st;
+	st = (filhdr.a_text + 01) & ~01;
+	filhdr.a_text = st;
 	cdrel = -st;
-	sd = (filhdr.dsize+01) & ~01;
+	sd = (filhdr.a_data + 01) & ~01;
 	cbrel = - (st+sd);
-	filhdr.bsize = (filhdr.bsize+01) & ~01;
+	filhdr.a_bss = (filhdr.a_bss + 01) & ~01;
 }
 
 cp8c(from, to)
@@ -918,4 +763,100 @@ char *from, *to;
 	while ((*t++ = *f++) && t<te);
 	while (t<te)
 		*t++ = 0;
+}
+#endif /*--------------------------------------------------------------------*/
+
+delexit()
+{
+	register c;
+
+	unlink("l.out");
+	for (c = 'a'; c <= 'd'; c++) {
+		tfname[6] = c;
+		unlink(tfname);
+	}
+	if (! delarg)
+		chmod("a.out", 0777);
+	exit(delarg);
+}
+
+int
+main(argc, argv)
+	char **argv;
+{
+	register c;
+	register char *ap, **p;
+	struct nlist **hp;
+
+	if ((signal(SIGINT, 1) & 01) == 0)
+		signal(SIGINT, delexit);
+	if (argc == 1)
+		exit(4);
+	p = argv + 1;
+	for (c = 1; c<argc; c++) {
+		filname = 0;
+		ap = *p++;
+		if (*ap == '-') switch (ap[1]) {
+		case 'u':
+			if (++c >= argc)
+				error(1, "Bad -u");
+			hp = slookup(*p++);
+			if (*hp == 0) {
+				*hp = symp;
+				enter();
+			}
+			continue;
+		case 'l':
+			break;
+		case 'x':
+			xflag++;
+			continue;
+		case 'X':
+			Xflag++;
+			continue;
+		case 'r':
+			rflag++;
+			arflag++;
+			continue;
+		case 's':
+			sflag++;
+			xflag++;
+			continue;
+		case 'n':
+			nflag++;
+			continue;
+		case 'd':
+			dflag++;
+			continue;
+		case 'i':
+			iflag++;
+			continue;
+		case 'a':
+			if (++c >= argc)
+				error(1, "Bad -a");
+			aflag = strtol (*p++, 0, 0);
+			continue;
+		}
+		load1arg(ap);
+		close(infil);
+	}
+	middle();
+	setupout();
+	p = argv+1;
+	libp = liblist;
+	for (c=1; c<argc; c++) {
+		ap = *p++;
+		if (*ap == '-') switch (ap[1]) {
+		case 'u':
+			++c;
+			++p;
+		case 'l':
+			break;
+		default:
+			continue;
+		}
+		load2arg(ap);
+		close(infil);
+	}
+	finishout();
 }

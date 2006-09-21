@@ -23,7 +23,8 @@ struct exec {
 
 #define	N_TXTOFF(x)	(sizeof(struct exec))
 #define	N_RELOFF(x)	(N_TXTOFF(x) + (x).a_text + (x).a_data)
-#define	N_SYMOFF(x)	(N_RELOFF(x) + (x).a_text + (x).a_data)
+#define	N_SYMOFF(x)	(N_RELOFF(x) + (((x).a_flag & A_NRELFLG) ? 0 : \
+			((x).a_text + (x).a_data)))
 
 /*
  * relocation types
