@@ -18,8 +18,8 @@
 /*
 	Files
 */
-#define OPTABL		"/usr/local/lib/pdp11/opcode.tbl"
-#define PASS2		"/usr/local/lib/pdp11/asm2"
+#define OPTABL		DESTDIR "/lib/pdp11/opcode.tbl"
+#define PASS2		DESTDIR "/lib/pdp11/asm2"
 
 /*
 	Special Flags

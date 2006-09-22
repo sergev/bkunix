@@ -12,11 +12,11 @@
 #include <sys/wait.h>
 
 char	*cpp = "/usr/bin/cpp";
-char	*ccom = "/usr/local/lib/pdp11/ccom";
-char	*c2 = "/usr/local/lib/pdp11/c2";
-char	*as = "/usr/local/bin/pdp11-asm";
-char	*ld = "/usr/local/bin/pdp11-ld";
-char	*crt0 = "/usr/local/lib/pdp11/crt0.o";
+char   *ccom = DESTDIR "/lib/pdp11/ccom";
+char   *c2 = DESTDIR "/lib/pdp11/c2";
+char   *as = DESTDIR "/bin/pdp11-asm";
+char	*ld = DESTDIR "/bin/pdp11-ld";
+char	*crt0 = DESTDIR "/lib/pdp11/crt0.o";
 
 char	tmp0[30];		/* big enough for /tmp/ctm%05.5d */
 char	*tmp_as, *tmp_cpp, *tmp_opt;
@@ -182,9 +182,9 @@ int main(argc, argv)
 				continue;
 			case 'p':
 				proflag++;
-				crt0 = "/usr/local/lib/pdp11/mcrt0.o";
+				crt0 = DESTDIR "/lib/pdp11/mcrt0.o";
 				if (argv[i][2] == 'g')
-					crt0 = "/usr/local/lib/pdp11/gcrt0.o";
+					crt0 = DESTDIR "/lib/pdp11/gcrt0.o";
 				continue;
 			case 'v':
 				vflag++;
@@ -343,7 +343,7 @@ nocom:
 		}
 		while (i < nl)
 			av[na++] = llist[i++];
-		av[na++] = "-L/usr/local/lib/pdp11";
+		av[na++] = "-L" DESTDIR "/lib/pdp11";
 		if (proflag)
 			av[na++] = "-lpcc_p";
 		else

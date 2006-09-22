@@ -10,7 +10,8 @@
 #	SPRECC		do single precision in single not double
 #	FORT		get f77-style pass 2
 #
-DESTDIR		= /usr/local/lib/pdp11
+DESTDIR		= /usr/local
+LDESTDIR	= $(DESTDIR)/lib/pdp11
 M		= ../mip
 CFLAGS		= -O -g -I. -I$(M) -DONEPASS -DFIXSTRUCT="outstruct" \
 		  -DFLEXNAMES
@@ -26,8 +27,8 @@ P2ONEP		= $(P2INCS) $M/onepass.h
 all:		ccom
 
 install:	all
-		[ -d ${DESTDIR} ] || install -d ${DESTDIR}
-		install -s ccom ${DESTDIR}/ccom
+		[ -d ${LDESTDIR} ] || install -d ${LDESTDIR}
+		install -s ccom ${LDESTDIR}/ccom
 
 clean:
 		rm -f *~ $M/*~ *.o ccom cgram.c pcctokens pcclocal.h gram.in y.output

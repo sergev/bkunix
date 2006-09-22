@@ -1,11 +1,13 @@
 #
 # Compile PCC run time library.
 #
-DESTDIR		= /usr/local/lib/pdp11
-CC		= pdp11-pcc
-AS		= pdp11-as
-STRIP		= pdp11-strip
-RANLIB		= pdp11-ranlib
+DESTDIR		= /usr/local
+LDESTDIR	= $(DESTDIR)/lib/pdp11
+CC		= $(DESTDIR)/bin/pdp11-pcc
+AS		= $(DESTDIR)/bin/pdp11-asm
+STRIP		= $(DESTDIR)/bin/pdp11-strip
+AR		= $(DESTDIR)/bin/pdp11-ar
+RANLIB		= $(DESTDIR)/bin/pdp11-ranlib
 CPP		= cpp
 CFLAGS		= -O
 CPPFLAGS	=
@@ -18,20 +20,20 @@ OBJS		= aldiv.o csv.o almul.o alrem.o ldiv.o lmul.o lrem.o udiv.o \
 all:		libpcc.a
 
 install:	all
-		[ -d ${DESTDIR} ] || install -d ${DESTDIR}
-		install libpcc.a ${DESTDIR}/libpcc.a
-		${RANLIB} ${DESTDIR}/libpcc.a
+		[ -d ${LDESTDIR} ] || install -d ${LDESTDIR}
+		install libpcc.a ${LDESTDIR}/libpcc.a
+		${RANLIB} ${LDESTDIR}/libpcc.a
 
 clean:
 		rm -f *~ *.o a.out core libpcc.a
 
 
 libpcc.a:	${OBJS}
-		ar cru libpcc.a ${OBJS}
+		${AR} cru libpcc.a ${OBJS}
 
 .S.o:
 		${CPP} -E ${CPPFLAGS} $< | $(AS) -o $@
-		@${STRIP} -x $*.o
+		# @${STRIP} -x $*.o
 
 depend:
 		@cp Makefile Makefile~~

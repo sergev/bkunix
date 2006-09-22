@@ -1,5 +1,5 @@
-CFLAGS		= -g -Wall
 DESTDIR		= /usr/local
+CFLAGS		= -g -Wall -DDESTDIR=\"$(DESTDIR)\"
 
 all:		pdp11-asm pdp11-asm2
 
