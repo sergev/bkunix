@@ -8,8 +8,8 @@ usize	= 01000
 #else
 usize	= 0300
 #endif
-	.globl	_u
 _u	= TOPSYS - usize
+	.globl	_u
 
 	.comm	_user, 2
 
@@ -41,7 +41,7 @@ call:
 	mov	r1,-(sp)
 	add	$10,(sp)
 	mov	4(sp),-(sp)
-	bic	$0340,(sp)	/ trap type
+	bic	$0177740,(sp)	/ trap type
 	cmp	10(sp),$ TOPSYS
 	blo	1f		/ trap from system
 	inc	_user

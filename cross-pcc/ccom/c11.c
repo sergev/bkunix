@@ -40,7 +40,7 @@ loop:
 	switch(p->t.op) {
 
 	case LCON:
-		printf("$%o", flag<=10? UNS(p->l.lvalue>>16):
+		printf("$%#o", flag<=10? UNS(p->l.lvalue>>16):
 		   UNS(p->l.lvalue));
 		return;
 
@@ -353,7 +353,7 @@ arlength(t)
  * wfj 5/80
  */
 char	dirsw[] = {"\
-cmp	r0,$%o\n\
+cmp	r0,$%d\n\
 jhi	L%d\n\
 asl	r0\n\
 jmp	*L%d(r0)\n\
@@ -364,7 +364,7 @@ L%d:\
 char	hashsw[] = {"\
 mov	r0,r1\n\
 clr	r0\n\
-div	$%o,r0\n\
+div	$%d,r0\n\
 asl	r1\n\
 jmp	*L%d(r1)\n\
 \t.data\n\
@@ -400,7 +400,7 @@ int deflab;
 	/* direct switch */
 	if (range>0 && range <= 3*ncase) {
 		if (fp->swval)
-			printf("sub	$%o,r0\n", UNS(fp->swval));
+			printf("sub	$%d,r0\n", UNS(fp->swval));
 		printf(dirsw, UNS(range), deflab, isn, isn);
 		isn++;
 		for (i=fp->swval; ; i++) {
@@ -465,7 +465,7 @@ breq(v, l)
 	if (v==0)
 		printf("tst	r0\n");
 	else
-		printf("cmp	r0,$%o\n", UNS(v));
+		printf("cmp	r0,$%#o\n", UNS(v));
 	printf("jeq	L%d\n", l);
 }
 
@@ -811,7 +811,7 @@ popstk(a)
 		printf("cmp	(sp)+,(sp)+\n");
 		return;
 	}
-	printf("add	$%o,sp\n", UNS(a));
+	printf("add	$%d,sp\n", UNS(a));
 }
 
 void
@@ -845,7 +845,7 @@ psoct(an)
 		n = -n;
 		sign = "-";
 	}
-	printf("%s%o", sign, n);
+	printf("%s%#o", sign, n);
 }
 
 static void
@@ -889,7 +889,7 @@ getree()
 		switch(op &= 0377) {
 
 	case SINIT:
-		printf("%o\n", UNS(geti()));
+		printf("%d\n", UNS(geti()));
 		break;
 
 	case EOFC:
@@ -899,7 +899,7 @@ getree()
 		if (geti() == 1) {
 			printf(".byte ");
 			for (;;)  {
-				printf("%o", UNS(geti()));
+				printf("%d", UNS(geti()));
 				if (geti() != 1)
 					break;
 				printf(",");
@@ -932,11 +932,11 @@ getree()
 
 	case CSPACE:
 		outname(s);
-		printf(".comm\t%s,%o\n", s, UNS(geti()));
+		printf(".comm\t%s,%d\n", s, UNS(geti()));
 		break;
 
 	case SSPACE:
-		printf(".=.+%o\n", UNS(t=geti()));
+		printf(".=.+%#o\n", UNS(t=geti()));
 		totspace += (unsigned)t;
 		break;
 
@@ -953,7 +953,7 @@ getree()
 		if (t==2)
 			printf("tst	-(sp)\n");
 		else if (t != 0)
-			printf("sub	$%o,sp\n", UNS(t));
+			printf("sub	$%d,sp\n", UNS(t));
 		break;
 
 	case PROFIL:
@@ -975,7 +975,7 @@ getree()
 
 	case ANAME:
 		outname(s);
-		printf("~%s=%o\n", s+1, UNS(geti()));
+		printf("~%s=%#o\n", s+1, UNS(geti()));
 		break;
 
 	case RNAME:
@@ -1178,7 +1178,7 @@ union tree *atp;
 		if (tp->t.op==RFORCE) {	/* function return */
 			if (sfuncr.nloc==0) {
 				sfuncr.nloc = isn++;
-				printf(".bss\nL%d:.=.+%o\n.text\n", sfuncr.nloc,
+				printf(".bss\nL%d:.=.+%#o\n.text\n", sfuncr.nloc,
 					UNS(nwords*sizeof(short)));
 			}
 			atp->t.tr1 = tnode(ASSIGN, STRUCT, (union tree *)&sfuncr, tp->t.tr1);
@@ -1217,7 +1217,7 @@ union tree *atp;
 		}
 		if (nreg<=1)
 			printf("mov	r2,-(sp)\n");
-		printf("mov	$%o,r2\n", UNS(nwords));
+		printf("mov	$%d,r2\n", UNS(nwords));
 		printf("L%d:mov	(r1)+,(r0)+\ndec\tr2\njne\tL%d\n", isn, isn);
 		isn++;
 		if (nreg<=1)
