@@ -39,7 +39,6 @@ locctr( l ){
 
 	case PROG:
 		putstr( "	.text\n" );
-		putstr( "	.align	2\n" );
 		psline();
 		break;
 
