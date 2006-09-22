@@ -590,7 +590,10 @@ properand (memaddr, code, argcode, argrel)
 		break;
 	case 3:
 		if (reg == 7) {
-			printf ("*$%d", argcode);
+			if (code & JUMP)
+				praddr (argcode, argrel);
+			else
+				printf ("*$%d", argcode);
 		} else {
 			printf ("*(");
 			prreg (reg);

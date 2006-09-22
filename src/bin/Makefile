@@ -10,7 +10,7 @@ CFLAGS		= -I../libc
 AS		= pdp11-as
 LD		= pdp11-ld
 SIZE		= pdp11-size -o
-LDFLAGS		= --omagic
+LDFLAGS		=
 
 PROGS		= sync ls sh
 # TODO: check cp date ed mkdir mv od rm rmdir size strip stty

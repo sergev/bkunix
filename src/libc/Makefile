@@ -9,7 +9,7 @@
 DESTDIR		= /usr/local/lib/pdp11
 CC		= pdp11-pcc
 AS		= pdp11-asm
-STRIP		= pdp11-strip
+AR		= pdp11-ar
 RANLIB		= pdp11-ranlib
 CPP		= cpp
 CFLAGS		= -O
@@ -49,11 +49,10 @@ clean:
 
 
 libc.a:		${OBJS}
-		ar cru libc.a ${OBJS}
+		${AR} cru libc.a ${OBJS}
 
 .S.o:
 		${CC} ${CPPFLAGS} -c $<
-		@${STRIP} -x $*.o
 
 depend:
 		@cp Makefile Makefile~~

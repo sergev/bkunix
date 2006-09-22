@@ -11,6 +11,7 @@
 #include "ar.h"
 
 #define	NSYM	501	/* size of symbol table */
+#define	NPATH	10	/* size of symbol table */
 
 FILE *text;
 FILE *reloc;
@@ -19,6 +20,9 @@ struct	exec	filhdr;
 
 long	liblist[256];
 long	*libp = liblist;
+
+char	*libpath[NPATH];
+char	**pathp = libpath;
 
 struct	nlist	cursym;
 struct	nlist	symtab[NSYM];
@@ -46,6 +50,7 @@ int	dflag;		/* define common even with rflag */
 int	iflag;		/* I/D space separated */
 
 char	*filname;
+char 	*outname = "a.out";
 
 int	tsize;
 int	dsize;
@@ -75,7 +80,6 @@ FILE	*soutb;
 void
 cleanup()
 {
-	unlink("l.out");
 	unlink(tdname);
 	unlink(tsname);
 	unlink(ttrname);
@@ -86,6 +90,7 @@ void
 fatal()
 {
 	cleanup();
+	unlink(outname);
 	exit(4);
 }
 
@@ -190,8 +195,12 @@ putword (w, fd)
 	unsigned int w;
 	FILE *fd;
 {
+#ifdef __pdp11__
+	fwrite(&w, 2, 1, fd);
+#else
 	putc(w, fd);
 	putc(w >> 8, fd);
+#endif
 }
 
 /*
@@ -203,9 +212,30 @@ getword (fd)
 {
 	unsigned int w;
 
+#ifdef __pdp11__
+	fread(&w, 2, 1, fd);
+#else
 	w = getc(fd);
-	w |= getc(fd);
+	w |= getc(fd) << 8;
+#endif
 	return w;
+}
+
+void
+getarhdr(hdr, fd)
+	register struct ar_hdr *hdr;
+	FILE *fd;
+{
+#ifdef __pdp11__
+	fread(hdr, sizeof(*hdr), 1, fd);
+#else
+	fread(hdr->ar_name, sizeof(hdr->ar_name), 1, fd);
+	fread(&hdr->ar_date, sizeof(hdr->ar_date), 1, fd);
+	hdr->ar_uid = getc(fd);
+	hdr->ar_gid = getc(fd);
+	hdr->ar_mode = getword(fd);
+	fread(&hdr->ar_size, sizeof(hdr->ar_size), 1, fd);
+#endif
 }
 
 /*
@@ -263,24 +293,39 @@ getfile(cp)
 	register char *cp;
 {
 	register int c;
+	char **dir;
+	static char namebuf[100];
 
+	filname = cp;
 	archdr.ar_name[0] = '\0';
-	if (cp[0]=='-' && cp[1]=='l') {
-		filname = "/lib/libxxxxxxxxxxxxxxx";
-		for(c=0; cp[c+2]; c++)
-			filname[c+8] = cp[c+2];
-		filname[c+8] = '.';
-		filname[c+9] = 'a';
-		filname[c+10] = '\0';
-	} else
-		filname = cp;
-	text = fopen(filname, "r");
-	if (! text)
-		error(1, "cannot open");
+	if (cp[0] != '-' || cp[1] != 'l') {
+		/* Open plain file. */
+		text = fopen(filname, "r");
+		if (! text)
+			error(1, "Cannot open");
+	} else {
+		/* Search for library. */
+		for (dir=libpath; dir<pathp; ++dir) {
+			if (strlen(*dir) + strlen(cp+2) > sizeof(namebuf)-8)
+				continue;
+			strcpy (namebuf, *dir);
+			strcat (namebuf, "/lib");
+			strcat (namebuf, cp+2);
+			strcat (namebuf, ".a");
+			text = fopen(namebuf, "r");
+			if (text) {
+				filname = namebuf;
+				break;
+			}
+		}
+		if (dir >= pathp)
+			error(1, "Library not found");
+	}
+	/* Is it an archive? */
 	c = getword(text);
 	if (ferror(text))
-		error(1, "Premature EOF on file %s");
-	return(c == ARCMAGIC);
+		error(1, "Empty file");
+	return (c == ARCMAGIC);
 }
 
 void
@@ -391,14 +436,15 @@ load1arg(filename)
 	loff = 2;
 	for (;;) {
 		fseek(text, loff, 0);
-		if (fread(&archdr, sizeof archdr, 1, text) != 1) {
+		getarhdr(&archdr, text);
+		if (ferror(text)) {
 			*libp++ = 0;
 			break;
 		}
-		if (load1(1, loff + sizeof(archdr))) {
+		if (load1(1, loff + AR_HDRSIZE)) {
 			*libp++ = loff;
 		}
-		loff += archdr.ar_size + sizeof(archdr);
+		loff += archdr.ar_size + AR_HDRSIZE;
 	}
 	fclose(text);
 }
@@ -470,37 +516,39 @@ middle()
 	borigin += aflag;
 
 	nund = 0;
-	for (sp=symtab; sp<symp; sp++) switch (sp->n_type) {
-	case N_EXT+N_UNDF:
-		errlev |= 01;
-		if (arflag==0 && sp->n_value==0) {
-			if (nund==0)
-				printf("Undefined:\n");
-			nund++;
-			printf("%.8s\n", sp->n_name);
+	for (sp=symtab; sp<symp; sp++) {
+		switch (sp->n_type) {
+		case N_EXT+N_UNDF:
+			errlev |= 01;
+			if (arflag==0 && sp->n_value==0) {
+				if (nund==0)
+					printf("Undefined:\n");
+				nund++;
+				printf("\t%.8s\n", sp->n_name);
+			}
+			continue;
+
+		case N_EXT+N_ABS:
+		default:
+			continue;
+
+		case N_EXT+N_TEXT:
+			sp->n_value += torigin;
+			continue;
+
+		case N_EXT+N_DATA:
+			sp->n_value += dorigin;
+			continue;
+
+		case N_EXT+N_BSS:
+			sp->n_value += borigin;
+			continue;
+
+		case N_EXT+N_COMM:
+			sp->n_type = N_EXT+N_BSS;
+			sp->n_value += corigin;
+			continue;
 		}
-		continue;
-
-	case N_EXT+N_ABS:
-	default:
-		continue;
-
-	case N_EXT+N_TEXT:
-		sp->n_value += torigin;
-		continue;
-
-	case N_EXT+N_DATA:
-		sp->n_value += dorigin;
-		continue;
-
-	case N_EXT+N_BSS:
-		sp->n_value += borigin;
-		continue;
-
-	case N_EXT+N_COMM:
-		sp->n_type = N_EXT+N_BSS;
-		sp->n_value += corigin;
-		continue;
 	}
 	if (sflag || xflag)
 		ssize = 0;
@@ -511,9 +559,9 @@ middle()
 void
 setupout()
 {
-	toutb = fopen("l.out", "w");
+	toutb = fopen(outname, "w");
 	if (! toutb)
-		error(1, "Can't create l.out");
+		error(1, "Can't create output file");
 	doutb = tcreat(tdname);
 	if (sflag==0 || xflag==0)
 		soutb = tcreat(tsname);
@@ -538,14 +586,15 @@ setupout()
 }
 
 void
-load2td(lp, creloc, b1, b2)
+load2td(words, lp, creloc, b1, b2)
+	unsigned int words;
 	struct nlocal *lp;
 	FILE *b1, *b2;
 {
 	register int r, t;
 	register struct nlist *sp;
 
-	for (;;) {
+	while (words-- > 0) {
 		t = getword (text);
 		r = getword (reloc);
 		if (ferror (reloc))
@@ -611,12 +660,13 @@ load2(loff)
 		}
 		sp = *lookup(cursym.n_name);
 		if (sp == 0)
-			error(1, "internal error: symbol not found");
+			error(1, "Internal error: symbol not found");
 		if (cursym.n_type == N_EXT+N_UNDF) {
 			if (lp >= &local[NSYM/2])
 				error(1, "Local symbol overflow");
 			lp->symno = symno;
 			lp->symref = sp;
+			++lp;
 			continue;
 		}
 		if (cursym.n_type != sp->n_type ||
@@ -625,14 +675,18 @@ load2(loff)
 			error(0, "Multiply defined");
 		}
 	}
-	fseek(text, loff, 0);
-	fseek(reloc, loff + filhdr.a_text + filhdr.a_data, 0);
-	load2td(lp, ctrel, toutb, troutb);
-
-	fseek(text, loff + filhdr.a_text, 0);
-	fseek(reloc, loff + filhdr.a_text + filhdr.a_text + filhdr.a_data, 0);
-	load2td(lp, cdrel, doutb, droutb);
-
+	if (filhdr.a_text > 1) {
+printf("fseek text %ld\n", loff);
+		fseek(text, loff, 0);
+		fseek(reloc, loff + filhdr.a_text + filhdr.a_data, 0);
+		load2td(filhdr.a_text/2, lp, ctrel, toutb, troutb);
+	}
+	if (filhdr.a_data > 1) {
+printf("fseek text %ld\n", loff + filhdr.a_text);
+		fseek(text, loff + filhdr.a_text, 0);
+		fseek(reloc, loff + filhdr.a_text + filhdr.a_text + filhdr.a_data, 0);
+		load2td(filhdr.a_data/2, lp, cdrel, doutb, droutb);
+	}
 	torigin += filhdr.a_text;
 	dorigin += filhdr.a_data;
 	borigin += filhdr.a_bss;
@@ -659,10 +713,10 @@ load2arg(filename)
 	reloc = fdopen(fileno(text), "r");
 	for (lp = libp; *lp > 0; lp++) {
 		fseek(text, *lp, 0);
-		fread(&archdr, sizeof archdr, 1, text);
+		getarhdr(&archdr, text);
 		mkfsym(archdr.ar_name);
 		fwrite(&cursym, sizeof cursym, 1, soutb);
-		load2(*lp + sizeof(archdr));
+		load2(*lp + AR_HDRSIZE);
 	}
 	libp = ++lp;
 	fclose(text);
@@ -692,12 +746,10 @@ finishout()
 	if (sflag==0) {
 		if (xflag==0)
 			copy(soutb);
-		for (p=symtab; p < symp;)
+		for (p=symtab; p < symp; p++)
 			fwrite(p, sizeof(*p), 1, toutb);
 	}
 	fclose(toutb);
-	unlink("a.out");
-	link("l.out", "a.out");
 }
 
 int
@@ -733,6 +785,11 @@ main(argc, argv)
 			continue;
 		case 'l':
 			break;
+		case 'L':
+			if (pathp >= &libpath[NPATH])
+				error(1, "Too many -L");
+			*pathp++ = &ap[2];
+			continue;
 		case 'x':
 			xflag++;
 			continue;
@@ -761,6 +818,11 @@ main(argc, argv)
 				error(1, "Bad -a");
 			aflag = strtol (*p++, 0, 0);
 			continue;
+		case 'o':
+			if (++c >= argc)
+				error(1, "Bad -o");
+			outname = *p++;
+			continue;
 		}
 		load1arg(ap);
 	}
@@ -783,8 +845,10 @@ main(argc, argv)
 	}
 	finishout();
 	cleanup();
-	if (errlev != 0)
+	if (errlev != 0) {
+		unlink(outname);
 		exit(errlev);
-	chmod("a.out", 0777);
+	}
+	chmod(outname, 0777);
 	return 0;
 }
