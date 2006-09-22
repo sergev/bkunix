@@ -1,11 +1,11 @@
+DESTDIR		= /usr/local/
 CFLAGS		= -O -g -Wall
 LDFLAGS		= -g
-DESTDIR		= /usr/local/lib/pdp11
 
 all:		c2
 
 install:	c2
-		install -s c2 ${DESTDIR}/c2
+		install -s c2 ${DESTDIR}/lib/pdp11/c2
 
 clean:
 		rm -f *~ *.o c2

@@ -34,7 +34,7 @@ void outw(type, val)
 	type &= ~ENDTABFLAG;
 	if(type == TYPEEXT) {
 		outmod = 0666;
-		type = (((char *)xsymbol - (char *)&usymtab) << 1) | 4;
+		type = (((struct value *)xsymbol - usymtab) << 3) | 4;
 	}
 	else {
 		if((type &= ~TYPEEXT) >= TYPEOPFD) {
