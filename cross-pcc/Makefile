@@ -1,10 +1,11 @@
-SUBDIR		= cc pcc c2 crt
+SUBDIR		= cc pcc c2 ccom as ld crt
 
+DESTDIR		= /usr/local
 all:
-		for i in ${SUBDIR}; do $(MAKE) -C $$i; done
+		for i in ${SUBDIR}; do $(MAKE) DESTDIR=$(DESTDIR) -C $$i; done
 
 install:
-		for i in ${SUBDIR}; do $(MAKE) -C $$i install; done
+		for i in ${SUBDIR}; do $(MAKE) DESTDIR=$(DESTDIR) -C $$i install; done
 
 clean:
 		rm -f *~
