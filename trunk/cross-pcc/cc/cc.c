@@ -241,7 +241,7 @@ int main(argc, argv)
 		}
 		t = argv[i];
 		c = getsuf(t);
-		if (c=='c' || c=='s' || exflag) {
+		if (c=='c' || c=='s' || c=='S' || exflag) {
 			clist[nc++] = t;
 			t = setsuf(t, 'o');
 		}
@@ -325,6 +325,10 @@ int main(argc, argv)
 				tmp3 = setsuf(clist[i], 's');
 			assource = tmp3;
 		}
+		if (getsuf(clist[i]) == 'S') {
+			assource = tmp4;
+			goto assemble;
+		}
 		av[0] = "c0";
 		av[1] = tmp4; av[2] = tmp1; av[3] = tmp2; na = 4;
 		if (proflag)
@@ -356,7 +360,7 @@ int main(argc, argv)
 		if (sflag)
 			continue;
 assemble:
-		cunlink(tmp1); cunlink(tmp2); cunlink(tmp4);
+		cunlink(tmp1); cunlink(tmp2);
 		av[0] = "as";
 		av[1] = "-u";
 		av[2] = "-o";
@@ -371,6 +375,7 @@ assemble:
 			eflag++;
 			continue;
 		}
+		cunlink(tmp4);
 	}
 nocom:
 	if (cflag==0 && nl!=0) {

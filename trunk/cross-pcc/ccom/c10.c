@@ -587,7 +587,7 @@ int areg;
 	p1 = tree->t.tr1;
 	if (p1->t.op==FCON && p1->f.value>0) {
 /* nonportable */
-		printf(".data\nL%d:%o;%o;%o;%o\n.text\n", p1->f.value,
+		printf(".data\nL%d:%d;%d;%d;%d\n.text\n", p1->f.value,
 			((unsigned short *)&(p1->f.fvalue))[0],
 			((unsigned short *)&(p1->f.fvalue))[1],
 			((unsigned short *)&(p1->f.fvalue))[2],
@@ -599,7 +599,7 @@ int areg;
 		p2 = tree->t.tr2;
 		if (p2->t.op==FCON && p2->f.value>0) {
 /* nonportable */
-			printf(".data\nL%d:%o;%o;%o;%o\n.text\n", p2->f.value,
+			printf(".data\nL%d:%d;%d;%d;%d\n.text\n", p2->f.value,
 				((unsigned short *)&(p2->f.fvalue))[0],
 				((unsigned short *)&(p2->f.fvalue))[1],
 				((unsigned short *)&(p2->f.fvalue))[2],
@@ -892,7 +892,7 @@ loop:
 	 * Mask used in field assignments
 	 */
 	case 'Z':
-		printf("$%o", UNS(tree->F.mask));
+		printf("$%#o", UNS(tree->F.mask));
 		goto loop;
 
 	/*
@@ -1231,7 +1231,7 @@ int *flagp;
 		} else {
 			if (retval!=0)
 				printf("mov	r%d,r0\n", retval);
-			printf("mov	$%o,r1\n", UNS(size));
+			printf("mov	$%#o,r1\n", UNS(size));
 			printf("L%d:mov	-(r0),-(sp)\ndec\tr1\njne\tL%d\n", isn, isn);
 			isn++;
 		}
@@ -1298,7 +1298,7 @@ register union tree *tree;
 			tree->c.value = lval;
 		}
 		if (tree->t.op == CON)
-			printf("%o\n", UNS(tree->c.value));
+			printf("%d\n", UNS(tree->c.value));
 		else if (tree->t.op==AMPER) {
 			pname(tree->t.tr1, 0);
 			putchar('\n');
@@ -1324,11 +1324,11 @@ register union tree *tree;
 		if (type==FLOAT) {
 			sfval = fval;
 /* nonportable */
-			printf("%o; %o\n",
+			printf("%d; %d\n",
 				((unsigned short *)&sfval)[0],
 				((unsigned short *)&sfval)[1] );
 		} else
-			printf("%o; %o; %o; %o\n",
+			printf("%d; %d; %d; %d\n",
 				((unsigned short *)&fval)[0],
 				((unsigned short *)&fval)[1],
 				((unsigned short *)&fval)[2],
@@ -1356,7 +1356,7 @@ register union tree *tree;
 		else
 			goto illinit;
 /* nonportable */
-		printf("%o; %o\n", UNS((lval>>16)), UNS(lval));
+		printf("%d; %d\n", UNS((lval>>16)), UNS(lval));
 		return;
 	}
 illinit:
