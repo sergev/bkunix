@@ -5,7 +5,6 @@ DESTDIR		= /usr/local
 LDESTDIR	= $(DESTDIR)/lib/pdp11
 CC		= $(DESTDIR)/bin/pdp11-pcc
 AS		= $(DESTDIR)/bin/pdp11-asm
-STRIP		= $(DESTDIR)/bin/pdp11-strip
 AR		= $(DESTDIR)/bin/pdp11-ar
 RANLIB		= $(DESTDIR)/bin/pdp11-ranlib
 CPP		= cpp
@@ -33,7 +32,6 @@ libpcc.a:	${OBJS}
 
 .S.o:
 		${CPP} -E ${CPPFLAGS} $< | $(AS) -o $@
-		# @${STRIP} -x $*.o
 
 depend:
 		@cp Makefile Makefile~~

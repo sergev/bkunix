@@ -348,7 +348,8 @@ prsym (addr)
 }
 
 /*
- * Find the symbol nearest to the address.
+ * Find a symbol nearest to the address.
+ * If no symbol found, return .text or .data or .bss.
  */
 struct nlist *
 findsym (addr)
@@ -356,16 +357,19 @@ findsym (addr)
 {
 	struct nlist *p, *last;
 
-	if (stabindex <= 0)
+	last = 0;
+	for (p=stab; p<stab+stabindex; ++p) {
+		if ((p->n_type & N_TYPE) != N_TEXT &&
+		    (p->n_type & N_TYPE) != N_DATA)
+			continue;
+		if (p->n_value > addr || (last != 0 &&
+		    p->n_value < last->n_value))
+			continue;
+		last = p;
+	}
+	if (last == 0)
 		return addr < symdata.n_value ? &symtext :
 			addr < symbss.n_value ? &symdata : &symbss;
-	last = stab;
-	for (p=stab; p<stab+stabindex; ++p) {
-		if (p->n_type != N_TEXT && p->n_type != N_DATA)
-			continue;
-		if (p->n_value < last->n_value || p->n_value > addr)
-			continue;
-	}
 	if (last->n_value > addr)
 		return &symtext;
 	if (symbss.n_value >= last->n_value && symbss.n_value <= addr)
@@ -389,6 +393,9 @@ freadw (fd)
 	return val;
 }
 
+/*
+ * Print relocation information.
+ */
 void
 prrel (r)
 	register unsigned int r;
@@ -408,6 +415,9 @@ prrel (r)
 	}
 }
 
+/*
+ * Print integer register name.
+ */
 void
 prreg (reg)
 	int reg;
@@ -466,7 +476,7 @@ praddr (address, rel)
 
 /*
  * Print instruction code and relocation info.
- * From one to three worda are printed, depending on addressing mode.
+ * From one to three words are printed, depending on addressing mode.
  * Store src and dst additional words in srccode and dstcode.
  * Return 0 on error.
  */
@@ -863,11 +873,15 @@ disasm (fname)
 
 	/* Print sections. */
 	addr = baseaddr;
-	printf ("\nDisassembly of section .text:\n");
-	prsection (&addr, hdr.a_text);
-	printf ("\nDisassembly of section .data:\n");
-	prsection (&addr, hdr.a_text + hdr.a_data);
-	prsym (addr);
+	if (hdr.a_text > 0) {
+		printf ("\nDisassembly of section .text:\n");
+		prsection (&addr, hdr.a_text);
+	}
+	if (hdr.a_data > 0) {
+		printf ("\nDisassembly of section .data:\n");
+		prsection (&addr, hdr.a_text + hdr.a_data);
+		prsym (addr);
+	}
 
 	fclose (textfd);
 	if (relfd) {
