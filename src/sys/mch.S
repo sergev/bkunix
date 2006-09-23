@@ -3,11 +3,7 @@
 
 #include "param.h"
 
-#if TOPSYS > 040000
 usize	= 01000
-#else
-usize	= 0300
-#endif
 _u	= TOPSYS - usize
 	.globl	_u
 

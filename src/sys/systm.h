@@ -60,14 +60,12 @@ int swap();
 int newproc();
 int bad_user_address();
 void panichalt();
-
+int ttputc();
+void ttputs();
 #ifdef DEBUG
-void debug_putchar();
 void debug_printf();
-#define panic(x)		panichalt(x)
-#else
-#define panic(x)		panichalt()
 #endif
+#define panic(x)		panichalt(x)
 
 /*
  * structure of the system entry table (sysent.c)
