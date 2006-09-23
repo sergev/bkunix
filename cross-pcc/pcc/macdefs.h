@@ -4,7 +4,7 @@
 #define makecc(val,i)  lastcon = i ? (val<<8)|lastcon : val
 
 #define ARGINIT		32
-#define AUTOINIT	0
+#define AUTOINIT	48
 
 /*
  * Storage space requirements

@@ -64,7 +64,7 @@ clean:
 		rm -f *~ dev/*~ *.o *.s lsx lsx1 debug a.out lsx.dis debug.dis
 
 lsx:		$(OBJS)
-		$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+		$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) -Map $@.map
 		pdp11-objdump -D $@ > $@.dis
 
 lsx1:		$(ASOBJS) $(CSRCS)

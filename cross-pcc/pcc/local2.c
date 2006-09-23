@@ -799,8 +799,8 @@ struct functbl {
 	DIV,		ULONG,	"uldiv",
 	MOD,		ULONG,	"ulrem",
 	ASG MUL,	ULONG,	"almul",
-	ASG DIV,	ULONG,	"auldiv",
-	ASG MOD,	ULONG,	"aulrem",
+	ASG DIV,	ULONG,	"ualdiv",
+	ASG MOD,	ULONG,	"ualrem",
 	0,	0,	0 };
 
 hardops(p)  register NODE *p; {
