@@ -10,19 +10,19 @@ SECTIONS
 	{
 		CREATE_OBJECT_SYMBOLS
 		*(.text)
+		. = ALIGN(2);
 		_etext = .;
 	}
-	. = ALIGN(2);
-	.data :
+	.data : AT (ADDR (.text) + SIZEOF (.text))
 	{
-		__data_start = .;
+		PROVIDE (__data_start = .);
 		*(.data)
 		CONSTRUCTORS
 		_edata = .;
 	}
-	.bss :
+	.bss : AT (ADDR (.data) + SIZEOF (.data))
 	{
-		__bss_start = .;
+		PROVIDE (__bss_start = .);
 		*(.bss)
 		*(COMMON)
 		. = ALIGN(2);

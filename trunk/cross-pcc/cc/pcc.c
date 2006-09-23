@@ -344,11 +344,11 @@ nocom:
 		while (i < nl)
 			av[na++] = llist[i++];
 		av[na++] = "-L" DESTDIR "/lib/pdp11";
+		av[na++] = "-lc";
 		if (proflag)
 			av[na++] = "-lpcc_p";
 		else
 			av[na++] = "-lpcc";
-		av[na++] = "-lc";
 		av[na++] = 0;
 		errflag |= callsys(ld, av);
 		if (nc==1 && nxo==1 && errflag==0)

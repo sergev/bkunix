@@ -89,7 +89,7 @@ char	*argv[];
 	setbuf(stdout,buf2);	/* stdio sbrk problems */
 	setbuf(sbufp, sbuf);
 	/*
-	 * Working without overlays yet, frame does not have overlay number
+	 * Working without overlays, frame does not have overlay number
 	 */
 	STAUTO = -6;
 	while (argc>4) {
@@ -97,7 +97,10 @@ char	*argv[];
 		case 'P':
 			proflg++;
 			break;
-		case 'V':		/* overlays; default, now */
+		case 'V':		/* overlays */
+			/* allow an extra word on the stack for
+			 * each stack from to store the overlay number. */
+			STAUTO -= 2;
 			break;
 		case 'w':
 		case 'W':		/* don't print warning messages */
@@ -370,7 +373,7 @@ getnum()
 		base = 8;
 	for (;; c = getchar()) {
 		*np++ = c;
-		if (ctab[c]==DIGIT || 
+		if (ctab[c]==DIGIT ||
 		    ((base==16) && (('a'<=c&&c<='f') || ('A'<=c&&c<='F')))) {
 			if (base==8)
 				lcval <<= 3;
@@ -659,7 +662,7 @@ advanc:
 	case STRING:
 /*
  * This hack is to compensate for a bit of simplemindedness I'm not sure how
- * else to fix.  
+ * else to fix.
  *
  *	i = sizeof ("foobar");
  *
@@ -670,7 +673,7 @@ advanc:
  *
  * What I did here was to scan to "operator" stack looking for left parens
  * "(" preceeded by a "sizeof".  If both are seen and in that order or only
- * a SIZEOF is sedn then the string is inside a 'sizeof' and should not 
+ * a SIZEOF is sedn then the string is inside a 'sizeof' and should not
  * generate any data to the object file.
 */
 		xop = op;
