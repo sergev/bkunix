@@ -830,7 +830,7 @@ disasm (fname)
 			fclose (textfd);
 			return;
 		}
-		addsym (sym.n_name, sym.n_type, sym.n_value);
+		addsym (sym.n_name, sym.n_type, sym.n_value + baseaddr);
 	}
 	symtext.n_value = baseaddr;
 	symdata.n_value = baseaddr + hdr.a_text;
@@ -878,11 +878,11 @@ disasm (fname)
 	addr = baseaddr;
 	if (hdr.a_text > 0) {
 		printf ("\nDisassembly of section .text:\n");
-		prsection (&addr, hdr.a_text);
+		prsection (&addr, baseaddr + hdr.a_text);
 	}
 	if (hdr.a_data > 0) {
 		printf ("\nDisassembly of section .data:\n");
-		prsection (&addr, hdr.a_text + hdr.a_data);
+		prsection (&addr, baseaddr + hdr.a_text + hdr.a_data);
 		prsym (addr);
 	}
 
