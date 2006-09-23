@@ -5,7 +5,7 @@
  * Used for testing the compiler.
  */
 void debug_printf();
-void debug_print_int();
+void dbg_print_int();
 
 void standalone ()
 {
@@ -15,34 +15,11 @@ void standalone ()
 #endif
 
 #ifdef DEBUG
-#define TP_STATUS	(*(unsigned char*) 0177564)
-#define TP_BYTE		(*(unsigned char*) 0177566)
-
-void
-debug_putchar (c)
-	int c;
-{
-	for (;;) {
-		/* Wait for console ready. */
-		while (! (TP_STATUS & 0x80))
-			continue;
-		if (c == 0)
-			return;
-
-		/* Send byte. */
-		TP_BYTE = c;
-
-		if (c == '\n')
-			c = '\r';
-		else
-			c = 0;
-	}
-}
 
 /*
  * Printn prints a number n in base b.
  */
-void debug_print_int(n)
+void dbg_print_int(n)
 	int n;
 {
 	register int i, d;
@@ -51,7 +28,7 @@ void debug_print_int(n)
 	while (i >= 0) {
 		d = n >> i;
 		d &= 15;
-		debug_putchar(d>9 ? d+'A'-10 : d+'0');
+		dbg_putchar(d>9 ? d+'A'-10 : d+'0');
 		i -= 4;
 	}
 }
@@ -79,7 +56,7 @@ loop:
 	while ((c = *fmt++) != '%') {
 		if (c == '\0')
 			return;
-		debug_putchar(c);
+		dbg_putchar(c);
 	}
 	b = 8;
 	c = *fmt++;
@@ -90,35 +67,35 @@ loop:
 		case 'x':
 		case 'd':	/* only hex mode */
 		case 'o':
-			debug_print_int(*adx++);
-			debug_print_int(*adx++);
+			dbg_print_int(*adx++);
+			dbg_print_int(*adx++);
 			break;
 		default:
-			debug_putchar('%');
-			debug_putchar('l');
-			debug_putchar(c);
+			dbg_putchar('%');
+			dbg_putchar('l');
+			dbg_putchar(c);
 		}
 		break;
 	case 'x':
 	case 'd':		/* only hex mode */
 	case 'u':		/* what a joke */
 	case 'o':
-		debug_print_int(*adx++);
+		dbg_print_int(*adx++);
 		break;
 	case 'c':
-		debug_putchar(*adx++);
+		dbg_putchar(*adx++);
 		break;
 	case 's':
 		s = (char *)*adx++;
 		while ((c = *s++))
-			debug_putchar(c);
+			dbg_putchar(c);
 		break;
 	case '%':
-		debug_putchar(c);
+		dbg_putchar(c);
 		break;
 	default:
-		debug_putchar('%');
-		debug_putchar(c);
+		dbg_putchar('%');
+		dbg_putchar(c);
 		break;
 	}
 	goto loop;

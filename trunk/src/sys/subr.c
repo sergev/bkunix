@@ -15,7 +15,9 @@ int
 bad_user_address(addr)
 	register char *addr;
 {
-	if (addr < (char*) TOPSYS || addr >= (char*) TOPUSR) {
+	/* The kernel wants to read into the struct user sometimes */
+	/* pointer comparisons are broken (become signed) */
+	if (addr < &u || (unsigned) addr >= TOPUSR) {
 		u.u_error = EFAULT;
 		return 1;
 	}

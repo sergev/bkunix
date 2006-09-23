@@ -165,9 +165,8 @@ eloop:
 			goto out;
 		return(dp);
 	}
-	c = dp->i_dev;
 	iput(dp);
-	dp = iget(c, u.u_dent.u_ino);
+	dp = iget(dp->i_dev, u.u_dent.u_ino);
 	if(dp == NULL)
 		return(NULL);
 	goto cloop;

@@ -89,10 +89,9 @@ char	*argv[];
 	setbuf(stdout,buf2);	/* stdio sbrk problems */
 	setbuf(sbufp, sbuf);
 	/*
-	 * Overlays: allow an extra word on the stack for
-	 * each stack from to store the overlay number.
+	 * Working without overlays yet, frame does not have overlay number
 	 */
-	STAUTO = -8;
+	STAUTO = -6;
 	while (argc>4) {
 		switch (argv[4][1]) {
 		case 'P':

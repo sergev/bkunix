@@ -41,7 +41,36 @@ int	icode[] = {
 	0000164,
 };
 
+int
+ttputc (c)
+        int c;
+{
+asm("clr *$tps");
+asm("mov 4(r5),r0");
+asm("jsr pc, putc");
+asm("jbr 9f");
+asm("tps = 0177564");
+asm("tpb = 0177566");
+asm("putc: ");
+asm("tstb    tps");
+asm("jge     putc");
+asm("cmp     r0,$012");
+asm("jne     1f");
+asm("mov     $015,r0");
+asm("jsr     pc,putc");
+asm("mov     $012,r0");
+asm("1:");
+asm("mov     r0,*$tpb");
+asm("rts     pc");
+asm("9: ");
+}
 
+void
+ttputs (s)
+	char *s;
+{
+	while(ttputc(*s++));
+}
 /*
  * Panic is called on unresolvable fatal errors.
  * It prints "panic: mesg", and then halts.
@@ -49,11 +78,12 @@ int	icode[] = {
 void panichalt(s)
 	char *s;
 {
-#ifdef DEBUF
-	printf("panic: %s\n", s);
-#endif
-	for (;;)
-		asm("halt");
+	ttputs("panic: ");
+	ttputs(s);
+	ttputs("\r\n");
+
+	for (;;) 
+		asm("0");
 }
 
 /*

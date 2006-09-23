@@ -52,7 +52,7 @@ exec()
 	na = 0;
 	nc = 0;
 	for (;;) {
-		up = (char*) u.u_arg[1];
+		up = *(char**) u.u_arg[1];
 		if (up == 0)
 			break;
 		if (bad_user_address (up))
