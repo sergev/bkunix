@@ -871,7 +871,7 @@ disasm (fname)
 	printf ("Section .data: %d bytes\n", hdr.a_data);
 	printf (" Section .bss: %d bytes\n", hdr.a_bss);
 	printf (" Symbol table: %d names (%d bytes)\n",
-		hdr.a_syms / sizeof(struct nlist), hdr.a_syms);
+		(int) (hdr.a_syms / sizeof(struct nlist)), hdr.a_syms);
 	printf ("Entry address: %#o\n", hdr.a_entry + baseaddr);
 
 	/* Print sections. */
