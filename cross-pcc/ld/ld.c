@@ -11,14 +11,15 @@
 #include "ar.h"
 
 #define	NSYM	501	/* size of symbol table */
-#define	NPATH	10	/* size of symbol table */
+#define	NLIBF	256	/* max object files from libs */
+#define	NPATH	10	/* max library directories */
 
 FILE *text;
 FILE *reloc;
 
 struct	exec	filhdr;
 
-long	liblist[256];
+long	liblist[NLIBF];
 long	*libp = liblist;
 
 char	*libpath[NPATH];
@@ -676,13 +677,11 @@ load2(loff)
 		}
 	}
 	if (filhdr.a_text > 1) {
-printf("fseek text %ld\n", loff);
 		fseek(text, loff, 0);
 		fseek(reloc, loff + filhdr.a_text + filhdr.a_data, 0);
 		load2td(filhdr.a_text/2, lp, ctrel, toutb, troutb);
 	}
 	if (filhdr.a_data > 1) {
-printf("fseek text %ld\n", loff + filhdr.a_text);
 		fseek(text, loff + filhdr.a_text, 0);
 		fseek(reloc, loff + filhdr.a_text + filhdr.a_text + filhdr.a_data, 0);
 		load2td(filhdr.a_data/2, lp, cdrel, doutb, droutb);
