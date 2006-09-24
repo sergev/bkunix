@@ -2,7 +2,7 @@ CC		= gcc -g -Wall
 CFLAGS		=
 DESTDIR		= /usr/local
 PROG		= pdp11-size pdp11-strip pdp11-disasm pdp11-reloc \
-		  pdp11-nm pdp11-ld #pdp11-ar
+		  pdp11-nm pdp11-ld pdp11-ar
 
 all:		$(PROG)
 
@@ -36,6 +36,9 @@ pdp11-nm:	nm.o
 pdp11-ld:	ld.o
 		$(CC) $(LDFLAGS) -o $@ $<
 
+pdp11-ar:	ar.o
+		$(CC) $(LDFLAGS) -o $@ $<
+
 depend:
 		@cp Makefile Makefile~~
 		(sed '/^### DO NOT DELETE THIS LINE/,$$d' Makefile;\
@@ -48,7 +51,12 @@ depend:
 		mv Makefile~ Makefile
 
 ### DO NOT DELETE THIS LINE
+ar.o: ar.c ar.h
 disasm.o: disasm.c a.out.h
+ld.o: ld.c a.out.h ar.h
+nm.o: nm.c a.out.h
+ranlib.o: ranlib.c
+reloc.o: reloc.c a.out.h
 size.o: size.c a.out.h
 strip.o: strip.c a.out.h
 # DEPENDENCIES MUST END AT END OF FILE
