@@ -18,6 +18,7 @@ FILE *text;
 FILE *reloc;
 
 struct	exec	filhdr;
+struct	ar_hdr	archdr;
 
 long	liblist[NLIBF];
 long	*libp = liblist;
