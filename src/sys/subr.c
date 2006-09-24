@@ -7,6 +7,8 @@
 #include "buf.h"
 #include "systm.h"
 
+char nofault;
+
 /*
  * Check the address value received from user program.
  * Return 0 when the address is valid.
@@ -15,9 +17,10 @@ int
 bad_user_address(addr)
 	register char *addr;
 {
-	/* The kernel wants to read into the struct user sometimes */
+	/* The kernel wants to read into the struct user or from
+	 * its own data sometimes. */
 	/* pointer comparisons are broken (become signed) */
-	if (addr < &u || (unsigned) addr >= TOPUSR) {
+	if ((!nofault && (unsigned) addr < (unsigned) TOPSYS) || (unsigned) addr >= TOPUSR) {
 		u.u_error = EFAULT;
 		return 1;
 	}

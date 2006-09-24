@@ -48,9 +48,11 @@ void minit()
 	if(bp->b_flags&B_ERROR)
 		goto nomount;
 	u.u_dirp = "/usr";
+	nofault++;
 	cp = getblk(NODEV);
 	memcpy(cp->b_addr, bp->b_addr, 512);
 	ip = namei(0);
+	nofault--;
 	mount[1].m_inodp = ip;
 	mount[1].m_dev = MNTDEV;
 	mount[1].m_bufp = cp;
