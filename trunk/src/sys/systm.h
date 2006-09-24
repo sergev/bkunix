@@ -59,6 +59,7 @@ int dpcmp();
 int swap();
 int newproc();
 int bad_user_address();
+extern char nofault;
 void panichalt();
 int ttputc();
 void ttputs();

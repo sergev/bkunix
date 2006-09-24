@@ -91,7 +91,9 @@ exec()
 	u.u_count = 8;
 	u.u_offset[1] = 0;
 	u.u_offset[0] = 0;
+	nofault++;
 	readi(ip);
+	nofault--;
 	if(u.u_error)
 		goto bad;
 	if(u.u_arg[0] == 0407) {
