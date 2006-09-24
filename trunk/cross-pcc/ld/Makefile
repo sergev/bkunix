@@ -55,7 +55,6 @@ ar.o: ar.c ar.h
 disasm.o: disasm.c a.out.h
 ld.o: ld.c a.out.h ar.h
 nm.o: nm.c a.out.h
-ranlib.o: ranlib.c
 reloc.o: reloc.c a.out.h
 size.o: size.c a.out.h
 strip.o: strip.c a.out.h

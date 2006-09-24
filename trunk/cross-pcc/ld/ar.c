@@ -44,28 +44,112 @@ char	**namv;
 int	namc;
 char	*arnam;
 char	*ponam;
-char	*tfnam;
-char	*tf1nam;
-char	*tf2nam;
+char	tfnam[] = "/tmp/vXXXXXX";
+char	tf1nam[] = "/tmp/v1XXXXXX";
+char	tf2nam[] = "/tmp/v2XXXXXX";
 char	*file;
 char	name[16];
 int	af;
 int	tf;
-int	tf1;
-int	tf2;
+int	tf1 = -1;
+int	tf2 = -1;
 int	bastate;
-int	buf[256];
+char	buf[512];
+
+/*
+ * Write 16-bit value to file.
+ */
+void
+putword (w, fd)
+	unsigned int w;
+	int fd;
+{
+#ifdef __pdp11__
+	write(fd, &w, 2);
+#else
+	unsigned char buf [2];
+
+	buf[0] = w;
+	buf[1] = w >> 8;
+	write(fd, buf, 2);
+#endif
+}
+
+/*
+ * Read 16-bit value from file.
+ */
+unsigned int
+getword (fd)
+	int fd;
+{
+#ifdef __pdp11__
+	read(fd, &w, 2);
+#else
+	unsigned char buf [2];
+
+	read(fd, buf, 2);
+	return buf[0] | buf[1] << 8;
+#endif
+}
+
+int
+getarhdr(hdr, fd)
+	register struct ar_hdr *hdr;
+	int fd;
+{
+#ifdef __pdp11__
+	return read(fd, hdr, AR_HDRSIZE) == AR_HDRSIZE;
+#else
+	unsigned char buf [AR_HDRSIZE];
+
+	if (read(fd, buf, AR_HDRSIZE) != AR_HDRSIZE)
+		return 0;
+	memcpy(hdr->ar_name, buf, sizeof(hdr->ar_name));
+	hdr->ar_date = buf[16] | buf[17] << 8 |
+		(unsigned long) buf[14] << 16 | (unsigned long) buf[15] << 24;
+	hdr->ar_uid = buf[18];
+	hdr->ar_gid = buf[19];
+	hdr->ar_mode = buf[20] | buf[21] << 8;
+	hdr->ar_size = buf[24] | buf[25] << 8 |
+		(unsigned long) buf[22] << 16 | (unsigned long) buf[23] << 24;
+	return 1;
+#endif
+}
+
+void
+putarhdr(hdr, fd)
+	register struct ar_hdr *hdr;
+	int fd;
+{
+#ifdef __pdp11__
+	write(fd, hdr, sizeof(*hdr));
+#else
+	unsigned char buf [AR_HDRSIZE];
+
+	memcpy(buf, hdr->ar_name, sizeof(hdr->ar_name));
+	buf[14] = hdr->ar_date >> 16;
+	buf[15] = hdr->ar_date >> 24;
+	buf[16] = hdr->ar_date;
+	buf[17] = hdr->ar_date >> 8;
+	buf[18] = hdr->ar_uid;
+	buf[19] = hdr->ar_gid;
+	buf[20] = hdr->ar_mode;
+	buf[21] = hdr->ar_mode >> 8;
+	buf[22] = hdr->ar_size >> 16;
+	buf[23] = hdr->ar_size >> 24;
+	buf[24] = hdr->ar_size;
+	buf[25] = hdr->ar_size >> 8;
+	write(fd, buf, sizeof(buf));
+#endif
+}
 
 void
 done(exitval)
 	int exitval;
 {
-	if (tfnam)
-		unlink(tfnam);
-	if (tf1nam)
-		unlink(tf1nam);
-	if (tf2nam)
-		unlink(tf2nam);
+	unlink(tfnam);
+	unlink(tf1nam);
+	unlink(tf2nam);
 	exit(exitval);
 }
 
@@ -83,26 +167,24 @@ setcom(fun)
 void
 init()
 {
-	tfnam = mktemp("/tmp/vXXXXX");
-	close(creat(tfnam, 0600));
-	tf = open(tfnam, 2);
+	tf = mkstemp(tfnam);
 	if (tf < 0) {
 		printf("cannot create temp file\n");
 		done(1);
 	}
-	buf[0] = ARCMAGIC;
-	write(tf, buf, 2);
+	putword(ARCMAGIC, tf);
 }
 
 int
 getaf()
 {
+	int magic;
+
 	af = open(arnam, 0);
 	if (af < 0)
 		return(1);
-	buf[0] = 0;
-	read(af, buf, 2);
-	if (buf[0] != ARCMAGIC) {
+	magic = getword(af);
+	if (magic != ARCMAGIC) {
 		printf("%s not in archive format\n", arnam);
 		done(1);
 	}
@@ -132,12 +214,12 @@ install()
 	lseek(tf, 0L, 0);
 	while ((i = read(tf, buf, 512)) > 0)
 		write(af, buf, i);
-	if (tf2nam) {
+	if (tf2 >= 0) {
 		lseek(tf2, 0L, 0);
 		while ((i = read(tf2, buf, 512)) > 0)
 			write(af, buf, i);
 	}
-	if (tf1nam) {
+	if (tf1 >= 0) {
 		lseek(tf1, 0L, 0);
 		while ((i = read(tf1, buf, 512)) > 0)
 			write(af, buf, i);
@@ -156,7 +238,7 @@ copyfil(fi, fo, flag)
 	int pe;
 
 	if (flag & HEAD)
-		write(fo, &arbuf, sizeof arbuf);
+		putarhdr(&arbuf, fo);
 	pe = 0;
 	while (arbuf.ar_size > 0) {
 		i = o = 512;
@@ -173,7 +255,7 @@ copyfil(fi, fo, flag)
 			pe++;
 		if ((flag & SKIP) == 0)
 			write(fo, buf, o);
-		arbuf.ar_size =- 512;
+		arbuf.ar_size -= 512;
 	}
 	if (pe)
 		printf("phase error on %s\n", file);
@@ -274,9 +356,8 @@ getdir()
 {
 	register int i;
 
-	i = read(af, &arbuf, sizeof arbuf);
-	if (i != sizeof arbuf) {
-		if (tf1nam) {
+	if (! getarhdr(&arbuf, af)) {
+		if (tf1 >= 0) {
 			i = tf;
 			tf = tf1;
 			tf1 = i;
@@ -320,9 +401,7 @@ bamatch()
 			return;
 	case 2:
 		bastate = 0;
-		tf1nam = mktemp("/tmp/v1XXXXX");
-		close(creat(tf1nam, 0600));
-		f = open(tf1nam, 2);
+		f = mkstemp(tf1nam);
 		if (f < 0) {
 			printf("cannot create second temp\n");
 			return;
@@ -362,8 +441,7 @@ r_cmd()
 			movefil(f);
 			continue;
 		}
-	cp:
-		mesg('c');
+cp:		mesg('c');
 		copyfil(af, tf, IODD+OODD+HEAD);
 	}
 	cleanup();
@@ -432,9 +510,7 @@ m_cmd()
 	init();
 	if (getaf())
 		noar();
-	tf2nam = mktemp("/tmp/v2XXXXX");
-	close(creat(tf2nam, 0600));
-	tf2 = open(tf2nam, 2);
+	tf2 = mkstemp(tf2nam);
 	if (tf2 < 0) {
 		printf("cannot create third temp\n");
 		done(1);
