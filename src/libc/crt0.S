@@ -6,7 +6,6 @@
 	.globl	_exit
 	.globl	_main
 start:
-	setd
 	mov	sp,r0
 	mov	(r0),-(sp)
 	tst	(r0)+

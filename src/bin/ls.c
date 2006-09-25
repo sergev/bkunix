@@ -50,13 +50,13 @@ struct	lbuf	*rlastp;
 struct	lbuf	*firstp;
 char	*dotp = ".";
 
-struct lbuf *gstat(char*, int);
-void pentry(struct lbuf*);
-void pmode(int);
-void select(int*);
-void readdir(char*);
-int nblock(long);
-int compar(struct lbuf*, struct lbuf*);
+struct lbuf *gstat PARAMS((char*, int));
+void pentry PARAMS((struct lbuf*));
+void pmode PARAMS((int));
+void select PARAMS((int*));
+void readdir PARAMS((char*));
+int nblock PARAMS((long));
+int compar PARAMS((struct lbuf*, struct lbuf*));
 
 #define minor(x)	((x) & 0377)
 #define major(x)	((x) >> 8 & 0377)
