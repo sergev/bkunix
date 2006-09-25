@@ -47,9 +47,9 @@
 #define va_list		char*
 #define va_arg(p,t)	((t*) (p += sizeof(t)))[-1]
 
-static char *ksprintn (char*, unsigned long, int, int, unsigned char*);
-static char mkhex (int);
-static void outchar (char);
+static char *ksprintn PARAMS((char*, unsigned long, int, int, unsigned char*));
+static char mkhex PARAMS((int));
+static void outchar PARAMS((char));
 
 int
 vprintf (fmt, ap)

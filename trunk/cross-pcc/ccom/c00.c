@@ -242,6 +242,9 @@ loop:
 			*sp++ = 0;
 			peekc = getchar();
 		}
+		/* Skip cpp flags */
+		while (ctab[peekc]==SPACE || ctab[peekc]==DIGIT)
+			peekc = getchar();
 		if (peekc != '\n') {
 			error("Illegal #");
 			while (getchar()!='\n' && eof==0)

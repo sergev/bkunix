@@ -6,7 +6,6 @@ LDESTDIR	= $(DESTDIR)/lib/pdp11
 CC		= $(DESTDIR)/bin/pdp11-pcc
 AS		= $(DESTDIR)/bin/pdp11-asm
 AR		= $(DESTDIR)/bin/pdp11-ar
-RANLIB		= $(DESTDIR)/bin/pdp11-ranlib
 CPP		= cpp
 CFLAGS		= -O
 CPPFLAGS	=
@@ -16,19 +15,19 @@ SRCS		= aldiv.S almul.S alrem.S csv.S ldiv.S lmul.S lrem.S udiv.S \
 OBJS		= aldiv.o csv.o almul.o alrem.o ldiv.o lmul.o lrem.o udiv.o \
 		  uldiv.o ulrem.o ulsh.o
 
-all:		libpcc.a
+all:		libcrt.a
 
 install:	all
 		[ -d ${LDESTDIR} ] || install -d ${LDESTDIR}
-		install libpcc.a ${LDESTDIR}/libpcc.a
-		${RANLIB} ${LDESTDIR}/libpcc.a
+		install libcrt.a ${LDESTDIR}/libcrt.a
 
 clean:
-		rm -f *~ *.o a.out core libpcc.a
+		rm -f *~ *.o a.out core libcrt.a
 
 
-libpcc.a:	${OBJS}
-		${AR} cru libpcc.a ${OBJS}
+libcrt.a:	${OBJS}
+		@-rm -f $@
+		${AR} cru $@ ${OBJS}
 
 .S.o:
 		${CPP} -E ${CPPFLAGS} $< | $(AS) -o $@

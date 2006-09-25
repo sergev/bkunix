@@ -1,139 +1,141 @@
+#include <ansidecl.h>
+
 /*
  * Terminate the calling process.
  */
-void exit(int);
+void exit PARAMS((int));
 
 /*
  * Create a new process.
  */
-int fork(void);
+int fork PARAMS((void));
 
 /*
  * Read/write file.
  */
-int read(int, char*, int);
-int write(int, char*, int);
+int read PARAMS((int, char*, int));
+int write PARAMS((int, char*, int));
 
 /*
  * Open or create a file for reading or writing.
  */
-int open(char*, int);
+int open PARAMS((char*, int));
 
 /*
  * Close a file.
  */
-int close(int);
+int close PARAMS((int));
 
 /*
  * Get a status of child process.
  */
-int wait(int*);
+int wait PARAMS((int*));
 
 /*
  * Create a new file.
  */
-int creat(char*, int);
+int creat PARAMS((char*, int));
 
 /*
  * Make a file link.
  */
-int link(char*, char*);
+int link PARAMS((char*, char*));
 
 /*
  * Remove directory entry.
  */
-int unlink(char*);
+int unlink PARAMS((char*));
 
 /*
  * Execute a file.
  */
-int execv(char*, char**);
+int execv PARAMS((char*, char**));
 
 /*
  * Change current working directory.
  */
-int chdir(char*);
+int chdir PARAMS((char*));
 
 /*
  * Get time of day.
  */
-void time(long*);
+void time PARAMS((long*));
 
 /*
  * Make a special file node.
  */
-int mknod(char*, int, int);
+int mknod PARAMS((char*, int, int));
 
 /*
  * Change mode of file.
  */
-int chmod(char*, int);
+int chmod PARAMS((char*, int));
 
 /*
  * Increase data segment size.
  */
-char *sbrk(int);
+char *sbrk PARAMS((int));
 
 /*
  * Get file status by file name.
  */
-int stat(char*, int*);
+int stat PARAMS((char*, int*));
 
 /*
  * Reposition read/write file offset.
  */
-int seek(int, unsigned int, int);
+int seek PARAMS((int, unsigned int, int));
 
 /*
  * Get calling process identification.
  */
-int getpid(void);
+int getpid PARAMS((void));
 
 /*
  * Get user identification.
  */
-int getuid(void);
+int getuid PARAMS((void));
 
 /*
  * Set time of day.
  */
-int stime(long*);
+int stime PARAMS((long*));
 
 /*
  * Get/set value of process alarm timer.
  */
-int alarm(int);
+int alarm PARAMS((int));
 
 /*
  * Get file status by file descriptor.
  */
-int fstat(int, int*);
+int fstat PARAMS((int, int*));
 
 /*
  * Stop until signal.
  */
-void pause(void);
+void pause PARAMS((void));
 
 /*
  * Set and get terminal state.
  */
-int stty(int, int*);
-int gtty(int, int*);
+int stty PARAMS((int, int*));
+int gtty PARAMS((int, int*));
 
 /*
  * Force a write of modified buffers out to disk.
  */
-void sync(void);
+void sync PARAMS((void));
 
 /*
  * Duplicate an existing file descriptor.
  */
-int dup(int);
+int dup PARAMS((int));
 
 /*
  * Set signal handler.
  */
-int signal(int, int);
+int signal PARAMS((int, int));
 
 #if 0
 /*

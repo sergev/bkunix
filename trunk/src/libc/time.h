@@ -3,6 +3,7 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  */
+#include <ansidecl.h>
 
 /*
  * Structure returned by gmtime and localtime calls (see ctime(3)).
@@ -21,7 +22,7 @@ struct tm {
 	char	*tm_zone;
 };
 
-struct tm *gmtime(long*);
-struct tm *localtime(long*);
-char *asctime(struct tm*);
-char *ctime(long*);
+struct tm *gmtime PARAMS((long*));
+struct tm *localtime PARAMS((long*));
+char *asctime PARAMS((struct tm*));
+char *ctime PARAMS((long*));
