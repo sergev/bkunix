@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <time.h>
 #include <sys/stat.h>
 #include "ar.h"
 
@@ -36,7 +37,7 @@ struct stat stbuf;
 #define	RSTXT	01000
 
 char	*man = { "mrxtdp" };
-char	*opt = { "uvnbai" };
+char	*opt = { "uvnbaic" };
 
 void	(*comfun)();
 char	flg[26];
@@ -418,7 +419,8 @@ r_cmd()
 
 	init();
 	if (getaf()) {
-		printf("creating %s\n", arnam);
+		if (! flg['c'-'a'])
+			printf("creating %s\n", arnam);
 		cleanup();
 		return;
 	}
@@ -607,6 +609,7 @@ main(argc, argv)
 		case 'n':
 		case 'a':
 		case 'b':
+		case 'c':
 		case 'i':
 			flg[*cp - 'a']++;
 			continue;

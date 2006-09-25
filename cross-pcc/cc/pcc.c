@@ -1,5 +1,5 @@
 /*
- * cc - front end for C compiler
+ * pcc - front end for Johnson's C compiler
  */
 #include <sys/param.h>
 #include <stdlib.h>
@@ -19,18 +19,18 @@ char	*ld = DESTDIR "/bin/pdp11-ld";
 char	*crt0 = DESTDIR "/lib/pdp11/crt0.o";
 
 char	tmp0[30];		/* big enough for /tmp/ctm%05.5d */
-char	*tmp_as, *tmp_cpp, *tmp_opt;
+char	*tmp_asm, *tmp_pre, *tmp_opt;
 char	*outfile;
 char	*savestr(), *strspl(), *setsuf();
 char	**av, **clist, **llist, **plist;
-int	cflag, Oflag, Pflag, Sflag, Eflag, proflag, vflag;
+int	cflag, Oflag, Pflag, Sflag, Eflag, proflag, vflag, Lminusflag;
 int	errflag;
 int	exfail;
 
 int	nc, nl, np, nxo, na;
 
 int getsuf(as)
-char as[];
+	char as[];
 {
 	register int c;
 	register char *s;
@@ -96,10 +96,10 @@ int inlist(l, os)
 void cleanup()
 {
 	if (! Pflag) {
-		if (Sflag==0 && tmp_as)
-			unlink(tmp_as);
-		if (tmp_cpp)
-			unlink(tmp_cpp);
+		if (Sflag==0 && tmp_asm)
+			unlink(tmp_asm);
+		if (tmp_pre)
+			unlink(tmp_pre);
 		if (tmp_opt)
 			unlink(tmp_opt);
 	}
@@ -204,7 +204,10 @@ int main(argc, argv)
 				plist[np++] = argv[i];
 				continue;
 			case 'L':
-				llist[nl++] = argv[i];
+				if (argv[i][2] == '-')
+					Lminusflag++;
+				else
+					llist[nl++] = argv[i];
 				continue;
 			}
 		}
@@ -229,9 +232,9 @@ int main(argc, argv)
 	if (signal(SIGHUP, SIG_IGN) != SIG_IGN)
 		signal(SIGHUP, killed);
 	sprintf(tmp0, "/tmp/ctm%05d", getpid());
-	tmp_as = strspl(tmp0, "3");
+	tmp_asm = strspl(tmp0, "3");
 	if (! Pflag)
-		tmp_cpp = strspl(tmp0, "4");
+		tmp_pre = strspl(tmp0, "4");
 	if (Oflag)
 		tmp_opt = strspl(tmp0, "5");
 	for (i=0; i<nc; i++) {
@@ -245,26 +248,29 @@ int main(argc, argv)
 		}
 		if (Sflag) {
 			if (nc==1 && outfile)
-				tmp_as = outfile;
+				tmp_asm = outfile;
 			else
-				tmp_as = setsuf(clist[i], 's');
+				tmp_asm = setsuf(clist[i], 's');
 		}
-		assource = tmp_as;
+		assource = tmp_asm;
 		if (Pflag)
-			tmp_cpp = setsuf(clist[i], 'i');
+			tmp_pre = setsuf(clist[i], 'i');
 
 		/* Preprocessor. */
 		av[0] = "cpp";
 		na = 1;
+		/* Pcc supports ansi function declarations. */
+		av[na++] = "-D__STDC__=1";
+		av[na++] = "-D__pdp11__=1";
 		for (j = 0; j < np; j++)
 			av[na++] = plist[j];
 		/* Some versions of cpp require no space between -o and file name. */
 		if (Eflag)
 			/* to stdout */;
 		else if (getsuf(clist[i]) == 'S' && ! Pflag)
-			av[na++] = concat("-o", tmp_as);
+			av[na++] = concat("-o", tmp_asm);
 		else
-			av[na++] = concat("-o", tmp_cpp);
+			av[na++] = concat("-o", tmp_pre);
 		av[na++] = clist[i];
 		av[na] = 0;
 		if (callsys(cpp, av)) {
@@ -281,8 +287,8 @@ int main(argc, argv)
 		/* Compiler. */
 		av[0] = "ccom";
 		na = 1;
-		av[na++] = tmp_cpp;
-		av[na++] = Oflag ? tmp_opt : tmp_as;
+		av[na++] = tmp_pre;
+		av[na++] = Oflag ? tmp_opt : tmp_asm;
 		if (proflag)
 			av[na++] = "-P";
 		av[na] = 0;
@@ -297,19 +303,19 @@ int main(argc, argv)
 			av[0] = "c2";
 			na = 1;
 			av[na++] = tmp_opt;
-			av[na++] = tmp_as;
+			av[na++] = tmp_asm;
 			av[na] = 0;
 			if (callsys(c2, av)) {
-				unlink(tmp_as);
-				tmp_as = assource = tmp_opt;
+				unlink(tmp_asm);
+				tmp_asm = assource = tmp_opt;
 			} else
 				unlink(tmp_opt);
 		}
 		if (Sflag)
 			continue;
 assemble:
-		if (tmp_cpp)
-			unlink(tmp_cpp);
+		if (tmp_pre)
+			unlink(tmp_pre);
 
 		/* Assembler. */
 		av[0] = "as";
@@ -336,19 +342,18 @@ nocom:
 		av[0] = "ld";
 		na = 1;
 		av[na++] = "-X";
-		av[na++] = crt0;
 		if (outfile) {
 			av[na++] = "-o";
 			av[na++] = outfile;
 		}
+		av[na++] = crt0;
 		while (i < nl)
 			av[na++] = llist[i++];
-		av[na++] = "-L" DESTDIR "/lib/pdp11";
-		av[na++] = "-lc";
-		if (proflag)
-			av[na++] = "-lpcc_p";
-		else
-			av[na++] = "-lpcc";
+		if (! Lminusflag) {
+			av[na++] = "-L" DESTDIR "/lib/pdp11";
+			av[na++] = proflag ? "-lc_p" : "-lc";
+			av[na++] = proflag ? "-lcrt_p" : "-lcrt";
+		}
 		av[na++] = 0;
 		errflag |= callsys(ld, av);
 		if (nc==1 && nxo==1 && errflag==0)

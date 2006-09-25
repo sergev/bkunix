@@ -1,5 +1,5 @@
 /*
- * cc - front end for C compiler
+ * cc - front end for Rithie's C compiler
  */
 #include <sys/param.h>
 #include <stdlib.h>
@@ -20,35 +20,18 @@ char	*ld = DESTDIR "/bin/pdp11-ld";
 char	*crt0 = DESTDIR "/lib/pdp11/crt0.o";
 
 char	tmp0[30];		/* big enough for /tmp/ctm%05.5d */
-char	*tmp1, *tmp2, *tmp3, *tmp4, *tmp5;
+char	*tmp_c1, *tmp_c2, *tmp_asm, *tmp_pre, *tmp_opt;
 char	*outfile;
 char	*savestr(), *strspl(), *setsuf();
 char	**av, **clist, **llist, **plist;
-int	cflag, eflag, oflag, pflag, sflag, wflag, exflag, proflag;
-int	Mflag, vflag;
+int	cflag, Oflag, Pflag, Sflag, Eflag, proflag, vflag, wflag, Lminusflag;
+int	errflag;
 int	exfail;
-char	*chpass;
-char	*npassname;
 
 int	nc, nl, np, nxo, na;
 
-#define	cunlink(s)	if (s) unlink(s)
-
-void error(s, x)
-	char *s, *x;
-{
-	FILE *diag = exflag ? stderr : stdout;
-
-	fprintf(diag, "cc: ");
-	fprintf(diag, s, x);
-	putc('\n', diag);
-	exfail++;
-	cflag++;
-	eflag++;
-}
-
 int getsuf(as)
-char as[];
+	char as[];
 {
 	register int c;
 	register char *s;
@@ -99,23 +82,26 @@ int inlist(l, os)
 	return (0);
 }
 
-void dexit()
+void cleanup()
 {
-	if (!pflag) {
-		cunlink(tmp1);
-		cunlink(tmp2);
-		if (sflag==0)
-			cunlink(tmp3);
-		cunlink(tmp4);
-		cunlink(tmp5);
+	if (! Pflag) {
+		if (tmp_c1)
+			unlink(tmp_c1);
+		if (tmp_c2)
+			unlink(tmp_c2);
+		if (Sflag==0 && tmp_asm)
+			unlink(tmp_asm);
+		if (tmp_pre)
+			unlink(tmp_pre);
+		if (tmp_opt)
+			unlink(tmp_opt);
 	}
-	exit(eflag);
 }
 
-void idexit()
+void killed()
 {
-	eflag = 100;
-	dexit();
+	cleanup();
+	exit(100);
 }
 
 int callsys(f, v)
@@ -144,11 +130,12 @@ int callsys(f, v)
 	while (t != wait(&status))
 		;
 	if ((t=(status&0377)) != 0 && t!=14) {
+		cleanup();
 		if (t!=2) {
 			printf("Fatal error in %s\n", f);
-			eflag = 8;
+			exit(8);
 		}
-		dexit();
+		exit(errflag);
 	}
 	return ((status>>8) & 0377);
 }
@@ -166,82 +153,63 @@ int main(argc, argv)
 	llist = (char **)calloc(argc, sizeof (char **));
 	plist = (char **)calloc(argc, sizeof (char **));
 	for (i = 1; i < argc; i++) {
-		if (*argv[i] == '-') switch (argv[i][1]) {
-
-		case 'S':
-			sflag++;
-			cflag++;
-			continue;
-		case 'o':
-			if (++i < argc) {
-				outfile = argv[i];
-				switch (getsuf(outfile)) {
-
-				case 'c':
-					error("-o would overwrite %s",
-					    outfile);
-					exit(8);
+		if (*argv[i] == '-') {
+			switch (argv[i][1]) {
+			case 'S':
+				Sflag++;
+				cflag++;
+				continue;
+			case 'o':
+				if (++i < argc) {
+					outfile = argv[i];
+					switch (getsuf(outfile)) {
+					case 'c':
+						fprintf(stderr, "cc: -o would overwrite %s\n",
+						    outfile);
+						exit(8);
+					}
 				}
+				continue;
+			case 'O':
+				Oflag++;
+				continue;
+			case 'p':
+				proflag++;
+				crt0 = DESTDIR "/lib/pdp11/mcrt0.o";
+				if (argv[i][2] == 'g')
+					crt0 = DESTDIR "/lib/pdp11/gcrt0.o";
+				continue;
+			case 'w':
+				wflag++;
+				continue;
+			case 'v':
+				vflag++;
+				continue;
+			case 'E':
+				Eflag++;
+			case 'P':
+				Pflag++;
+				plist[np++] = argv[i];
+			case 'c':
+				cflag++;
+				continue;
+			case 'D':
+			case 'I':
+			case 'U':
+			case 'C':
+				plist[np++] = argv[i];
+				continue;
+			case 'L':
+				if (argv[i][2] == '-')
+					Lminusflag++;
+				else
+					llist[nl++] = argv[i];
+				continue;
 			}
-			continue;
-		case 'O':
-			oflag++;
-			continue;
-		case 'p':
-			proflag++;
-			crt0 = DESTDIR "/lib/pdp11/mcrt0.o";
-			if (argv[i][2] == 'g')
-				crt0 = DESTDIR "/lib/pdp11/gcrt0.o";
-			continue;
-		case 'w':
-			wflag++;
-			continue;
-		case 'v':
-			vflag++;
-			continue;
-		case 'E':
-			exflag++;
-		case 'P':
-			pflag++;
-			if (argv[i][1]=='P')
-				fprintf(stderr,
-	"cc: warning: -P option obsolete; you should use -E instead\n");
-			plist[np++] = argv[i];
-		case 'c':
-			cflag++;
-			continue;
-		case 'M':
-			exflag++;
-			pflag++;
-			Mflag++;
-			/* and fall through */
-		case 'D':
-		case 'I':
-		case 'U':
-		case 'C':
-			plist[np++] = argv[i];
-			continue;
-		case 'L':
-			llist[nl++] = argv[i];
-			continue;
-		case 't':
-			if (chpass)
-				error("-t overwrites earlier option", 0);
-			chpass = argv[i]+2;
-			if (chpass[0]==0)
-				chpass = "012p";
-			continue;
-		case 'B':
-			if (npassname)
-				error("-B overwrites earlier option", 0);
-			npassname = argv[i]+2;
-			if (npassname[0]==0)
-				npassname = "/usr/c/o";
-			continue;
 		}
 		t = argv[i];
 		c = getsuf(t);
-		if (c=='c' || c=='s' || c=='S' || exflag) {
+		if (c=='c' || c=='s' || c=='S' || Eflag) {
 			clist[nc++] = t;
 			t = setsuf(t, 'o');
 		}
@@ -251,86 +219,76 @@ int main(argc, argv)
 				nxo++;
 		}
 	}
-	if (npassname && chpass ==0)
-		chpass = "012p";
-	if (chpass && npassname==0)
-		npassname = "/usr/new";
-	if (chpass)
-	for (t=chpass; *t; t++) {
-		switch (*t) {
-
-		case '0':
-			ccom = strspl(npassname, "c0");
-			continue;
-		case '1':
-			ccom1 = strspl(npassname, "c1");
-			continue;
-		case '2':
-			c2 = strspl(npassname, "c2");
-			continue;
-		case 'p':
-			cpp = strspl(npassname, "cpp");
-			continue;
-		}
-	}
 	if (nc==0)
 		goto nocom;
 	if (signal(SIGINT, SIG_IGN) != SIG_IGN)
-		signal(SIGINT, idexit);
+		signal(SIGINT, killed);
 	if (signal(SIGTERM, SIG_IGN) != SIG_IGN)
-		signal(SIGTERM, idexit);
+		signal(SIGTERM, killed);
 	if (signal(SIGHUP, SIG_IGN) != SIG_IGN)
-		signal(SIGHUP, idexit);
-	if (pflag==0)
-		sprintf(tmp0, "/tmp/ctm%05d", getpid());
-	tmp1 = strspl(tmp0, "1");
-	tmp2 = strspl(tmp0, "2");
-	tmp3 = strspl(tmp0, "3");
-	if (pflag==0)
-		tmp4 = strspl(tmp0, "4");
-	if (oflag)
-		tmp5 = strspl(tmp0, "5");
+		signal(SIGHUP, killed);
+	sprintf(tmp0, "/tmp/ctm%05d", getpid());
+	tmp_c1 = strspl(tmp0, "1");
+	tmp_c2 = strspl(tmp0, "2");
+	tmp_asm = strspl(tmp0, "3");
+	if (! Pflag)
+		tmp_pre = strspl(tmp0, "4");
+	if (Oflag)
+		tmp_opt = strspl(tmp0, "5");
 	for (i=0; i<nc; i++) {
-		if (nc > 1 && !Mflag) {
+		if (nc > 1) {
 			printf("%s:\n", clist[i]);
 			fflush(stdout);
 		}
-		if (!Mflag && getsuf(clist[i]) == 's') {
+		if (getsuf(clist[i]) == 's') {
 			assource = clist[i];
 			goto assemble;
-		} else
-			assource = tmp3;
-		if (pflag)
-			tmp4 = setsuf(clist[i], 'i');
-		/* Have to use -P - old CC does not grok # line directives */
-		av[0] = "cpp"; av[1] = "-P"; av[2] = clist[i];
-		na = 3;
-		if (!exflag)
-			av[na++] = tmp4;
+		}
+		if (Sflag) {
+			if (nc==1 && outfile)
+				tmp_asm = outfile;
+			else
+				tmp_asm = setsuf(clist[i], 's');
+		}
+		assource = tmp_asm;
+		if (Pflag)
+			tmp_pre = setsuf(clist[i], 'i');
+
+		/* Preprocessor. */
+		av[0] = "cpp";
+		na = 1;
+		/* Rithie's cc does not support ansi function declarations.
+		 * To make __STDC__=0 we need to use -traditional option. */
+		av[na++] = "-traditional";
+		av[na++] = "-D__pdp11__=1";
 		for (j = 0; j < np; j++)
 			av[na++] = plist[j];
-		av[na++] = 0;
+		if (! Eflag) {
+			av[na++] = "-o";
+			if (getsuf(clist[i]) == 'S' && ! Pflag)
+				av[na++] = tmp_asm;
+			else
+				av[na++] = tmp_pre;
+		}
+		av[na++] = clist[i];
+		av[na] = 0;
 		if (callsys(cpp, av)) {
 			exfail++;
-			eflag++;
+			errflag++;
 		}
-		if (pflag || exfail) {
+		if (Pflag || exfail) {
 			cflag++;
 			continue;
 		}
-		if (sflag) {
-			if (nc==1 && outfile)
-				tmp3 = outfile;
-			else
-				tmp3 = setsuf(clist[i], 's');
-			assource = tmp3;
-		}
-		if (getsuf(clist[i]) == 'S') {
-			assource = tmp4;
+		if (getsuf(clist[i]) == 'S')
 			goto assemble;
-		}
+
+		/* Compiler pass 1. */
 		av[0] = "c0";
-		av[1] = tmp4; av[2] = tmp1; av[3] = tmp2; na = 4;
+		na = 1;
+		av[na++] = tmp_pre;
+		av[na++] = tmp_c1;
+		av[na++] = tmp_c2;
 		if (proflag)
 			av[na++] = "-P";
 		if (wflag)
@@ -338,66 +296,90 @@ int main(argc, argv)
 		av[na] = 0;
 		if (callsys(ccom, av)) {
 			cflag++;
-			eflag++;
+			errflag++;
 			continue;
 		}
-		av[0] = "c1"; av[1] = tmp1; av[2] = tmp2;
-		av[3] = oflag ? tmp5 : tmp3;
-		av[4] = 0;
+
+		/* Compiler pass 2. */
+		av[0] = "c1";
+		na = 1;
+		av[na++] = tmp_c1;
+		av[na++] = tmp_c2;
+		av[na++] = Oflag ? tmp_opt : tmp_asm;
+		av[na] = 0;
 		if (callsys(ccom1, av)) {
 			cflag++;
-			eflag++;
+			errflag++;
 			continue;
 		}
-		if (oflag) {
-			av[0] = "c2"; av[1] = tmp5; av[2] = tmp3; av[3] = 0;
+
+		/* Optimizer. */
+		if (Oflag) {
+			av[0] = "c2";
+			na = 1;
+			av[na++] = tmp_opt;
+			av[na++] = tmp_asm;
+			av[na] = 0;
 			if (callsys(c2, av)) {
-				unlink(tmp3);
-				tmp3 = assource = tmp5;
+				unlink(tmp_asm);
+				tmp_asm = assource = tmp_opt;
 			} else
-				unlink(tmp5);
+				unlink(tmp_opt);
 		}
-		if (sflag)
+		if (Sflag)
 			continue;
 assemble:
-		cunlink(tmp1); cunlink(tmp2);
+		if (tmp_pre)
+			unlink(tmp_pre);
+		if (tmp_c1)
+			unlink(tmp_c1);
+		if (tmp_c2)
+			unlink(tmp_c2);
+
+		/* Assembler. */
 		av[0] = "as";
-		av[1] = "-u";
-		av[2] = "-o";
+		na = 1;
+		av[na++] = "-u";
+		av[na++] = "-o";
 		if (cflag && nc==1 && outfile)
-			av[3] = outfile;
+			av[na++] = outfile;
 		else
-			av[3] = setsuf(clist[i], 'o');
-		av[4] = assource;
-		av[5] = 0;
+			av[na++] = setsuf(clist[i], 'o');
+		av[na++] = assource;
+		av[na] = 0;
 		if (callsys(as, av) > 1) {
 			cflag++;
-			eflag++;
+			errflag++;
 			continue;
 		}
-		cunlink(tmp4);
 	}
 nocom:
 	if (cflag==0 && nl!=0) {
 		i = 0;
-		av[0] = "ld"; av[1] = "-X"; av[2] = crt0; na = 3;
+
+		/* Linker. */
+		av[0] = "ld";
+		na = 1;
+		av[na++] = "-X";
 		if (outfile) {
 			av[na++] = "-o";
 			av[na++] = outfile;
 		}
+		av[na++] = crt0;
 		while (i < nl)
 			av[na++] = llist[i++];
-		if (proflag)
-			av[na++] = "-lc_p";
-		else
-			av[na++] = "-lc";
+		if (! Lminusflag) {
+			av[na++] = "-L" DESTDIR "/lib/pdp11";
+			av[na++] = proflag ? "-lc_p" : "-lc";
+			av[na++] = proflag ? "-lcrt_p" : "-lcrt";
+		}
 		av[na++] = 0;
-		eflag |= callsys(ld, av);
-		if (nc==1 && nxo==1 && eflag==0)
+		errflag |= callsys(ld, av);
+		if (nc==1 && nxo==1 && errflag==0)
 			unlink(setsuf(clist[0], 'o'));
 	}
-	dexit();
-	return (0);
+	cleanup();
+	return (errflag);
 }
 
 #define	NSAVETAB	1024

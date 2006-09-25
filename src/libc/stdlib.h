@@ -1,4 +1,6 @@
-int printf();
-int vprintf (char*, char*);
-void qsort(char*, int, int, int (*)());
-int atoi(char*);
+#include <ansidecl.h>
+
+int printf PARAMS(());
+int vprintf PARAMS((char*, char*));
+void qsort PARAMS((char*, int, int, int (*)()));
+int atoi PARAMS((char*));

@@ -10,7 +10,6 @@ DESTDIR		= /usr/local/lib/pdp11
 CC		= pdp11-pcc
 AS		= pdp11-asm
 AR		= pdp11-ar
-RANLIB		= pdp11-ranlib
 CPP		= cpp
 CFLAGS		= -O
 CPPFLAGS	= -I.
@@ -42,14 +41,14 @@ install:	all
 		[ -d ${DESTDIR} ] || install -d ${DESTDIR}
 		install crt0.o ${DESTDIR}/crt0.o
 		install libc.a ${DESTDIR}/libc.a
-		${RANLIB} ${DESTDIR}/libc.a
 
 clean:
 		rm -f *~ *.o a.out core libc.a
 
 
 libc.a:		${OBJS}
-		${AR} cru libc.a ${OBJS}
+		@-rm -f $@
+		${AR} cru $@ ${OBJS}
 
 .S.o:
 		${CC} ${CPPFLAGS} -c $<

@@ -1,5 +1,5 @@
 DESTDIR		= /usr/local
-CFLAGS		= -O -Wall -DDESTDIR=\"$(DESTDIR)\"
+CFLAGS		= -O -g -Wall -DDESTDIR=\"$(DESTDIR)\"
 
 all:		c0 c1 c2o
 
@@ -9,7 +9,7 @@ install:	c0 c1 c2o
 		install -s c2o ${DESTDIR}/lib/pdp11/c2o
 
 clean:
-		rm -f *~ *.o c0 c1 cvopt table.c
+		rm -f *~ *.o c0 c1 c2o cvopt table.c
 
 c0:		c00.o c01.o c02.o c03.o c04.o c05.o
 		${CC} ${LDFLAGS} -o c0 c00.o c01.o c02.o c03.o c04.o c05.o
