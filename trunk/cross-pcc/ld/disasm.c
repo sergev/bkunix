@@ -445,6 +445,7 @@ praddr (address, rel)
 {
 	struct nlist *sym;
 	char *name;
+	int offset;
 
 	if ((rel & A_RMASK) == A_REXT) {
 		sym = stab + A_RINDEX (rel);
@@ -466,12 +467,22 @@ praddr (address, rel)
 		printf ("%#o", address);
 
 	sym = findsym (address);
-	if (address == sym->n_value)
-		printf (" <%.8s>", sym->n_name);
-	else if (address - sym->n_value < 8)
-		printf (" <%.8s+%d>", sym->n_name, address - sym->n_value);
+	printf (" <%.8s", sym->n_name);
+	if (address == sym->n_value) {
+		printf (">");
+		return;
+	}
+	offset = address - sym->n_value;
+	if (offset >= 0) {
+		printf ("+");
+	} else {
+		printf ("-");
+		offset = - offset;
+	}
+	if (offset < 8)
+		printf ("%d>", offset);
 	else
-		printf (" <%.8s+%#o>", sym->n_name, address - sym->n_value);
+		printf ("%#o>", offset);
 }
 
 /*
@@ -884,6 +895,11 @@ disasm (fname)
 		printf ("\nDisassembly of section .data:\n");
 		prsection (&addr, baseaddr + hdr.a_text + hdr.a_data);
 		prsym (addr);
+	}
+	if (hdr.a_bss > 0) {
+		printf ("\nDisassembly of section .bss:\n");
+		printf ("%06o <.bss>:\t\t\t. = .+%d\n",
+			symbss.n_value, hdr.a_bss);
 	}
 
 	fclose (textfd);

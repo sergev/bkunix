@@ -229,14 +229,20 @@ getarhdr(hdr, fd)
 	FILE *fd;
 {
 #ifdef __pdp11__
-	fread(hdr, sizeof(*hdr), 1, fd);
+	fread(hdr, AR_HDRSIZE, 1, fd);
 #else
-	fread(hdr->ar_name, sizeof(hdr->ar_name), 1, fd);
-	fread(&hdr->ar_date, sizeof(hdr->ar_date), 1, fd);
-	hdr->ar_uid = getc(fd);
-	hdr->ar_gid = getc(fd);
-	hdr->ar_mode = getword(fd);
-	fread(&hdr->ar_size, sizeof(hdr->ar_size), 1, fd);
+	unsigned char buf [AR_HDRSIZE];
+
+	if (fread(buf, AR_HDRSIZE, 1, fd) != 1)
+		return;
+	memcpy(hdr->ar_name, buf, sizeof(hdr->ar_name));
+	hdr->ar_date = buf[16] | buf[17] << 8 |
+		(unsigned long) buf[14] << 16 | (unsigned long) buf[15] << 24;
+	hdr->ar_uid = buf[18];
+	hdr->ar_gid = buf[19];
+	hdr->ar_mode = buf[20] | buf[21] << 8;
+	hdr->ar_size = buf[24] | buf[25] << 8 |
+		(unsigned long) buf[22] << 16 | (unsigned long) buf[23] << 24;
 #endif
 }
 
@@ -325,7 +331,7 @@ getfile(cp)
 	}
 	/* Is it an archive? */
 	c = getword(text);
-	if (ferror(text))
+	if (feof(text) || ferror(text))
 		error(1, "Empty file");
 	return (c == ARCMAGIC);
 }
@@ -428,27 +434,38 @@ void
 load1arg(filename)
 	register char *filename;
 {
-	register int loff;
+	register int loff, nlinked;
 
 	if (getfile(filename)==0) {
+/*printf("load1arg: %s\n", filename);*/
 		load1(0, 0, 0);
 		fclose(text);
 		return;
 	}
+again:
 	loff = 2;
+	nlinked = 0;
 	for (;;) {
+/*printf("load1arg: seek %d\n", loff);*/
 		fseek(text, loff, 0);
 		getarhdr(&archdr, text);
-		if (ferror(text)) {
-			*libp++ = 0;
+		if (feof(text) || ferror(text)) {
+			if (nlinked) {
+				/* Scan archive again until
+				 * no unreferenced symbols found. */
+				goto again;
+			}
 			break;
 		}
 		if (load1(1, loff + AR_HDRSIZE)) {
+/*printf("load1arg: %s(%.8s)\n", filename, archdr.ar_name);*/
 			*libp++ = loff;
+			nlinked++;
 		}
 		loff += archdr.ar_size + AR_HDRSIZE;
 	}
 	fclose(text);
+	*libp++ = 0;
 }
 
 void
@@ -556,6 +573,7 @@ middle()
 		ssize = 0;
 	bsize += csize;
 	nsym = ssize / (sizeof cursym);
+/*printf("middle: %d + %d (%d) + %d, nsym = %d\n", tsize, dsize, csize, bsize, nsym);*/
 }
 
 void
@@ -599,7 +617,7 @@ load2td(words, lp, creloc, b1, b2)
 	while (words-- > 0) {
 		t = getword (text);
 		r = getword (reloc);
-		if (ferror (reloc))
+		if (feof(reloc) || ferror (reloc))
 			error(1, "Relocation error");
 		switch (r & A_RMASK) {
 		case A_RTEXT:
@@ -700,6 +718,7 @@ load2arg(filename)
 	char *p;
 
 	if (getfile(filename) == 0) {
+/*printf("load2arg: %s\n", filename);*/
 		reloc = fdopen(fileno(text), "r");
 		p = strrchr (filename, '/');
 		if (p)
@@ -714,6 +733,7 @@ load2arg(filename)
 	for (lp = libp; *lp > 0; lp++) {
 		fseek(text, *lp, 0);
 		getarhdr(&archdr, text);
+/*printf("load2arg: %s(%.8s) offset %ld\n", filename, archdr.ar_name, *lp);*/
 		mkfsym(archdr.ar_name);
 		fwrite(&cursym, sizeof cursym, 1, soutb);
 		load2(*lp + AR_HDRSIZE);
@@ -833,11 +853,13 @@ main(argc, argv)
 	for (c=1; c<argc; c++) {
 		ap = *p++;
 		if (*ap == '-') switch (ap[1]) {
-		case 'u':
-			++c;
-			++p;
 		case 'l':
 			break;
+		case 'u':
+		case 'a':
+		case 'o':
+			++c;
+			++p;
 		default:
 			continue;
 		}
