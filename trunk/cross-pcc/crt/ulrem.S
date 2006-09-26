@@ -57,6 +57,11 @@ ENTRY(ulrem)
 	clr	r0
 	mov	$1,r1
 	sub	(sp)+,r4	/ difference in scale (rhs - lhs)
+	bhis	4f
+	mov	8(sp),r0	/ lhs < rhs
+	mov	10(sp),r1	/ return it
+	br	9f
+4:
 	ashc	r4,r0		/ initial quotient adder
 	mov	r1,-(sp)	/ quoadder lo
 	mov	r0,-(sp)	/ quoadder hi

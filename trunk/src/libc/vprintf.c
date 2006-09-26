@@ -69,11 +69,13 @@ ksprintn (nbuf, ul, base, width, lenp)
 	unsigned char *lenp;
 {
 	char *p;
+	int digit;
 
 	p = nbuf;
 	*p = 0;
 	for (;;) {
-		*++p = mkhex (ul % base);
+		digit = ul % base;
+		*++p = mkhex (digit);
 		ul /= base;
 		if (--width > 0)
 			continue;
@@ -312,7 +314,7 @@ number:			if (sign && (long) ul < 0L) {
 				neg = 1;
 				ul = -(long) ul;
 			}
-			if (dwidth >= (int) sizeof(nbuf)) {
+			if (dwidth > 0 && dwidth >= sizeof(nbuf)) {
 				extrazeros = dwidth - sizeof(nbuf) + 1;
 				dwidth = sizeof(nbuf) - 1;
 			}
