@@ -892,7 +892,7 @@ loop:
 	 * Mask used in field assignments
 	 */
 	case 'Z':
-		printf("$%#o", UNS(tree->F.mask));
+		printf("$%d", UNS(tree->F.mask));
 		goto loop;
 
 	/*
@@ -1231,7 +1231,7 @@ int *flagp;
 		} else {
 			if (retval!=0)
 				printf("mov	r%d,r0\n", retval);
-			printf("mov	$%#o,r1\n", UNS(size));
+			printf("mov	$%d,r1\n", UNS(size));
 			printf("L%d:mov	-(r0),-(sp)\ndec\tr1\njne\tL%d\n", isn, isn);
 			isn++;
 		}
