@@ -841,7 +841,7 @@ disasm (fname)
 			fclose (textfd);
 			return;
 		}
-		addsym (sym.n_name, sym.n_type, sym.n_value + baseaddr);
+		addsym (sym.n_name, sym.n_type, sym.n_value);
 	}
 	symtext.n_value = baseaddr;
 	symdata.n_value = baseaddr + hdr.a_text;
@@ -898,8 +898,10 @@ disasm (fname)
 	}
 	if (hdr.a_bss > 0) {
 		printf ("\nDisassembly of section .bss:\n");
-		printf ("%06o <.bss>:\t\t\t. = .+%d\n",
-			symbss.n_value, hdr.a_bss);
+		printf ("%06o <.bss>:\t\t\t", symbss.n_value);
+		if (rflag)
+			printf ("\t");
+		printf (". = .+%d\n", hdr.a_bss);
 	}
 
 	fclose (textfd);

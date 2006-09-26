@@ -1,39 +1,38 @@
-#	Makefile	1.3	(2.11BSD) 96/7/11
-#
+DESTDIR		= /usr/local
+CFLAGS		= -O -g -Wall -DFLEXNAMES
 
-# Defined SHARED_DATA to be whatever will make your compiler make initialized
-# variables shared and read only.  Don't do this on a PDP-11 if you're also
-# compiling separate I&D since doing so puts the shared data in text space
-# which can't be accessed normally.
-#
-#SHARED_DATA=-R
+all:		cpp
 
-# CFLAGS=-O -Dunix=1 -DFLEXNAMES
-# If you don't have split I/D, you'll have to edit the constant
-# SBSIZE in cpp.c to reflect this.
+install:	cpp
+		install -s cpp $(DESTDIR)/lib/pdp11/cpp
 
-CFLAGS=-O -Dpdp11=1 -DFLEXNAMES -DBSD2_11 -UBSD2_10
-SEPFLAG=-i
+clean:
+		rm -f *~ *.s *.o cpy.c cpp
 
-cpp :	cpp.o cpy.o rodata.o
-	$(CC) $(CFLAGS) $(SEPFLAG) -o cpp rodata.o cpp.o cpy.o
+cpp:		cpp.o cpy.o
+		$(CC) $(CFLAGS) -o $@ cpp.o cpy.o
 
-cpy.c : cpy.y
-	yacc cpy.y
-	../pcc/:yyfix yyexca yyact yypact yypgo yyr1 yyr2 yychk yydef
-	mv y.tab.c cpy.c
+cpy.c:		cpy.y
+		byacc cpy.y
+		mv y.tab.c cpy.c
 
-cpy.o :	cpy.c yylex.c
+cpy.o:		cpy.c yylex.c
 
-rodata.o : cpy.c
-	$(CC) $(CFLAGS) ${SHARED_DATA} -c rodata.c
+depend:		cpy.c
+		@cp Makefile Makefile~~
+		(sed '/^### DO NOT DELETE THIS LINE/,$$d' Makefile;\
+		echo '### DO NOT DELETE THIS LINE';\
+		gcc -MM $(CFLAGS) *.c |\
+		sed ':1;/\.o: .* \\/{;N;s/ *\\\n */ /;};s/ \/[^ ]*h */ /;t1';\
+		echo '# DEPENDENCIES MUST END AT END OF FILE';\
+		echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY';\
+		echo '# see make depend above') > Makefile~ &&\
+		mv Makefile~ Makefile
 
-clean :
-	rm -f *.s *.o cpy.c rodata.c cpp
-
-install : cpp
-	install -s cpp $(DESTDIR)/lib
-
-sources : cpp.c cpy.y yylex.c README
-cpp.c cpy.y yylex.c README :
-	sccs get $@
+### DO NOT DELETE THIS LINE
+cpp.o: cpp.c
+cpy.o: cpy.c yylex.c
+yylex.o: yylex.c
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

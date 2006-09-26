@@ -130,12 +130,14 @@ main(argc, argv)
 	while (txtsiz--) {
 		switch (*(short*) relp & (A_RMASK | A_RPCREL)) {
 		case A_RPCREL:		/* pc ref to abs */
-			*txtp -= dotdot;
+			*(short*) txtp -= dotdot;
 			break;
 		case A_RTEXT:		/* ref to text */
 		case A_RDATA:		/* ref to data */
 		case A_RBSS:		/* ref to bss */
-			*txtp += dotdot;
+/*printf("%06o", *(unsigned short*) txtp);*/
+			*(short*) txtp += dotdot;
+/*printf(" -> %06o (dotdot = %#o)\n", *(unsigned short*) txtp, dotdot);*/
 		}
 		advance();
 	}
@@ -149,10 +151,11 @@ main(argc, argv)
 	txtw = read(fin, tbuf, 512);
 	symp = (struct nlist*) &tbuf[relloc & 0777];
 	while (txtsiz >= sizeof(struct nlist)) {
-		switch (symp->n_type & (N_TYPE | N_EXT)) {
+		switch (symp->n_type & N_TYPE) {
 		case N_TEXT:
 		case N_DATA:
 		case N_BSS:
+		case N_FN:
 			symp->n_value += dotdot;
 		}
 		++symp;

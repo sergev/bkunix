@@ -1,4 +1,4 @@
-SUBDIR		= cc pcc c2 ccom as ld crt
+SUBDIR		= cc pcc c2 ccom cpp as ld crt
 
 DESTDIR		= /usr/local
 all:

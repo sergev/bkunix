@@ -11,7 +11,7 @@
 #include <sys/dir.h>
 #include <sys/wait.h>
 
-char	*cpp = "/usr/bin/cpp";
+char	*cpp = DESTDIR "/lib/pdp11/cpp";
 char   *ccom = DESTDIR "/lib/pdp11/c0";
 char   *ccom1 = DESTDIR "/lib/pdp11/c1";
 char   *c2 = DESTDIR "/lib/pdp11/c2";
@@ -257,9 +257,7 @@ int main(argc, argv)
 		/* Preprocessor. */
 		av[0] = "cpp";
 		na = 1;
-		/* Rithie's cc does not support ansi function declarations.
-		 * To make __STDC__=0 we need to use -traditional option. */
-		av[na++] = "-traditional";
+		/* Ritchie's cc does not support ansi function declarations. */
 		av[na++] = "-D__pdp11__=1";
 		for (j = 0; j < np; j++)
 			av[na++] = plist[j];

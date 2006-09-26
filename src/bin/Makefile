@@ -4,26 +4,28 @@
 
 # Johnson's portable compiler.
 CC		= pdp11-pcc
-CFLAGS		= -I../libc
 
-# Using GNU binutils.
+# Using BSD cross-compiler.
 AS		= pdp11-as
 LD		= pdp11-ld
 SIZE		= pdp11-size -o
-LDFLAGS		= -a$(TOPSYS) -X /usr/local/lib/pdp11/crt0.o
-LIBS		= -L/usr/local/lib/pdp11 -lc -lcrt
+RELOC		= pdp11-reloc
+CFLAGS		= -I../libc
+LDFLAGS		= -r -d
 
 TOPSYS		= 040000
-PROGS		= hello sync #ls sh
+PROGS		= hello #sync #ls sh
 # TODO: check cp date ed mkdir mv od rm rmdir size strip stty
 
 all:		$(PROGS)
 
 clean:
-		rm -f *~ *.o a.out $(PROGS)
+		rm -f *~ *.o *.dis a.out $(PROGS)
 
 %: %.o
-		$(LD) $(LDFLAGS) -o $@ $^ $(LIBS)
+#		$(CC) $(LDFLAGS) -o $@ $^
+#		$(RELOC) $@ $(TOPSYS)
+		$(LD) -a$(TOPSYS) -X -o $@ /usr/local/lib/pdp11/crt0.o $^ -L/usr/local/lib/pdp11 -lc -lcrt
 		pdp11-disasm -b$(TOPSYS) $@ > $@.dis
 
 .c.s:
