@@ -1,3 +1,6 @@
+# Base address of user programs.
+TOPSYS		= 040000
+
 # GNU compiler.
 #CC		= pdp11-gcc -Wall
 #CFLAGS		= -Os -fomit-frame-pointer -fno-builtin -I../libc
@@ -5,16 +8,17 @@
 # Johnson's portable compiler.
 CC		= pdp11-pcc
 
+# Ritchie's compiler.
+#CC		= pdp11-cc
+
 # Using BSD cross-compiler.
 AS		= pdp11-as
 LD		= pdp11-ld
 SIZE		= pdp11-size -o
-RELOC		= pdp11-reloc
 CFLAGS		= -I../libc
-LDFLAGS		= -r -d
+LDFLAGS		= -a$(TOPSYS)
 
-TOPSYS		= 040000
-PROGS		= hello #sync #ls sh
+PROGS		= hello echo cal testarith testprintf #sync #ls sh
 # TODO: check cp date ed mkdir mv od rm rmdir size strip stty
 
 all:		$(PROGS)
@@ -23,10 +27,8 @@ clean:
 		rm -f *~ *.o *.dis a.out $(PROGS)
 
 %: %.o
-#		$(CC) $(LDFLAGS) -o $@ $^
-#		$(RELOC) $@ $(TOPSYS)
-		$(LD) -a$(TOPSYS) -X -o $@ /usr/local/lib/pdp11/crt0.o $^ -L/usr/local/lib/pdp11 -lc -lcrt
-		pdp11-disasm -b$(TOPSYS) $@ > $@.dis
+		$(CC) $(LDFLAGS) -o $@ $^
+		pdp11-disasm -a$(TOPSYS) $@ > $@.dis
 
 .c.s:
 		$(CC) $(CFLAGS) -S $<
@@ -42,10 +44,12 @@ depend:
 		mv Makefile~ Makefile
 
 ### DO NOT DELETE THIS LINE
+cal.o: cal.c ../libc/stdlib.h ../libc/ansidecl.h
 check.o: check.c
 cp.o: cp.c
 cpfp.o: cpfp.c
 date.o: date.c
+echo.o: echo.c ../libc/stdlib.h ../libc/ansidecl.h
 ed.o: ed.c
 hello.o: hello.c ../libc/stdlib.h ../libc/ansidecl.h
 ls.o: ls.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/string.h ../libc/unistd.h ../libc/time.h

@@ -95,26 +95,25 @@ time.o: time.S syscall.h
 unlink.o: unlink.S syscall.h
 wait.o: wait.S syscall.h
 write.o: write.S syscall.h
-atoi.o: atoi.c stdlib.h
-ctime.o: ctime.c stdlib.h
-memccpy.o: memccpy.c string.h
-memchr.o: memchr.c string.h
-memcmp.o: memcmp.c string.h
-memcpy.o: memcpy.c string.h
-memset.o: memset.c string.h
-printf.o: printf.c stdlib.h
-qsort-211.o: qsort-211.c stdlib.h
-qsort.o: qsort.c stdlib.h
-strcat.o: strcat.c string.h
-strchr.o: strchr.c string.h
-strcmp.o: strcmp.c string.h
-strcpy.o: strcpy.c string.h
-strlen.o: strlen.c string.h
-strncat.o: strncat.c string.h
-strncmp.o: strncmp.c string.h
-strncpy.o: strncpy.c string.h
-strrchr.o: strrchr.c string.h
-vprintf.o: vprintf.c stdlib.h
+atoi.o: atoi.c stdlib.h ansidecl.h
+ctime.o: ctime.c time.h ansidecl.h string.h
+memccpy.o: memccpy.c string.h ansidecl.h
+memchr.o: memchr.c string.h ansidecl.h
+memcmp.o: memcmp.c string.h ansidecl.h
+memcpy.o: memcpy.c string.h ansidecl.h
+memset.o: memset.c string.h ansidecl.h
+printf.o: printf.c stdlib.h ansidecl.h stdarg.h
+qsort.o: qsort.c stdlib.h ansidecl.h
+strcat.o: strcat.c string.h ansidecl.h
+strchr.o: strchr.c string.h ansidecl.h
+strcmp.o: strcmp.c string.h ansidecl.h
+strcpy.o: strcpy.c string.h ansidecl.h
+strlen.o: strlen.c string.h ansidecl.h
+strncat.o: strncat.c string.h ansidecl.h
+strncmp.o: strncmp.c string.h ansidecl.h
+strncpy.o: strncpy.c string.h ansidecl.h
+strrchr.o: strrchr.c string.h ansidecl.h
+vprintf.o: vprintf.c stdlib.h ansidecl.h stdarg.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
 # see make depend above

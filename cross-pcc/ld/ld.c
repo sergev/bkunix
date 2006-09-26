@@ -125,7 +125,7 @@ lookup(name)
 	register char *cp;
 
 	hash = 0;
-	for (cp=name; cp < name+sizeof(cursym.n_name); )
+	for (cp=name; cp < name+sizeof(cursym.n_name) && *cp; )
 		hash = (hash << 1) + *cp++;
 	hash &= 077777;
 	hp = &hshtab[hash % NSYM + 2];

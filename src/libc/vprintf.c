@@ -40,16 +40,57 @@
  *	("%#*D", len, ptr) -> XX:XX:XX:XX ...
  */
 #include <stdlib.h>
+#include <stdarg.h>
 
 /* Max number conversion buffer length: a long in base 2, plus NUL byte. */
 #define MAXNBUF	(sizeof(long) * 8 + 1)
 
-#define va_list		char*
-#define va_arg(p,t)	((t*) (p += sizeof(t)))[-1]
+static char
+mkhex (ch)
+	int ch;
+{
+	ch &= 15;
+	if (ch > 9)
+		return ch + 'a' - 10;
+	return ch + '0';
+}
 
-static char *ksprintn PARAMS((char*, unsigned long, int, int, unsigned char*));
-static char mkhex PARAMS((int));
-static void outchar PARAMS((char));
+/*
+ * Put a NUL-terminated ASCII number (base <= 16) in a buffer in reverse
+ * order; return an optional length and a pointer to the last character
+ * written in the buffer (i.e., the first character of the string).
+ * The buffer pointed to by `nbuf' must have length >= MAXNBUF.
+ */
+static char *
+ksprintn (nbuf, ul, base, width, lenp)
+	char *nbuf;
+	unsigned long ul;
+	int base, width;
+	unsigned char *lenp;
+{
+	char *p;
+
+	p = nbuf;
+	*p = 0;
+	for (;;) {
+		*++p = mkhex (ul % base);
+		ul /= base;
+		if (--width > 0)
+			continue;
+		if (! ul)
+			break;
+	}
+	if (lenp)
+		*lenp = p - nbuf;
+	return (p);
+}
+
+static void
+outchar (c)
+	char c;
+{
+	write (1, &c, 1);
+}
 
 int
 vprintf (fmt, ap)
@@ -68,16 +109,19 @@ vprintf (fmt, ap)
 
 	retval = 0;
 	for (;;) {
-		while ((ch = *fmt++) != '%') {
-			if (! ch)
-				return retval;
+		ch = *fmt++;
+		if (! ch)
+			return retval;
+		if (ch != '%') {
 			PUTC (ch);
+			continue;
 		}
 		padding = ' ';
 		width = 0; extrazeros = 0;
 		lflag = 0; ladjust = 0; sharpflag = 0; neg = 0;
 		sign = 0; dot = 0; uppercase = 0; dwidth = -1;
-reswitch:	switch (ch = *fmt++) {
+reswitch:	ch = *fmt++;
+		switch (ch) {
 		case '.':
 			dot = 1;
 			padding = ' ';
@@ -203,7 +247,7 @@ reswitch:	switch (ch = *fmt++) {
 			ul = (unsigned int) va_arg (ap, int);
 			if (! ul) {
 				p = "(nil)";
-				goto cstring;
+				goto string;
 			}
 			base = 16;
 			sharpflag = (width == 0);
@@ -217,16 +261,12 @@ reswitch:	switch (ch = *fmt++) {
 			base = 10;
 			goto number;
 
-		case 'S':
-			p = va_arg (ap, char*);
-cstring:		goto string;
 		case 's':
 			p = va_arg (ap, char*);
 string:
-			if (! p) {
-				static char nullfmt[] = "(null)";
-				p = nullfmt;
-			}
+			if (! p)
+				p = "(null)";
+
 			if (! dot)
 				n = strlen (p);
 			else
@@ -335,51 +375,4 @@ number:			if (sign && (long) ul < 0L) {
 			break;
 		}
 	}
-}
-
-/*
- * Put a NUL-terminated ASCII number (base <= 16) in a buffer in reverse
- * order; return an optional length and a pointer to the last character
- * written in the buffer (i.e., the first character of the string).
- * The buffer pointed to by `nbuf' must have length >= MAXNBUF.
- */
-static char *
-ksprintn (nbuf, ul, base, width, lenp)
-	char *nbuf;
-	unsigned long ul;
-	int base, width;
-	unsigned char *lenp;
-{
-	char *p;
-
-	p = nbuf;
-	*p = 0;
-	for (;;) {
-		*++p = mkhex (ul % base);
-		ul /= base;
-		if (--width > 0)
-			continue;
-		if (! ul)
-			break;
-	}
-	if (lenp)
-		*lenp = p - nbuf;
-	return (p);
-}
-
-static char
-mkhex (ch)
-	int ch;
-{
-	ch &= 15;
-	if (ch > 9)
-		return ch + 'a' - 10;
-	return ch + '0';
-}
-
-static void
-outchar (c)
-	char c;
-{
-	write (1, &c, 1);
 }
