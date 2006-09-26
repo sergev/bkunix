@@ -61,7 +61,9 @@ unlink()
 	u.u_base = (char*) &u.u_dent;
 	u.u_count = DIRSIZ+2;
 	u.u_dent.u_ino = 0;
+	nofault++;
 	writei(pp);
+	nofault--;
 	ip->i_nlink--;
 	ip->i_flag |= IUPD;
 	iput(ip);

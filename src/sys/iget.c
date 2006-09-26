@@ -10,6 +10,8 @@
 
 struct inode	inode[NINODE];
 
+#define offset(str, field) ((unsigned)&((struct str*)0)->field)
+
 /*
  * Look up an inode by device,inumber.
  * If it is in core (in the inode structure),
@@ -71,7 +73,8 @@ loop:
 		iput(p);
 		return(NULL);
 	}
-	memcpy(&p->i_mode, bp->b_addr + 32 * ((ino + 31) & 017), 32-8);
+	memcpy(&p->i_mode, bp->b_addr + 32 * ((ino + 31) & 017),
+		offset(inode, i_addr[8]) - offset(inode, i_mode));
 	brelse(bp);
 	return(p);
 }
@@ -125,7 +128,8 @@ iupdat(p)
 		i = rp->i_number+31;
 		bp = bread(rp->i_dev, i/16);
 		idata = (int*) (bp->b_addr + 32 * (i & 017));
-		memcpy (idata, &rp->i_mode, 32-8);
+		memcpy (idata, &rp->i_mode,
+			offset(inode, i_addr[8])-offset(inode, i_mode));
 		idata += 14;
 		*idata++ = time[0];
 		*idata = time[1];
@@ -208,6 +212,8 @@ wdir(ip)
 	memcpy(&u.u_dent.u_name[0], &u.u_dbuf[0], DIRSIZ);
 	u.u_count = DIRSIZ + 2;
 	u.u_base = (char*) &u.u_dent;
+	nofault++;
 	writei(u.u_pdir);
+	nofault--;
 	iput(u.u_pdir);
 }

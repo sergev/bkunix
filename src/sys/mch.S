@@ -109,7 +109,7 @@ _getc:
 1:
 	bit	$7,r2
 	bne	3f
-	mov	-10(r2),(r1)	/ next block
+	mov	-010(r2),(r1)	/ next block
 	add	$2,(r1)
 2:
 	dec	r2
@@ -151,7 +151,7 @@ _putc:
 	mov	_cfreelist,r3
 	beq	9f
 	mov	(r3),_cfreelist
-	mov	r3,-10(r2)
+	mov	r3,-010(r2)
 	mov	r3,r2
 	clr	(r2)+
 2:

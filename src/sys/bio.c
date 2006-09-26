@@ -278,7 +278,7 @@ swap(rdflg)
 		p1 = TOPUSR;
 		p2 = (p->p_size<<6) + (int*) TOPSYS - (USIZE<<6);
 		if(p2 <= (int*) p1)
-			while(p1 >= USTACK) {
+			while(p1 >= *(int*)USTACK) {
 				p1 -= 2;
 				*((int*)p1) = *--p2;
 			}
