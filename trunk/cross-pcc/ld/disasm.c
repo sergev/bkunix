@@ -928,7 +928,7 @@ main (argc, argv)
 			case 'r':       /* -r: print relocation info */
 				rflag++;
 				break;
-			case 'b':       /* -bN: base address */
+			case 'a':       /* -aN: base address */
 				while (cp[1] >= '0' && cp[1] <= '7') {
 					baseaddr <<= 3;
 					baseaddr += cp[1] - '0';
@@ -936,7 +936,7 @@ main (argc, argv)
 				}
 				break;
 			default:
-				fprintf (stderr, "Usage: disasm [-r] file...\n");
+				fprintf (stderr, "Usage: disasm [-r] [-aN] file...\n");
 				return (1);
 			}
 		}

@@ -21,8 +21,7 @@ char	*crt0 = DESTDIR "/lib/pdp11/crt0.o";
 
 char	tmp0[30];		/* big enough for /tmp/ctm%05.5d */
 char	*tmp_c1, *tmp_c2, *tmp_asm, *tmp_pre, *tmp_opt;
-char	*outfile;
-char	*savestr(), *strspl(), *setsuf();
+char	*outfile, *aflag;
 char	**av, **clist, **llist, **plist;
 int	cflag, Oflag, Pflag, Sflag, Eflag, proflag, vflag, wflag, Lminusflag;
 int	errflag;
@@ -30,7 +29,47 @@ int	exfail;
 
 int	nc, nl, np, nxo, na;
 
-int getsuf(as)
+#define	NSAVETAB	1024
+char	*savetab;
+int	saveleft;
+
+char *
+savestr(cp)
+	register char *cp;
+{
+	register int len;
+
+	len = strlen(cp) + 1;
+	if (len > saveleft) {
+		saveleft = NSAVETAB;
+		if (len > saveleft)
+			saveleft = len;
+		savetab = (char *)malloc(saveleft);
+		if (savetab == 0) {
+			fprintf(stderr, "ran out of memory (savestr)\n");
+			exit(1);
+		}
+	}
+	strncpy(savetab, cp, len);
+	cp = savetab;
+	savetab += len;
+	saveleft -= len;
+	return (cp);
+}
+
+char *
+strspl(left, right)
+	char *left, *right;
+{
+	char buf[BUFSIZ];
+
+	strcpy(buf, left);
+	strcat(buf, right);
+	return (savestr(buf));
+}
+
+int
+getsuf(as)
 	char as[];
 {
 	register int c;
@@ -64,7 +103,8 @@ setsuf(as, ch)
 	return (s1);
 }
 
-int inlist(l, os)
+int
+inlist(l, os)
 	char **l, *os;
 {
 	register char *t, *s;
@@ -82,7 +122,8 @@ int inlist(l, os)
 	return (0);
 }
 
-void cleanup()
+void
+cleanup()
 {
 	if (! Pflag) {
 		if (tmp_c1)
@@ -98,13 +139,15 @@ void cleanup()
 	}
 }
 
-void killed()
+void
+killed()
 {
 	cleanup();
 	exit(100);
 }
 
-int callsys(f, v)
+int
+callsys(f, v)
 	char *f, **v;
 {
 	int t, status;
@@ -140,7 +183,8 @@ int callsys(f, v)
 	return ((status>>8) & 0377);
 }
 
-int main(argc, argv)
+int
+main(argc, argv)
 	char **argv;
 {
 	char *t;
@@ -204,6 +248,12 @@ int main(argc, argv)
 					Lminusflag++;
 				else
 					llist[nl++] = argv[i];
+				continue;
+			case 'a':
+				if (argv[i][2])
+					aflag = &argv[i][2];
+				else if (++i < argc)
+					aflag = argv[i];
 				continue;
 			}
 		}
@@ -359,6 +409,10 @@ nocom:
 		av[0] = "ld";
 		na = 1;
 		av[na++] = "-X";
+		if (aflag) {
+			av[na++] = "-a";
+			av[na++] = aflag;
+		}
 		if (outfile) {
 			av[na++] = "-o";
 			av[na++] = outfile;
@@ -378,43 +432,4 @@ nocom:
 	}
 	cleanup();
 	return (errflag);
-}
-
-#define	NSAVETAB	1024
-char	*savetab;
-int	saveleft;
-
-char *
-savestr(cp)
-	register char *cp;
-{
-	register int len;
-
-	len = strlen(cp) + 1;
-	if (len > saveleft) {
-		saveleft = NSAVETAB;
-		if (len > saveleft)
-			saveleft = len;
-		savetab = (char *)malloc(saveleft);
-		if (savetab == 0) {
-			fprintf(stderr, "ran out of memory (savestr)\n");
-			exit(1);
-		}
-	}
-	strncpy(savetab, cp, len);
-	cp = savetab;
-	savetab += len;
-	saveleft -= len;
-	return (cp);
-}
-
-char *
-strspl(left, right)
-	char *left, *right;
-{
-	char buf[BUFSIZ];
-
-	strcpy(buf, left);
-	strcat(buf, right);
-	return (savestr(buf));
 }

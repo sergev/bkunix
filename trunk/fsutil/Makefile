@@ -4,7 +4,7 @@ OBJS		= superblock.o block.c inode.o create.o check.o file.o
 PROGS		= lsx-util
 
 # For Mac OS X
-LIBS		= -largp
+#LIBS		= -largp
 
 all:		$(PROGS) rxboot rxboot2
 

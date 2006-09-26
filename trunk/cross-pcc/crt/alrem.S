@@ -23,7 +23,7 @@ ASENTRY(alrem)
 	mov	2(r2),-(sp)	/   the call for lrem and let it do the work
 	mov	(r2),-(sp)	/   and return its results (also stuffing it
 	jsr	pc,lrem		/   into *lhs)
-	add	8,sp		/ clean up stack
+	add	$8,sp		/ clean up stack
 	mov	r0,(r2)+	/ store high word,
 	mov	r1,(r2)		/   and low
 	mov	(sp)+,r2	/ restore r2

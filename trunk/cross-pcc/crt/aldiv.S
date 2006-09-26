@@ -23,7 +23,7 @@ ASENTRY(aldiv)
 	mov	2(r0),-(sp)	/   the call for ldiv and let it do the work
 	mov	(r0),-(sp)	/   and return its results (also stuffing it
 	jsr	pc,ldiv		/   into *lhs)
-	add	8,sp		/ clean up stack
+	add	$8,sp		/ clean up stack
 	mov	r0,(r2)+	/ store high word,
 	mov	r1,(r2)		/   and low
 	mov	(sp)+,r2	/ restore r2
