@@ -14,7 +14,7 @@
 char	*cpp = "/usr/bin/cpp";
 char   *ccom = DESTDIR "/lib/pdp11/c0";
 char   *ccom1 = DESTDIR "/lib/pdp11/c1";
-char   *c2 = DESTDIR "/lib/pdp11/c2o";
+char   *c2 = DESTDIR "/lib/pdp11/c2";
 char   *as = DESTDIR "/bin/pdp11-asm";
 char	*ld = DESTDIR "/bin/pdp11-ld";
 char	*crt0 = DESTDIR "/lib/pdp11/crt0.o";

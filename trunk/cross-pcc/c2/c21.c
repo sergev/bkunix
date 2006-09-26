@@ -9,6 +9,7 @@ void	dualop();
 int	findrand();
 int	isreg();
 int	equstr();
+int	equval();
 void	repladdr();
 void	dest();
 void	savereg();
@@ -98,7 +99,7 @@ void rmove()
 		case ASH:
 dble:
 			dualop(p);
-			if (p->op==BIC && (equstr(regs[RT1], "$-1") || equstr(regs[RT1], "$177777"))) {
+			if (p->op==BIC && equval(regs[RT1], -1)) {
 				p->op = CLR;
 				strcpy(regs[RT1], regs[RT2]);
 				regs[RT2][0] = 0;
@@ -131,13 +132,11 @@ dble:
  * These constructs occur often enough in the kernel (dealing with major/minor
  * device numbers, etc) it's worth a little extra work at compile time.
  */
-			if (p->op == BIC && (equstr(regs[RT1],"$-400") ||
-				 equstr(regs[RT1],"$-177400"))) {
+			if (p->op == BIC && equval(regs[RT1], 0xff00)) {
 				if (p->back->op == ASH) {
 					r = isreg(regs[RT2]);
 					dualop(p->back);
-					if ((equstr(regs[RT1], "$-10") ||
-					     equstr(regs[RT1], "$177770")) &&
+					if (equval(regs[RT1], -8) &&
 					    r == isreg(regs[RT2])) {
 						strcpy(regs[RT1], regs[RT2]);
 						regs[RT2][0] = 0;
@@ -291,14 +290,14 @@ out:				dualop(p);	/* restore banged up parsed operands */
 			source(regs[RT1]);
 			source(regs[RT2]);
 			if(p->op==BIT) {
-				if (equstr(regs[RT1], "$-1") || equstr(regs[RT1], "$177777")) {
+				if (equval(regs[RT1], -1)) {
 					p->op = TST;
 					strcpy(regs[RT1], regs[RT2]);
 					regs[RT2][0] = 0;
 					p->code = copy(1, regs[RT1]);
 					nchange++;
 					nsaddr++;
-				} else if (equstr(regs[RT2], "$-1") || equstr(regs[RT2], "$177777")) {
+				} else if (equval(regs[RT2], -1)) {
 					p->op = TST;
 					regs[RT2][0] = 0;
 					p->code = copy(1, regs[RT1]);
@@ -1019,6 +1018,22 @@ char *ap1, *ap2;
 			return(0);
 	} while (*p2++);
 	return(1);
+}
+
+/*
+ * returns true if 's' is of the form $N where N represents
+ * a signed 16-bit int that is equal to 'val'.
+ */  
+int equval(s, val)
+char *s;
+int val;
+{
+	int got, len;
+	if (sscanf(s, "$%i%n", &got, &len) < 1 ||
+	    (val & 0xffff) != (got & 0xffff) ||
+	    len != strlen(s))
+		return 0;
+	return 1;
 }
 
 void setcc(ap)

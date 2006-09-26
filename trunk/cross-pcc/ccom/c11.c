@@ -40,7 +40,7 @@ loop:
 	switch(p->t.op) {
 
 	case LCON:
-		printf("$%#o", flag<=10? UNS(p->l.lvalue>>16):
+		printf("$%d", flag<=10? UNS(p->l.lvalue>>16):
 		   UNS(p->l.lvalue));
 		return;
 
@@ -465,7 +465,7 @@ breq(v, l)
 	if (v==0)
 		printf("tst	r0\n");
 	else
-		printf("cmp	r0,$%#o\n", UNS(v));
+		printf("cmp	r0,$%d\n", UNS(v));
 	printf("jeq	L%d\n", l);
 }
 
@@ -845,7 +845,7 @@ psoct(an)
 		n = -n;
 		sign = "-";
 	}
-	printf("%s%#o", sign, n);
+	printf("%s%d", sign, n);
 }
 
 static void
@@ -936,7 +936,7 @@ getree()
 		break;
 
 	case SSPACE:
-		printf(".=.+%#o\n", UNS(t=geti()));
+		printf(".=.+%d\n", UNS(t=geti()));
 		totspace += (unsigned)t;
 		break;
 
@@ -975,7 +975,7 @@ getree()
 
 	case ANAME:
 		outname(s);
-		printf("~%s=%#o\n", s+1, UNS(geti()));
+		printf("~%s=%d\n", s+1, UNS(geti()));
 		break;
 
 	case RNAME:
@@ -1178,7 +1178,7 @@ union tree *atp;
 		if (tp->t.op==RFORCE) {	/* function return */
 			if (sfuncr.nloc==0) {
 				sfuncr.nloc = isn++;
-				printf(".bss\nL%d:.=.+%#o\n.text\n", sfuncr.nloc,
+				printf(".bss\nL%d:.=.+%d\n.text\n", sfuncr.nloc,
 					UNS(nwords*sizeof(short)));
 			}
 			atp->t.tr1 = tnode(ASSIGN, STRUCT, (union tree *)&sfuncr, tp->t.tr1);
