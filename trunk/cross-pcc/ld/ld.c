@@ -343,14 +343,17 @@ symreloc()
 	case N_TEXT:
 	case N_EXT+N_TEXT:
 		cursym.n_value += ctrel;
+/*printf("%.8s = %#o (torigin = %#o, aflag = %#o)\n", cursym.n_name, cursym.n_value, torigin, aflag);*/
 		return;
 	case N_DATA:
 	case N_EXT+N_DATA:
 		cursym.n_value += cdrel;
+/*printf("%.8s = %#o\n", cursym.n_name, cursym.n_value);*/
 		return;
 	case N_BSS:
 	case N_EXT+N_BSS:
 		cursym.n_value += cbrel;
+/*printf("%.8s = %#o\n", cursym.n_name, cursym.n_value);*/
 		return;
 	case N_EXT+N_UNDF:
 		return;
@@ -631,12 +634,13 @@ load2td(words, lp, creloc, b1, b2)
 			break;
 		case A_REXT:
 			sp = lookloc(lp, r);
-			if (sp->n_type==N_EXT+N_UNDF) {
-				r = (r&01) + ((nsym+(sp-symtab))<<4) + A_REXT;
+			if (sp->n_type == N_EXT+N_UNDF) {
+				r = (r & A_RPCREL) + A_REXT +
+					((nsym + (sp - symtab)) << 4);
 				break;
 			}
 			t += sp->n_value;
-			r = (r & A_RPCREL) + ((sp->n_type - (N_EXT+N_ABS))<<1);
+			r = (r & A_RPCREL) + ((sp->n_type - (N_EXT+N_ABS)) << 1);
 			break;
 		}
 		if (r & A_RPCREL)
@@ -779,6 +783,7 @@ main(argc, argv)
 	register int c;
 	register char *ap, **p;
 	struct nlist **hp;
+	char *option;
 
 	if (signal(SIGINT, SIG_DFL) == SIG_DFL)
 		signal(SIGINT, fatal);
@@ -790,18 +795,22 @@ main(argc, argv)
 		ap = *p++;
 		if (*ap == '-') switch (ap[1]) {
 		case 'u':
-			if (++c >= argc)
-				error(1, "Bad -u");
-			hp = lookup(*p);
+			if (ap[2]) {		/* option -uN */
+				option = ap+2;
+			} else {		/* option -u N (with space) */
+				if (++c >= argc)
+					error(1, "Bad -u");
+				option = *p++;
+			}
+			hp = lookup(option);
 			if (*hp == 0) {
 				*hp = symp;
 				memset(cursym.n_name, 0, sizeof(cursym.n_name));
-				strncpy(cursym.n_name, *p, sizeof(cursym.n_name));
+				strncpy(cursym.n_name, option, sizeof(cursym.n_name));
 				cursym.n_type = N_EXT + N_UNDF;
 				cursym.n_value = 0;
 				enter();
 			}
-			p++;
 			continue;
 		case 'l':
 			break;
@@ -834,14 +843,24 @@ main(argc, argv)
 			iflag++;
 			continue;
 		case 'a':
-			if (++c >= argc)
-				error(1, "Bad -a");
-			aflag = strtol (*p++, 0, 0);
+			if (ap[2]) {		/* option -aN */
+				option = ap+2;
+			} else {		/* option -a N (with space) */
+				if (++c >= argc)
+					error(1, "Bad -a");
+				option = *p++;
+			}
+			aflag = strtol (option, 0, 0);
 			continue;
 		case 'o':
-			if (++c >= argc)
-				error(1, "Bad -o");
-			outname = *p++;
+			if (ap[2]) {		/* option -oN */
+				option = ap+2;
+			} else {		/* option -o N (with space) */
+				if (++c >= argc)
+					error(1, "Bad -o");
+				option = *p++;
+			}
+			outname = option;
 			continue;
 		}
 		load1arg(ap);
@@ -855,9 +874,12 @@ main(argc, argv)
 		if (*ap == '-') switch (ap[1]) {
 		case 'l':
 			break;
-		case 'u':
 		case 'a':
+		case 'u':
 		case 'o':
+			if (ap[2])
+				continue;	/* option -aN */
+			/* option -a N (with space) */
 			++c;
 			++p;
 		default:

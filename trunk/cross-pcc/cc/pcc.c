@@ -11,7 +11,7 @@
 #include <sys/dir.h>
 #include <sys/wait.h>
 
-char	*cpp = "/usr/bin/cpp";
+char	*cpp = DESTDIR "/lib/pdp11/cpp";
 char   *ccom = DESTDIR "/lib/pdp11/ccom";
 char   *c2 = DESTDIR "/lib/pdp11/c2";
 char   *as = DESTDIR "/bin/pdp11-asm";
@@ -61,18 +61,6 @@ setsuf(as, ch)
 			s1 = s;
 	s[-1] = ch;
 	return (s1);
-}
-
-char *
-concat(a, b)
-	char *a, *b;
-{
-	char *p;
-
-	p = malloc(strlen(a) + strlen(b) + 1);
-	strcpy (p, a);
-	strcat (p, b);
-	return p;
 }
 
 int inlist(l, os)
@@ -264,13 +252,13 @@ int main(argc, argv)
 		av[na++] = "-D__pdp11__=1";
 		for (j = 0; j < np; j++)
 			av[na++] = plist[j];
-		/* Some versions of cpp require no space between -o and file name. */
-		if (Eflag)
-			/* to stdout */;
-		else if (getsuf(clist[i]) == 'S' && ! Pflag)
-			av[na++] = concat("-o", tmp_asm);
-		else
-			av[na++] = concat("-o", tmp_pre);
+		if (! Eflag) {
+			av[na++] = "-o";
+			if (getsuf(clist[i]) == 'S' && ! Pflag)
+				av[na++] = tmp_asm;
+			else
+				av[na++] = tmp_pre;
+		}
 		av[na++] = clist[i];
 		av[na] = 0;
 		if (callsys(cpp, av)) {

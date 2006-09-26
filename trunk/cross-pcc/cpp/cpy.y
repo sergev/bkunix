@@ -1,6 +1,3 @@
-/*
- * @(#)cpy.y 1.2 1/2/83
- */
 %term number stop DEFINED
 %term EQ NE LE GE LS RS
 %term ANDAND OROR
@@ -80,4 +77,5 @@ term:
 	| number
 		={$$= $1;}
 %%
-# include "yylex.c"
+#include <string.h>
+#include "yylex.c"
