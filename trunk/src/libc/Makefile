@@ -14,7 +14,6 @@ CPP		= cpp
 CFLAGS		= -O
 CPPFLAGS	= -I.
 
-#qsort.c
 SRCS		= crt0.S cerror.S exit.S fork.S read.S write.S \
 		  open.S creat.S close.S wait.S link.S unlink.S \
 		  execv.S execl.S chdir.S time.S mknod.S chmod.S sbrk.S \
@@ -23,8 +22,8 @@ SRCS		= crt0.S cerror.S exit.S fork.S read.S write.S \
 		  vprintf.c printf.c atoi.c ctime.c \
 		  strcat.c strchr.c strcmp.c strcpy.c strlen.c \
 		  strncat.c strncmp.c strncpy.c strrchr.c \
-		  memccpy.c memchr.c memcmp.c memcpy.c memset.c
-#qsort.o
+		  memccpy.c memchr.c memcmp.c memcpy.c memset.c qsort.c
+
 OBJS		= cerror.o exit.o fork.o read.o write.o \
 		  open.o creat.o close.o wait.o link.o unlink.o \
 		  execv.o execl.o chdir.o time.o mknod.o chmod.o sbrk.o \
@@ -33,7 +32,7 @@ OBJS		= cerror.o exit.o fork.o read.o write.o \
 		  vprintf.o printf.o atoi.o ctime.o \
 		  strcat.o strchr.o strcmp.o strcpy.o strlen.o \
 		  strncat.o strncmp.o strncpy.o strrchr.o \
-		  memccpy.o memchr.o memcmp.o memcpy.o memset.o
+		  memccpy.o memchr.o memcmp.o memcpy.o memset.o qsort.o
 
 all:		crt0.o libc.a
 

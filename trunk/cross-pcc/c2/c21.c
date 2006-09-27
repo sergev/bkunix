@@ -105,9 +105,20 @@ dble:
 			    equstr(regs[RT2], "sp")) {
 				/* sub $LFn,sp */
 				r = lfvalue(atoi(regs[RT1]+3));
-				if (r == 0) {
+				switch (r) {
+				case 0:
 					p->back->forw = p->forw;
 					p->forw->back = p->back;
+					nchange++;
+					continue;
+				case 2:
+					p->op = TST;
+					p->code = copy(1, "-(sp)");
+					nchange++;
+					continue;
+				case 4:
+					p->op = CMP;
+					p->code = copy(1, "-(sp),-(sp)");
 					nchange++;
 					continue;
 				}

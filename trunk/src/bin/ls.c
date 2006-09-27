@@ -1,24 +1,29 @@
 /*
  * List file or directory
  */
+#include <ansidecl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
 
-struct ibuf {
-	int	idev;
-	int	inum;
-	int	iflags;
-	char	inl;
-	char	iuid;
-	char	igid;
-	char	isize0;
-	int	isize;
-	int	iaddr[8];
-	int	iatime[2];
-	int	imtime[2];
+#ifdef __pdp11__
+struct stat {
+	int		st_dev;
+	int		st_ino;
+	int		st_mode;
+	char		st_nlink;
+	char		st_uid;
+	char		st_gid;
+	char		st_size0;
+	unsigned	st_size;
+	int		st_addr[8];
+	long		st_atime;
+	long		st_mtime;
 };
+#else
+#include <sys/stat.h>
+#endif
 
 struct lbuf {
 	union {
@@ -39,7 +44,6 @@ int	fout;
 int	filsys;
 int	rflg = 1;
 long	year;
-int	flags;
 int	uidfil = -1;
 int	lastuid = -1;
 char	tbuf[16];
@@ -53,13 +57,12 @@ char	*dotp = ".";
 struct lbuf *gstat PARAMS((char*, int));
 void pentry PARAMS((struct lbuf*));
 void pmode PARAMS((int));
-void select PARAMS((int*));
 void readdir PARAMS((char*));
 int nblock PARAMS((long));
 int compar PARAMS((struct lbuf*, struct lbuf*));
 
-#define minor(x)	((x) & 0377)
-#define major(x)	((x) >> 8 & 0377)
+#define devminor(x)	((x) & 0377)
+#define devmajor(x)	((x) >> 8 & 0377)
 
 #define	IFMT	060000
 #define	DIR	0100000
@@ -226,8 +229,8 @@ pentry(ap)
 		t &= 0377;
 		printf("%-6d", t);
 		if (p->lflags & (BLK|CHR))
-			printf("%3d,%3d", major((int)p->lsize),
-				minor((int)p->lsize));
+			printf("%3d,%3d", devmajor((int)p->lsize),
+				devminor((int)p->lsize));
 		else
 			printf("%7ld", p->lsize);
 		cp = ctime(&p->lmtime);
@@ -269,29 +272,20 @@ int	m9[] = { 2, STXT, 't', XOTH, 'x', '-' };
 int	*m[] = { m0, m1, m2, m3, m4, m5, m6, m7, m8, m9};
 
 void
-pmode(aflag)
-	int aflag;
+pmode(flags)
+	int flags;
 {
-	register int **mp;
-
-	flags = aflag;
-	for (mp = &m[0]; mp < &m[10];)
-		select(*mp++);
-}
-
-void
-select(pairp)
-	int *pairp;
-{
-	register int n, *ap;
+	register int n, *ap, **mp;
 	char c;
 
-	ap = pairp;
-	n = *ap++;
-	while (--n>=0 && (flags&*ap++)==0)
-		ap++;
-	c = *ap;
-	write (1, &c, 1);
+	for (mp = &m[0]; mp < &m[10];) {
+		ap = *mp++;
+		n = *ap++;
+		while (--n >= 0 && (flags & *ap++) == 0)
+			ap++;
+		c = *ap;
+		write (1, &c, 1);
+	}
 }
 
 char *
@@ -355,67 +349,74 @@ struct lbuf *
 gstat(file, argfl)
 	char *file;
 {
-	struct ibuf statb;
-	register int ino;
+	struct stat statb;
 	register struct lbuf *rep;
 
 	if (lastp+1 >= rlastp) {
 		sbrk(512);
-		((struct ibuf*) rlastp)->idev += 512;
+		rlastp = (struct lbuf*) ((char*) rlastp + 512);
 	}
 	rep = lastp;
 	lastp++;
 	rep->lflags = 0;
 	rep->lnum = 0;
 	if (argfl || statreq) {
+#ifdef __pdp11__
 		if (Iflg) {
+			register int ino;
 			ino = atoi(file);
 			seek(filsys, (ino+31)/16, 3);
 			seek(filsys, 32*((ino+31)%16), 1);
-			read(filsys, (char*) &statb.iflags, sizeof(statb)-2*sizeof(0));
-		} else if (stat(file, (int*) &statb)<0) {
+			read(filsys, (char*) &statb.st_mode, sizeof(statb)-2*sizeof(0));
+		} else
+#endif
+		if (stat(file, (int*) &statb) < 0) {
 			printf("%s not found\n", file);
-			statb.inum = -1;
-			statb.isize0 = 0;
-			statb.isize = 0;
-			statb.iflags = 0;
+			statb.st_ino = -1;
+#ifdef __pdp11__
+			statb.st_size0 = 0;
+#endif
+			statb.st_size = 0;
+			statb.st_mode = 0;
 			if (argfl) {
 				lastp--;
 				return(0);
 			}
 		}
-		rep->lnum = statb.inum;
-		statb.iflags &= ~DIR;
-		if ((statb.iflags&IFMT) == 060000) {
-			statb.iflags &= ~020000;
-		} else if ((statb.iflags&IFMT)==040000) {
-			statb.iflags &= ~IFMT;
-			statb.iflags |= DIR;
+		rep->lnum = statb.st_ino;
+		statb.st_mode &= ~DIR;
+		if ((statb.st_mode & IFMT) == 060000) {
+			statb.st_mode &= ~020000;
+		} else if ((statb.st_mode & IFMT) == 040000) {
+			statb.st_mode &= ~IFMT;
+			statb.st_mode |= DIR;
 		}
-		statb.iflags &= ~ LARGE;
-		if (statb.iflags & RSTXT)
-			statb.iflags |= STXT;
-		statb.iflags &= ~ RSTXT;
-		rep->lflags = statb.iflags;
-		rep->luid = statb.iuid;
-		rep->lgid = statb.igid;
-		rep->lnl = statb.inl;
+		statb.st_mode &= ~ LARGE;
+		if (statb.st_mode & RSTXT)
+			statb.st_mode |= STXT;
+		statb.st_mode &= ~ RSTXT;
+		rep->lflags = statb.st_mode;
+		rep->luid = statb.st_uid;
+		rep->lgid = statb.st_gid;
+		rep->lnl = statb.st_nlink;
 		if (rep->lflags & (BLK|CHR) && lflg)
-			rep->lsize = statb.iaddr[0];
+#ifdef __pdp11__
+			rep->lsize = statb.st_addr[0];
+#else
+			rep->lsize = statb.st_size;
+#endif
 		else {
-			rep->lsize = statb.isize0;
-			rep->lsize <<= 16;
-			rep->lsize = (unsigned) statb.isize;
+			rep->lsize = statb.st_size;
+#ifdef __pdp11__
+			rep->lsize |= (long) (unsigned char)
+				statb.st_size0 << 16;
+#endif
 			tblocks += nblock(rep->lsize);
 		}
-		if(uflg) {
-			rep->lmtime = statb.iatime[0];
-			rep->lmtime <<= 16;
-			rep->lmtime |= (unsigned) statb.iatime[1];
+		if (uflg) {
+			rep->lmtime = statb.st_atime;
 		} else {
-			rep->lmtime = statb.imtime[0];
-			rep->lmtime <<= 16;
-			rep->lmtime |= (unsigned) statb.imtime[1];
+			rep->lmtime = statb.st_mtime;
 		}
 	}
 	return(rep);

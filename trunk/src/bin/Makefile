@@ -1,9 +1,15 @@
 # Base address of user programs.
 TOPSYS		= 040000
 
+AS		= pdp11-as
+LD		= pdp11-ld
+SIZE		= pdp11-size -o
+CFLAGS		= -O -I../libc
+LDFLAGS		= -a$(TOPSYS)
+
 # GNU compiler.
-#CC		= pdp11-gcc -Wall
-#CFLAGS		= -Os -fomit-frame-pointer -fno-builtin -I../libc
+#CC		= pdp11-gcc -Wall -fomit-frame-pointer -fno-builtin
+#LDFLAGS		=
 
 # Johnson's portable compiler.
 CC		= pdp11-pcc
@@ -11,15 +17,8 @@ CC		= pdp11-pcc
 # Ritchie's compiler.
 #CC		= pdp11-cc
 
-# Using BSD cross-compiler.
-AS		= pdp11-as
-LD		= pdp11-ld
-SIZE		= pdp11-size -o
-CFLAGS		= -I../libc
-LDFLAGS		= -a$(TOPSYS)
-
-PROGS		= hello echo cal testarith testprintf #sync #ls sh
-# TODO: check cp date ed mkdir mv od rm rmdir size strip stty
+PROGS		= hello echo cal testarith testprintf sync ls sh
+# TODO: check cp date ed mkdir mv od rm rmdir stty
 
 all:		$(PROGS)
 
