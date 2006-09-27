@@ -143,7 +143,7 @@ exec()
 			*up++ = *cp;
 		} while(*cp++);
 	}
-	*sp = -1;
+	*sp = 0;
 
 	/*
 	 * clear sigs, regs and return

@@ -161,10 +161,6 @@ ttyoutput(ac)
 
 	/* carriage return */
 	case '\r':
-		ttyoutput(0177);
-		ttyoutput(0177);
-		ttyoutput(0177);
-		ttyoutput(0177);
 		*colp = 0;
 	}
 }
@@ -209,7 +205,7 @@ ttyinput(ac)
 			tp->t_delct++;
 	}
 	if(flags & ECHO) {
-		ttyoutput(c);
+		ttyoutput(c == CKILL ? '\n' : c);
 		ttstart();
 	}
 }
@@ -222,7 +218,7 @@ klopen()
 	tp = &kl11[0];
 	if((tp->t_modes & TOPEN) == 0) {
 		tp->t_modes |= TOPEN;
-		tp->t_flags = ECHO|CRMOD|LCASE;
+		tp->t_flags = ECHO|CRMOD;
 	}
 	KLADDR->klrcsr |= IENABLE|DSRDY|RDRENB;
 	KLADDR->kltcsr |= IENABLE;

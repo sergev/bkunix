@@ -40,11 +40,11 @@ struct tty
 #define	TTIPRI	10
 #define	TTOPRI	20
 
-#define	CERASE	'#'		/* default special characters */
+#define	CERASE	010		/* default special characters */
 #define	CEOT	004
-#define	CKILL	'@'
-#define	CQUIT	034		/* FS, cntl shift L */
-#define	CINTR	0177		/* DEL */
+#define	CKILL	025		/* ^U */
+#define	CQUIT	034		/* ^\ */
+#define	CINTR	003		/* ^C */
 
 /* flags */
 #define LCASE	04
