@@ -21,6 +21,7 @@
 #define	JMP	3
 #define	LABEL	4
 #define	DLABEL	5
+#define	FLABEL	6
 #define	EROU	7
 #define	JSW	9
 #define	MOV	10

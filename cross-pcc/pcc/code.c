@@ -13,11 +13,7 @@ int labelno;
 
 branch( n ){
 	/* output a branch to label n */
-	/* exception is an ordinary function branching to retlab: then, return */
-	if( n == retlab && !strftn ){
-		putstr( "	jmp	cret\n" );
-		}
-	else printf( "	jbr	L%d\n", n );
+	printf( "	jbr	L%d\n", n );
 	}
 
 int lastloc = { -1 };
@@ -77,6 +73,7 @@ getlab(){
 
 efcode(){
 	/* code for the end of a function */
+	deflab( retlab );
 
 	if( strftn ){  /* copy output (in R0) to caller */
 		register NODE *l, *r;
@@ -87,8 +84,6 @@ efcode(){
 		p = &stab[curftn];
 		t = p->stype;
 		t = DECREF(t);
-
-		deflab( retlab );
 
 		i = getlab();	/* label for return area */
 #ifndef LCOMM
@@ -121,7 +116,7 @@ efcode(){
 		/* turn off strftn flag, so return sequence will be generated */
 		strftn = 0;
 		}
-	branch( retlab );
+	putstr( "	jmp	cret\n" );
 	p2bend();
 	fdefflag = 0;
 	}

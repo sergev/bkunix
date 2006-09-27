@@ -542,7 +542,8 @@ middle()
 		switch (sp->n_type) {
 		case N_EXT+N_UNDF:
 			errlev |= 01;
-			if (arflag==0 && sp->n_value==0) {
+			if (arflag == 0 && sp->n_value == 0 && sp != p_end &&
+			    sp != p_edata && sp != p_etext) {
 				if (nund==0)
 					printf("Undefined:\n");
 				nund++;

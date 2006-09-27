@@ -12,7 +12,6 @@
 /-----------------------
 / Address 0: system starts here.
 /
-.globl init
 init:	br	1f		/ not enough place here
 	.word	4
 

@@ -26,6 +26,7 @@ void	redunbr();
 int	toofar();
 int	ilen();
 int	adrlen();
+int	lfvalue();
 
 void rmove()
 {
@@ -99,6 +100,18 @@ void rmove()
 		case ASH:
 dble:
 			dualop(p);
+			if (p->op==SUB && regs[RT1][0]=='$' &&
+			    regs[RT1][1]=='L' && regs[RT1][2]=='F' &&
+			    equstr(regs[RT2], "sp")) {
+				/* sub $LFn,sp */
+				r = lfvalue(atoi(regs[RT1]+3));
+				if (r == 0) {
+					p->back->forw = p->forw;
+					p->forw->back = p->back;
+					nchange++;
+					continue;
+				}
+			}
 			if (p->op==BIC && equval(regs[RT1], -1)) {
 				p->op = CLR;
 				strcpy(regs[RT1], regs[RT2]);
@@ -450,6 +463,19 @@ ok:	p->subop = brtable [(int) p->subop] [(int) p1->subop];
 	p->back = p1->back;
 }
 
+/*
+ * Get LF label value.
+ */
+int lfvalue(lfno)
+{
+	register struct node *p;
+
+	for (p=first.forw; p!=0; p = p->forw)
+		if (p->op == FLABEL && p->labno == lfno)
+			return p->subop;
+	return -1;
+}
+
 int jumpsw()
 {
 	register struct node *p, *p1;
@@ -523,6 +549,7 @@ register struct node *p;
 	switch (p->op) {
 	case LABEL:
 	case DLABEL:
+	case FLABEL:
 	case TEXT:
 	case EROU:
 	case EVEN:
@@ -1023,7 +1050,7 @@ char *ap1, *ap2;
 /*
  * returns true if 's' is of the form $N where N represents
  * a signed 16-bit int that is equal to 'val'.
- */  
+ */
 int equval(s, val)
 char *s;
 int val;
