@@ -58,7 +58,7 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 #ifdef DEBUG
 	debug_printf ("trap dev=%x sp=%x r0=%x pc=%x ps=%x\n", dev, sp, r0, pc, ps);
 #endif
-	if(pc > (char*) TOPSYS)
+	if(!u.u_segflg && !bad_user_address(pc))
 		dev |= USER;
 	u.u_ar0 = &r0;
 	switch(dev) {

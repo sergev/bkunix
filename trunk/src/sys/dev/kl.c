@@ -114,6 +114,7 @@ ttyoutput(ac)
 		while (rtp->t_col&07);
 		return;
 	}
+#ifdef DOLCASE
 	/*
 	 * for upper-case-only terminals,
 	 * generate escapes.
@@ -129,6 +130,7 @@ ttyoutput(ac)
 		if ('a'<=c && c<='z')
 			c += 'A' - 'a';
 	}
+#endif
 
 	/*
 	 * turn <nl> to <cr><lf> if desired.
@@ -195,9 +197,11 @@ ttyinput(ac)
 		flushtty();
 		return;
 	}
+#ifdef DOLCASE
 	if(flags & LCASE)
 		if(c>='A' && c<='Z')
 			c += 'a'-'A';
+#endif
 	putc(c, &tp->t_rawq);
 	if (c=='\n' || c==004) {
 		wakeup(&tp->t_rawq);
@@ -276,6 +280,7 @@ klsgtty(f)
  * general TTY subroutines
  */
 
+#ifdef DOLCASE
 /*
  * Input mapping table-- if an entry is non-zero, when the
  * corresponding character is typed preceded by "\" the escape
@@ -300,6 +305,7 @@ char	maptab[] = {
 	'P','Q','R','S','T','U','V','W',
 	'X','Y','Z',000,000,000,000,000,
 };
+#endif
 
 /*
  * The actual structure of a clist block manipulated by
@@ -369,11 +375,13 @@ loop:
 			if (c==CEOT)
 				continue;
 		} else {
+#ifdef DOLCASE
 			if(maptab[c] && (maptab[c] == c ||(tp->t_flags&LCASE))) {
 				if(bp[-2] != '\\')
 					c = maptab[c];
 				bp--;
 			}
+#endif
 		}
 		*bp++ = c;
 		if (bp>=canonb+CANBSIZ)

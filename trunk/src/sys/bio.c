@@ -209,10 +209,10 @@ bflush(dev)
 /*
  * swap I/O
  */
-#define	USTACK	(TOPSYS-12)
+#define	USTACK	(BOTUSR-12)
 
 #ifdef BGOPTION
-struct swtab swtab[] {
+struct swtab swtab[] = {
 	49*256,	0,
 	49*256,	49,
 	1*256,	49+49,
@@ -231,7 +231,7 @@ swap(rdflg,tab)
 	t = &swtab[tab];
 	swbuf.b_wcount = -t->sw_size;
 	swbuf.b_blkno = t->sw_blk + SWPLO;
-	swbuf.b_addr = &u;
+	swbuf.b_addr = (char*) &u;
 	fdstrategy(&swbuf);
 	spl7();
 	while((swbuf.b_flags&B_DONE)==0)
@@ -253,7 +253,7 @@ swap(rdflg)
 	p = &proc[cpid];
 	if(rdflg == B_WRITE) {
 		p1 = *(int*) USTACK;
-		p2 = (int*) (TOPSYS + (u.u_dsize<<6) + (p1 & 077));
+		p2 = (int*) (BOTUSR + (u.u_dsize<<6) + (p1 & 077));
 		if(p2 <= (int*) p1) {
 			p->p_size = u.u_dsize + USIZE +
 			    ((TOPUSR >> 6) & 01777) - ((p1 >> 6) & 01777);
@@ -276,7 +276,7 @@ swap(rdflg)
 	spl0();
 	if(rdflg == B_READ) {
 		p1 = TOPUSR;
-		p2 = (p->p_size<<6) + (int*) TOPSYS - (USIZE<<6);
+		p2 = (p->p_size<<6) + (int*) BOTUSR - (USIZE<<6);
 		if(p2 <= (int*) p1)
 			while(p1 >= *(int*)USTACK) {
 				p1 -= 2;

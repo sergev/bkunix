@@ -61,9 +61,9 @@ unlink()
 	u.u_base = (char*) &u.u_dent;
 	u.u_count = DIRSIZ+2;
 	u.u_dent.u_ino = 0;
-	nofault++;
+	u.u_segflg++;
 	writei(pp);
-	nofault--;
+	u.u_segflg--;
 	ip->i_nlink--;
 	ip->i_flag |= IUPD;
 	iput(ip);
@@ -161,8 +161,8 @@ bground()
 		u.u_error = EAGAIN;
 		return;
 	}
-	p1 = &proc[NPROC];
-	p2 = u.u_procp;
+	p1 = (int*)&proc[NPROC];
+	p2 = (int*)u.u_procp;
 	while(p1 < &proc[NPROC+1]) *p1++ = *p2++;
 	spl7();
 	bgproc = &proc[NPROC];
@@ -171,7 +171,7 @@ bground()
 	spl0();
 }
 
-kill()
+void kill()
 {
 	if(bgproc == 0) {
 		u.u_error = ESRCH;
