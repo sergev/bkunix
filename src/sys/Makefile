@@ -7,9 +7,13 @@
 #CFLAGS		= -Os -fomit-frame-pointer -fno-builtin -I. -DKERNEL -DDEBUG
 #LIBS		=
 
+# Ritchie's compiler.
+CC		= pdp11-cc
+
 # Johnson's portable compiler.
-CC		= pdp11-pcc -O
-CFLAGS		= -I. -DKERNEL
+#CC		= pdp11-pcc
+
+CFLAGS		= -O -I. -DKERNEL
 LIBS		= -L/usr/local/lib/pdp11 -lcrt
 
 # Using GNU binutils.
@@ -97,12 +101,11 @@ depend:
 		mv Makefile~ Makefile
 
 ### DO NOT DELETE THIS LINE
-low.o: low.S
+low.o: low.S param.h
 mch.o: mch.S param.h
 alloc.o: alloc.c param.h systm.h filsys.h buf.h inode.h user.h
 bio.o: bio.c param.h user.h buf.h systm.h proc.h
 clock.o: clock.c param.h systm.h user.h proc.h
-debug1.o: debug1.c
 debug.o: debug.c
 fio.o: fio.c param.h user.h filsys.h file.h inode.h reg.h
 iget.o: iget.c param.h systm.h user.h inode.h filsys.h buf.h

@@ -15,6 +15,8 @@ void standalone ()
 #endif
 
 #ifdef DEBUG
+#define dbg_putchar ttputc
+extern int ttputc();
 
 /*
  * Printn prints a number n in base b.

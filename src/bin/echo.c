@@ -1,7 +1,5 @@
 #include <stdlib.h>
 
-extern int edata, end;
-
 int
 main(argc, argv)
 	int argc;

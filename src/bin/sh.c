@@ -88,25 +88,25 @@ int	trebuf[TRESIZ];
 
 extern int errno;
 
-void err(char*);
-void prs(char*);
-int getc(void);
-int readc(void);
-void main1(void);
-void word(void);
-int *syntax(char**, char**);
-void execute(int*, int*, int*);
-int any(int, char*);
-int *syn1(char**, char**);
-int *syn2(char**, char**);
-int *syn3(char**, char**);
-int equal(char*, char*);
-void pwait(int, int*);
-void prn(int);
-void texec(char*, int*);
-void putc(char);
-void acct(int*);
-void enacct(char*);
+void err PARAMS((char*));
+void prs PARAMS((char*));
+int getc PARAMS((void));
+int readc PARAMS((void));
+void main1 PARAMS((void));
+void word PARAMS((void));
+int *syntax PARAMS((char**, char**));
+void execute PARAMS((int*, int*, int*));
+int any PARAMS((int, char*));
+int *syn1 PARAMS((char**, char**));
+int *syn2 PARAMS((char**, char**));
+int *syn3 PARAMS((char**, char**));
+int equal PARAMS((char*, char*));
+void pwait PARAMS((int, int*));
+void prn PARAMS((int));
+void texec PARAMS((char*, int*));
+void putc PARAMS((char));
+void acct PARAMS((int*));
+void enacct PARAMS((char*));
 
 int
 main(c, av)
@@ -725,14 +725,14 @@ execute(t, pf1, pf2)
 		}
 		close(acctf);
 		gflg = 0;
-		scan(t, &tglob);
+		scan(t, tglob);
 		if(gflg) {
 			t[DSPR] = (int) "/etc/glob";
 			execv((char*) t[DSPR], (char**) (t+DSPR));
 			prs("glob: cannot execute\n");
 			exit(1);
 		}
-		scan(t, &trim);
+		scan(t, trim);
 		*linep = 0;
 		texec((char*) t[DCOM], t);
 		cp1 = linep;

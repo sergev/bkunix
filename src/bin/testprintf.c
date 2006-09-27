@@ -70,7 +70,7 @@ fp_test ()
 	char *prefix = buf;
 	char tp[20];
 
-	fputs ("\nFormatted output test\n");
+	fputs ("\nFormatted output test\n", stdout);
 	printf ("prefix  6d      6o      6x      6X      6u\n");
 	strcpy (prefix, "%");
 	for (i = 0; i < 2; i++) {

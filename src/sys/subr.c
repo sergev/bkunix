@@ -19,7 +19,7 @@ bad_user_address(addr)
 {
 	/* The kernel wants to read into the struct user or from
 	 * its own data sometimes. */
-	if (! nofault)
+	if (nofault)
 		return 0;
 	if ((unsigned) addr < TOPSYS || (unsigned) addr >= TOPUSR) {
 		u.u_error = EFAULT;
