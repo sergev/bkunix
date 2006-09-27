@@ -407,7 +407,7 @@ genswitch(p,n) register struct sw *p;{
 
 		putstr( "	cmp	r0,$" );
 		printf( CONFMT, p[i].sval );
-		printf( "\n	beq	L%d\n", p[i].slab );
+		printf( "\n	jeq	L%d\n", p[i].slab );
 		}
 
 	if( p->slab>=0 ) branch( p->slab );
@@ -440,16 +440,16 @@ walkheap(start, limit)
 
 	if( start > limit ) return;
 	printf("	cmp	r0,$%d\n",  heapsw[start].sval);
-	printf("	beq	L%d\n", heapsw[start].slab);
+	printf("	jeq	L%d\n", heapsw[start].slab);
 	if( (2*start) > limit ) {
-		printf("	br 	L%d\n", heapsw[0].slab);
+		printf("	jbr 	L%d\n", heapsw[0].slab);
 		return;
 	}
 	if( (2*start+1) <= limit ) {
 		label = getlab();
-		printf("	bgt	L%d\n", label);
+		printf("	jgt	L%d\n", label);
 	} else
-		printf("	bgt	L%d\n", heapsw[0].slab);
+		printf("	jgt	L%d\n", heapsw[0].slab);
 	walkheap( 2*start, limit);
 	if( (2*start+1) <= limit ) {
 		printf("L%d:\n", label);

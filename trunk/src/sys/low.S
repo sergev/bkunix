@@ -1,3 +1,5 @@
+#include "param.h"
+
 / Copyright 1975 Bell Telephone Laboratories Inc
 / low core
 
@@ -10,6 +12,7 @@
 /-----------------------
 / Address 0: system starts here.
 /
+.globl init
 init:	br	1f		/ not enough place here
 	.word	4
 
