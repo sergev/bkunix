@@ -8,15 +8,15 @@
 #LIBS		=
 
 # Johnson's portable compiler.
-CC		= pdp11-pcc
+CC		= pdp11-pcc -O
 CFLAGS		= -I. -DKERNEL
-LIBS		= -L/usr/local/lib/pdp11 -lpcc
+LIBS		= -L/usr/local/lib/pdp11 -lcrt
 
 # Using GNU binutils.
 AS		= pdp11-as
 LD		= pdp11-ld
 SIZE		= pdp11-size -o
-LDFLAGS		= --omagic -Tpdp11.x
+LDFLAGS		= -X
 
 ASRCS		= low.S mch.S
 ASOBJS		= low.o mch.o
@@ -64,8 +64,8 @@ clean:
 		rm -f *~ dev/*~ *.o *.s lsx lsx1 debug a.out lsx.dis debug.dis
 
 lsx:		$(OBJS)
-		$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS) -Map $@.map
-		pdp11-objdump -D $@ > $@.dis
+		$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+		pdp11-disasm $@ > $@.dis
 
 lsx1:		$(ASOBJS) $(CSRCS)
 		cat $(CSRCS) > kernel.c

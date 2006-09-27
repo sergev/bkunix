@@ -19,12 +19,9 @@ bad_user_address(addr)
 {
 	/* The kernel wants to read into the struct user or from
 	 * its own data sometimes. */
-	/* pointer comparisons are broken (become signed) */
-#ifdef __STDC__
-	if ((!nofault && addr < (char*) TOPSYS) || addr >= (char*) TOPUSR) {
-#else
-	if ((!nofault && (unsigned) addr < (unsigned) TOPSYS) || (unsigned) addr >= TOPUSR) {
-#endif
+	if (! nofault)
+		return 0;
+	if ((unsigned) addr < TOPSYS || (unsigned) addr >= TOPUSR) {
 		u.u_error = EFAULT;
 		return 1;
 	}

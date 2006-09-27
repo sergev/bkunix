@@ -181,16 +181,25 @@ int input()
 
 		case LABEL:
 			p = (struct node *)alloc(sizeof first);
-			if (line[0] == 'L') {
-				p->op = LABEL;
-				p->subop = 0;
-				p->labno = getnum(line+1);
-				p->code = 0;
-			} else {
+			if (line[0] != 'L') {
 				p->op = DLABEL;
 				p->subop = 0;
 				p->labno = 0;
 				p->code = copy(1, line);
+			} else if (line[1] == 'F') {
+				char *s = strchr(line, '=');
+				if (! s)
+					continue;
+				while (*++s == ' ');
+				p->op = FLABEL;
+				p->subop = getnum(s);
+				p->labno = atoi(line+2);
+				p->code = 0;
+			} else {
+				p->op = LABEL;
+				p->subop = 0;
+				p->labno = getnum(line+1);
+				p->code = 0;
 			}
 			break;
 
@@ -245,6 +254,8 @@ int getline()
 		}
 		if (c=='\n') {
 			*lp++ = 0;
+			if (line[0] == 'L' && line[1] == 'F')
+				return(LABEL);
 			return(oplook());
 		}
 		if (lp >= &line[LSIZE-2]) {
@@ -285,11 +296,16 @@ void output()
 		return;
 
 	case LABEL:
-		printf("L%d:", t->labno);
+		printf("L%d:\n", t->labno);
 		continue;
 
 	case DLABEL:
-		printf("%s:", t->code);
+		printf("%s:\n", t->code);
+		continue;
+
+	case FLABEL:
+		if (t->subop != 0)
+			printf("\tLF%d = %d\n", t->labno, t->subop);
 		continue;
 
 	case TEXT:
@@ -303,7 +319,7 @@ void output()
 		for (oper = optab; oper->opstring!=0; oper++)
 			if ((oper->opcode&0377) == t->op
 			 && (oper->opcode>>8) == t->subop) {
-				printf("%s", oper->opstring);
+				printf("\t%s", oper->opstring);
 				if (byte==BYTE)
 					printf("b");
 				break;
@@ -330,8 +346,7 @@ void output()
 
 	case 0:
 		if (t->code)
-			printf("%s", t->code);
-		printf("\n");
+			printf("\t%s\n", t->code);
 		continue;
 	}
 }
@@ -535,6 +550,7 @@ void iterate()
 		if (p->op==JBR || p->op==JMP) {
 			while (p->forw && p->forw->op!=LABEL
 				&& p->forw->op!=DLABEL
+				&& p->forw->op!=FLABEL
 				&& p->forw->op!=EROU && p->forw->op!=END
 /* v7.orig			&& p->forw->op!=0 && p->forw->op!=DATA) { */
 /*
