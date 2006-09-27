@@ -4,7 +4,7 @@
 #include "param.h"
 
 usize	= 01000
-_u	= TOPSYS - usize
+_u	= BOTUSR - usize
 	.globl	_u
 
 	.comm	_user, 2
@@ -39,7 +39,14 @@ call:
 	mov	4(sp),-(sp)
 	bic	$0177740,(sp)	/ trap type
 	cmp	10(sp),$ TOPSYS
+#if BOTSYS != 0
+	bhis	2f		/ trap from user
+	cmp	10(sp),$ BOTSYS
+	bhis	1f		/ trap from system
+2:
+#else
 	blo	1f		/ trap from system
+#endif
 	inc	_user
 	mov	2(sp),r1	/ trap from user, get user stack
 	mov	$ TOPSYS,sp
@@ -71,7 +78,14 @@ call:
 	tst	(sp)+
 	mov	(sp)+,r1	/ new user stack pointer
 	cmp	6(sp),$ TOPSYS
+#if BOTSYS != 0
+	bhis	2f		/ return from user trap
+	cmp	6(sp),$ BOTSYS
+	bhis	1f		/ return from system trap
+2:
+#else
 	blo	1f		/ return from system trap
+#endif
 	sub	$10,r1		/ begin. of system stack to be copied to user stack
 	mov	(sp)+,(r1)+	/ copy system stack to user stack
 	mov	(sp)+,(r1)+
@@ -287,9 +301,9 @@ start:
 / on return, enter user mode at 040000
 
 	jsr	pc,_unixmain
-	mov	$ TOPSYS+8192,sp	/ set stack at first 8kbytes of user space
+	mov	$ BOTUSR+8192,sp	/ set stack at first 8kbytes of user space
 	clr	-(sp)
-	mov	$ TOPSYS,-(sp)
+	mov	$ BOTUSR,-(sp)
 	rti
 
 /-----------------------

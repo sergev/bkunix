@@ -25,6 +25,7 @@ clock(dev, sp, r1, nps, r0, pc, ps)
 	char *pc;
 {
 	register struct proc *pp;
+	register int is_user;
 
 	/*
 	 * restart clock
@@ -37,7 +38,8 @@ clock(dev, sp, r1, nps, r0, pc, ps)
 	 * lightning bolt time-out
 	 * and time of day
 	 */
-	if(pc > (char*) TOPSYS) {
+	is_user = !u.u_segflg && !bad_user_address(pc);
+	if(is_user) {
 		u.u_utime++;
 	} else
 		u.u_stime++;
@@ -52,7 +54,7 @@ clock(dev, sp, r1, nps, r0, pc, ps)
 				if(--pp->p_clktim == 0)
 					psignal(pp, SIGCLK);
 		}
-		if(pc > (char*) TOPSYS) {
+		if(is_user) {
 			u.u_ar0 = &r0;
 			if(issig())
 				psig();

@@ -7,8 +7,6 @@
 #include "buf.h"
 #include "systm.h"
 
-char nofault;
-
 /*
  * Check the address value received from user program.
  * Return 0 when the address is valid.
@@ -19,7 +17,7 @@ bad_user_address(addr)
 {
 	/* The kernel wants to read into the struct user or from
 	 * its own data sometimes. */
-	if (nofault)
+	if (u.u_segflg)
 		return 0;
 	if ((unsigned) addr < TOPSYS || (unsigned) addr >= TOPUSR) {
 		u.u_error = EFAULT;
@@ -158,14 +156,12 @@ memcpy (pto, pfrom, nbytes)
 	unsigned int nbytes;
 {
 	register char *to, *from;
-	register unsigned int bytes;
+	register unsigned bytes;
 
-	if (nbytes == 0)
-		return pto;
 	to = (char*) pto;
 	from = (char*) pfrom;
 	bytes = nbytes;
-
+#if 0
 	if ((int) to & 1) {
 		/* In case of non-even destination - move one byte. */
 		*to++ = *from++;
@@ -180,6 +176,7 @@ memcpy (pto, pfrom, nbytes)
 			bytes -= 2;
 		}
 	}
+#endif
 	while (bytes-- > 0)
 		*to++ = *from++;
 	return pto;

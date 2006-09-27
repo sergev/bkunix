@@ -91,9 +91,9 @@ exec()
 	u.u_count = 8;
 	u.u_offset[1] = 0;
 	u.u_offset[0] = 0;
-	nofault++;
+	u.u_segflg++;
 	readi(ip);
-	nofault--;
+	u.u_segflg--;
 	if(u.u_error)
 		goto bad;
 	if(u.u_arg[0] == 0407) {
@@ -117,12 +117,12 @@ exec()
 	 * at this point, committed
 	 * to the new image
 	 */
-	memzero ((void*) TOPSYS, TOPUSR - TOPSYS);
+	memzero ((void*) BOTUSR, TOPUSR - BOTUSR);
 
 	/*
 	 * read in data segment
 	 */
-	u.u_base = (char*) TOPSYS;
+	u.u_base = (char*) BOTUSR;
 	u.u_offset[1] = 020;
 	u.u_count = u.u_arg[2];
 	readi(ip);
@@ -157,7 +157,7 @@ exec()
 	u.u_ar0[R3] = 0;
 	u.u_ar0[R4] = 0;
 	u.u_ar0[R5] = 0;
-	u.u_ar0[R7] = TOPSYS;
+	u.u_ar0[R7] = BOTUSR;
 bad:
 	iput(ip);
 	brelse(bp);
@@ -202,9 +202,9 @@ pexit()
 	update();
 #ifdef BGOPTION
 	if(p != bgproc) {
-		q = getblk(SWAPDEV, SWPLO+swtab[cpid].sw_blk);
-		memcpy(q->b_addr, &u, 512);
-		bwrite(q);
+		bp = getblk(SWAPDEV, SWPLO+swtab[cpid].sw_blk);
+		memcpy(bp->b_addr, &u, 512);
+		bwrite(bp);
 		if(cpid)
 			cpid--;
 		else
@@ -322,7 +322,7 @@ sbreak()
 	 * set d to new-old
 	 * set n to new total size
 	 */
-	n = (((u.u_arg[0]-TOPSYS+63)>>6) & 01777);
+	n = (((u.u_arg[0]-BOTUSR+63)>>6) & 01777);
 	d = n - u.u_dsize;
 	n += USIZE+u.u_ssize;
 	if(n > UCORE) {

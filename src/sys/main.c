@@ -29,10 +29,10 @@ struct proc	proc[NPROC];
  */
 int	icode[] = {
 	0104413,	/* sys exec; init; initp */
-	TOPSYS+014,
-	TOPSYS+010,
+	BOTUSR+014,
+	BOTUSR+010,
 	0000777,	/* br . */
-	TOPSYS+014,	/* initp: init; 0 */
+	BOTUSR+014,	/* initp: init; 0 */
 	0000000,
 	0062457,	/* init: </etc/init\0> */
 	0061564,
@@ -128,7 +128,7 @@ unixmain()
 	 * make init process
 	 * with system process
 	 */
-	memcpy(TOPSYS, icode, sizeof icode);
+	memcpy(BOTUSR, icode, sizeof icode);
 
 	/*
 	 * Return goes to loc. 0 of user init

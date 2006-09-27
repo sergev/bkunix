@@ -212,8 +212,8 @@ wdir(ip)
 	memcpy(&u.u_dent.u_name[0], &u.u_dbuf[0], DIRSIZ);
 	u.u_count = DIRSIZ + 2;
 	u.u_base = (char*) &u.u_dent;
-	nofault++;
+	u.u_segflg++;
 	writei(u.u_pdir);
-	nofault--;
+	u.u_segflg--;
 	iput(u.u_pdir);
 }
