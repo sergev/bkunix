@@ -141,11 +141,13 @@ clocal(p) NODE *p; {
 				if( ml==LONG || ml==ULONG ) break;
 				}
 			else if( m==INT || m==UNSIGNED ){
-				if( ml==LONG || ml==ULONG || (ml & TMASK)) break;
+				if( ml==LONG || ml==ULONG ) break;
 				}
 			else if( m==LONG || m==ULONG ){
 				if( ml!=LONG && ml!= ULONG ) break;
 				}
+			/* do not forget the type of result */
+			p->in.left->in.type = m;
 			}
 
 		/* clobber conversion */

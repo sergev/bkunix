@@ -131,7 +131,7 @@ tcheck(){ /* ensure that all nodes have been freed */
 
 	if( !nerrors )
 		for( p=node; p<= &node[TREESZ-1]; ++p )
-			if( p->in.op != FREE ) cerror("wasted space: %o", p );
+			if( p->in.op != FREE ) cerror("wasted space: %p", p );
 	tinit();
 #ifdef FLEXNAMES
 	freetstr();

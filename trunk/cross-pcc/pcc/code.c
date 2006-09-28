@@ -44,8 +44,14 @@ locctr( l ){
 		break;
 
 	case STRNG:
-	case ISTRNG:
 		putstr( "	.data\n" );
+		break;
+
+	case ISTRNG:
+		/* Put initializer strings in text section.
+		 * This is needed for arrays of string pointers
+		 * to be initialized properly. */
+		putstr( "	.text\n" );
 		break;
 
 	case STAB:
