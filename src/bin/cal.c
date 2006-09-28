@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 char	dayw[] = {
 	" S  M Tu  W Th  F  S"

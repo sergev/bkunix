@@ -94,6 +94,25 @@ outchar (c)
 	write (1, &c, 1);
 }
 
+#if 0
+static void printlong (a)
+	long a;
+{
+	long b;
+
+	if (a < 0) {
+		outchar ('-');
+		a = - a;
+	}
+	b = a / 10;
+	if (b > 0) {
+		printlong (b);
+		a -= b * 10;
+	}
+	outchar ((int) a + '0');
+}
+#endif
+
 int
 vprintf (fmt, ap)
 	char *fmt;
@@ -310,9 +329,16 @@ string:
 			goto number;
 
 nosign:			sign = 0;
-number:			if (sign && (long) ul < 0L) {
+number:
+/*PUTC('<');*/
+/*printlong(ul);*/
+/*PUTC('>');*/
+			if (sign && (long) ul < 0L) {
 				neg = 1;
 				ul = -(long) ul;
+/*PUTC('<');*/
+/*printlong(ul);*/
+/*PUTC('>');*/
 			}
 			if (dwidth > 0 && dwidth >= sizeof(nbuf)) {
 				extrazeros = dwidth - sizeof(nbuf) + 1;

@@ -223,18 +223,22 @@ getword (fd)
 	return w;
 }
 
-void
+/*
+ * Read archive header. Return 0 on error.
+ */
+int
 getarhdr(hdr, fd)
 	register struct ar_hdr *hdr;
 	FILE *fd;
 {
 #ifdef __pdp11__
-	fread(hdr, AR_HDRSIZE, 1, fd);
+	if (fread(hdr, AR_HDRSIZE, 1, fd) != 1)
+		return 0;
 #else
 	unsigned char buf [AR_HDRSIZE];
 
 	if (fread(buf, AR_HDRSIZE, 1, fd) != 1)
-		return;
+		return 0;
 	memcpy(hdr->ar_name, buf, sizeof(hdr->ar_name));
 	hdr->ar_date = buf[16] | buf[17] << 8 |
 		(unsigned long) buf[14] << 16 | (unsigned long) buf[15] << 24;
@@ -244,6 +248,7 @@ getarhdr(hdr, fd)
 	hdr->ar_size = buf[24] | buf[25] << 8 |
 		(unsigned long) buf[22] << 16 | (unsigned long) buf[23] << 24;
 #endif
+	return 1;
 }
 
 /*
@@ -285,9 +290,15 @@ readhdr(loff)
 	register int st, sd;
 
 	fseek(text, loff, 0);
-	fread(&filhdr, sizeof filhdr, 1, text);
-	if (filhdr.a_magic != A_FMAGIC)
+	if (fread(&filhdr, sizeof filhdr, 1, text) != 1) {
+/*printf("loff = %ld (%ld)\n", loff, ftell(text));*/
+		error(1, "Cannot read header");
+	}
+	if (filhdr.a_magic != A_FMAGIC) {
+/*printf("loff = %ld (%ld)\n", loff, ftell(text));*/
+/*printf("text/data/bss = %d / %d / %d\n", filhdr.a_text, filhdr.a_data, filhdr.a_bss);*/
 		error(1, "Bad format");
+	}
 	st = (filhdr.a_text + 01) & ~01;
 	filhdr.a_text = st;
 	cdrel = - st;
@@ -437,7 +448,8 @@ void
 load1arg(filename)
 	register char *filename;
 {
-	register int loff, nlinked;
+	long loff;
+	register int nlinked;
 
 	if (getfile(filename)==0) {
 /*printf("load1arg: %s\n", filename);*/
@@ -449,10 +461,9 @@ again:
 	loff = 2;
 	nlinked = 0;
 	for (;;) {
-/*printf("load1arg: seek %d\n", loff);*/
+/*printf("load1arg: seek %ld\n", loff);*/
 		fseek(text, loff, 0);
-		getarhdr(&archdr, text);
-		if (feof(text) || ferror(text)) {
+		if (! getarhdr(&archdr, text)) {
 			if (nlinked) {
 				/* Scan archive again until
 				 * no unreferenced symbols found. */
@@ -461,7 +472,7 @@ again:
 			break;
 		}
 		if (load1(1, loff + AR_HDRSIZE)) {
-/*printf("load1arg: %s(%.8s)\n", filename, archdr.ar_name);*/
+/*printf("load1arg: %s(%.14s) offset %ld\n", filename, archdr.ar_name, loff);*/
 			*libp++ = loff;
 			nlinked++;
 		}
@@ -724,7 +735,7 @@ load2arg(filename)
 
 	if (getfile(filename) == 0) {
 /*printf("load2arg: %s\n", filename);*/
-		reloc = fdopen(fileno(text), "r");
+		reloc = fopen(filename, "r");
 		p = strrchr (filename, '/');
 		if (p)
 			filename = p+1;
@@ -734,11 +745,14 @@ load2arg(filename)
 		fclose(text);
 		return;
 	}
-	reloc = fdopen(fileno(text), "r");
+	reloc = fopen(filname, "r");
 	for (lp = libp; *lp > 0; lp++) {
 		fseek(text, *lp, 0);
-		getarhdr(&archdr, text);
-/*printf("load2arg: %s(%.8s) offset %ld\n", filename, archdr.ar_name, *lp);*/
+		if (! getarhdr(&archdr, text)) {
+/*printf("load2arg: %s(%.14s) offset %ld\n", filename, archdr.ar_name, *lp);*/
+			error(1, "Cannot read archive header");
+		}
+/*printf("load2arg%d/%d: %s(%.14s) offset %ld\n", fileno(text), fileno(reloc), filename, archdr.ar_name, *lp);*/
 		mkfsym(archdr.ar_name);
 		fwrite(&cursym, sizeof cursym, 1, soutb);
 		load2(*lp + AR_HDRSIZE);
