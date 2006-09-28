@@ -2,7 +2,10 @@
  * Testing vprintf(3).
  */
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
+#ifdef __pdp11__
 #define fputs(s,f) printstring (s)
 
 static void
@@ -11,6 +14,7 @@ printstring (str)
 {
 	write (1, str, strlen (str));
 }
+#endif
 
 static void
 fmtchk (fmt)
@@ -56,7 +60,7 @@ fmtst2chk (fmt)
  */
 #define DEC -123
 #define INT 255
-#define UNS (~0)
+#define UNS ((unsigned short)~0)
 
 /* Formatted Output Test
  *

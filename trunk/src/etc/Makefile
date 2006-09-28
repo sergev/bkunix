@@ -18,8 +18,8 @@ SIZE		= pdp11-size -o
 CFLAGS		= -O -I../libc
 LDFLAGS		= -a$(TOPSYS)
 
-PROGS		= glob init mkfs mknod clri
-# TODO:
+PROGS		= init
+# TODO: glob mkfs mknod clri
 
 all:		$(PROGS)
 

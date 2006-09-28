@@ -1,15 +1,37 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 void printint (a)
 {
 	int b;
 
+	if (a < 0) {
+		printf ("-");
+		a = - a;
+	}
 	b = a / 10;
 	if (b > 0) {
 		printint (b);
 		a -= b * 10;
 	}
 	printf ("%c", a + '0');
+}
+
+void printlong (a)
+	long a;
+{
+	long b;
+
+	if (a < 0) {
+		printf ("-");
+		a = - a;
+	}
+	b = a / 10;
+	if (b > 0) {
+		printlong (b);
+		a -= b * 10;
+	}
+	printf ("%c", (int) a + '0');
 }
 
 void testint (a, b, op, exp)
@@ -103,6 +125,18 @@ void testulong (a, b, op, exp)
 	printf (" (expecting %s)\n", exp);
 }
 
+void testcast (a)
+{
+	long b;
+
+	b = a;
+	printf ("From int to long: ");
+	printint (a);
+	printf (" => ");
+	printlong (b);
+	printf ("\n");
+}
+
 int main ()
 {
 	testint (67, 89, "*", "5963");
@@ -137,5 +171,10 @@ int main ()
 	testulong (7654L, 34L, "/=", "225");
  	testulong (6789L, 54L, "%=", "39");
 
+	testcast (-1);
+	testcast (-12);
+	testcast (-123);
+	testcast (-1234);
+	testcast (-12345);
 	return 0;
 }
