@@ -270,7 +270,7 @@ reswitch:	ch = *fmt++;
 				p = "(nil)";
 				goto string;
 			}
-			base = 16;
+			base = 8;
 			sharpflag = (width == 0);
 			goto nosign;
 

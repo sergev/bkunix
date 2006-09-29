@@ -585,7 +585,7 @@ execute(t, pf1, pf2)
 
 	case TCOM:
 		cp1 = (char*) t[DCOM];
-		if (equal(cp1, "chdir")) {
+		if (equal(cp1, "cd")) {
 			if (t[DCOM+1] != 0) {
 				if (chdir((char*) t[DCOM+1]) < 0)
 					err("chdir: bad directory");
@@ -605,20 +605,6 @@ execute(t, pf1, pf2)
 		}
 		if (equal(cp1,"sync")) {
 			sync();
-			return;
-		}
-		if (equal(cp1, "login")) {
-			if (promp != 0) {
-				execv("/bin/login", (char**) (t+DCOM));
-			}
-			prs("login: cannot execute\n");
-			return;
-		}
-		if (equal(cp1, "newgrp")) {
-			if (promp != 0) {
-				execv("/bin/newgrp", (char**) (t+DCOM));
-			}
-			prs("newgrp: cannot execute\n");
 			return;
 		}
 		if (equal(cp1, "wait")) {
