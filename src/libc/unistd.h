@@ -79,7 +79,7 @@ char *sbrk PARAMS((int));
 /*
  * Get file status by file name.
  */
-int stat PARAMS((char*, int*));
+int stat PARAMS((char*, struct stat*));
 
 /*
  * Reposition read/write file offset.
@@ -109,7 +109,7 @@ int alarm PARAMS((int));
 /*
  * Get file status by file descriptor.
  */
-int fstat PARAMS((int, int*));
+int fstat PARAMS((int, struct stat*));
 
 /*
  * Stop until signal.

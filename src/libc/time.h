@@ -22,6 +22,10 @@ struct tm {
 	char	*tm_zone;
 };
 
+extern char *tzname[2];
+extern long timezone;
+extern int daylight;
+
 struct tm *gmtime PARAMS((long*));
 struct tm *localtime PARAMS((long*));
 char *asctime PARAMS((struct tm*));

@@ -6,27 +6,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <time.h>
 #include <dirent.h>
-
-#ifdef __pdp11__
-struct stat {
-	int		st_dev;
-	int		st_ino;
-	int		st_mode;
-	char		st_nlink;
-	char		st_uid;
-	char		st_gid;
-	char		st_size0;
-	unsigned	st_size;
-	int		st_addr[8];
-	long		st_atime;
-	long		st_mtime;
-};
-#else
 #include <sys/types.h>
 #include <sys/stat.h>
-#endif
 
 struct lbuf {
 	union {
@@ -67,21 +51,8 @@ int compar PARAMS((const void*, const void*));
 #define devminor(x)	((x) & 0377)
 #define devmajor(x)	((x) >> 8 & 0377)
 
-#ifndef	S_IFMT
-#define	S_IFMT		0060000
-#define	S_IFDIR		0040000
-#define	S_IFCHR		0020000
-#define	S_IFBLK		0060000
-#define	S_LARGE		0010000
-#define	S_ISUID		0004000
-#define	S_ISGID		0002000
-#define	S_ISVTX		0001000
-#define	S_ISARG		0010000
-
-#define	S_ISREG(m)	(((m) & S_IFMT) == 0)
-#define	S_ISDIR(m)  	(((m) & S_IFMT) == S_IFDIR)
-#define	S_ISCHR(m)  	(((m) & S_IFMT) == S_IFCHR)
-#define	S_ISBLK(m)  	(((m) & S_IFMT) == S_IFBLK)
+#ifdef S_LARGE
+#define	S_ISARG		S_LARGE
 #else
 #define	S_ISARG		S_ISVTX
 #endif
@@ -388,12 +359,7 @@ gstat(file, argfl)
 			}
 		}
 		rep->lnum = statb.st_ino;
-#ifdef S_LARGE
-		statb.st_mode &= ~ S_LARGE;
-#endif
-#if S_ISARG == S_ISVTX
-		statb.st_mode &= ~ S_ISVTX;
-#endif
+		statb.st_mode &= ~ S_ISARG;
 		rep->lflags = statb.st_mode;
 		rep->luid = statb.st_uid;
 		rep->lgid = statb.st_gid;

@@ -556,7 +556,6 @@ struct node *p;
 int ilen(p)
 register struct node *p;
 {
-
 	switch (p->op) {
 	case LABEL:
 	case DLABEL:
@@ -749,11 +748,14 @@ struct node *ap;
 	p = ap;
 	p1 = p->code;
 	p2 = regs[RT1];
-	while (*p1 && *p1!=',')
-		*p2++ = *p1++;
+	if (p1)
+		while (*p1 && *p1!=',')
+			*p2++ = *p1++;
 	*p2++ = 0;
 	p2 = regs[RT2];
 	*p2 = 0;
+	if (! p1)
+		return;
 	if (*p1++ !=',')
 		return;
 	while (*p1==' ' || *p1=='\t')

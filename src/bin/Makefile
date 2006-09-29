@@ -17,8 +17,9 @@ CC		= pdp11-pcc
 # Ritchie's compiler.
 #CC		= pdp11-cc
 
-PROGS		= hello echo cal sync ls sh
-# TODO: check cp date ed mkdir mv od rm rmdir stty
+PROGS		= hello echo cal ls sh cp date
+# TODO: mkdir mv od rm rmdir stty check ed
+# sync
 
 all:		$(PROGS)
 
