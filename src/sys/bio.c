@@ -247,7 +247,7 @@ swap(rdflg)
 	int rdflg;
 {
 	register struct proc *p;
-	register int p1;
+	register unsigned p1;
 	register int *p2;
 
 	p = &proc[cpid];
@@ -276,7 +276,7 @@ swap(rdflg)
 	spl0();
 	if(rdflg == B_READ) {
 		p1 = TOPUSR;
-		p2 = (p->p_size<<6) + (int*) BOTUSR - (USIZE<<6);
+		p2 = (int*) ((p->p_size<<6) + BOTUSR - (USIZE<<6));
 		if(p2 <= (int*) p1)
 			while(p1 >= *(int*)USTACK) {
 				p1 -= 2;
