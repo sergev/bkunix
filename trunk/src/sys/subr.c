@@ -58,9 +58,9 @@ bmap(ip, bn)
 			if (bp == NULL)
 				return(NULL);
 			bap = (int*) bp->b_addr;
-			for(i=0; i<8; i++) {
-				*bap++ = ip->i_addr[i];
-				ip->i_addr[i] = 0;
+			for(nb=0; nb<8; nb++) {
+				*bap++ = ip->i_addr[nb];
+				ip->i_addr[nb] = 0;
 			}
 			ip->i_addr[0] = bp->b_blkno;
 			bdwrite(bp);

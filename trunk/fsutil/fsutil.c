@@ -33,8 +33,8 @@ struct argp_option argp_options[] = {
 	{"fix",		'f', 0,		0,	"Fix bugs in filesystem" },
 	{"new",		'n', 0,		0,	"Create new filesystem, -s required" },
 	{"size",	's', "NUM",	0,	"Size in bytes for created filesystem" },
-	{"boot",	'b', "FILE",	0,	"Boot sector for created filesystem" },
-	{"boot2",	'B', "FILE",	0,	"Secondary boot sector" },
+	{"boot",	'b', "FILE",	0,	"Boot sector, -B required" },
+	{"boot2",	'B', "FILE",	0,	"Secondary boot sector, -b required" },
 	{ 0 }
 };
 
@@ -301,6 +301,20 @@ void add_file (lsxfs_t *fs, char *name)
 	fclose (fd);
 }
 
+void add_boot (lsxfs_t *fs)
+{
+	if (boot_sector && boot_sector2) {
+		if (! lsxfs_install_boot (fs, boot_sector,
+		    boot_sector2)) {
+			fprintf (stderr, "%s: incorrect boot sector\n",
+				boot_sector);
+			return;
+		}
+		printf ("Boot sectors %s and %s installed\n",
+			boot_sector, boot_sector2);
+	}
+}
+
 int main (int argc, char **argv)
 {
 	int i;
@@ -310,6 +324,7 @@ int main (int argc, char **argv)
 	argp_parse (&argp_parser, argc, argv, 0, &i, 0);
 	if ((! add && i != argc-1) || (add && i >= argc-1) ||
 	    (extract + newfs + check + add > 1) ||
+	    (! boot_sector ^ ! boot_sector2) ||
 	    (newfs && bytes < 5120)) {
 		argp_help (&argp_parser, stderr, ARGP_HELP_USAGE, argv[0]);
 		return -1;
@@ -321,16 +336,7 @@ int main (int argc, char **argv)
 			return -1;
 		}
 		printf ("Created filesystem %s - %ld bytes\n", argv[i], bytes);
-		if (boot_sector && boot_sector2) {
-			if (! lsxfs_install_boot (&fs, boot_sector,
-			    boot_sector2)) {
-				fprintf (stderr, "%s: incorrect boot sector\n",
-					boot_sector);
-				return -1;
-			}
-			printf ("Boot sectors %s and %s installed\n",
-				boot_sector, boot_sector2);
-		}
+		add_boot (&fs);
 		lsxfs_close (&fs);
 		return 0;
 	}
@@ -346,8 +352,9 @@ int main (int argc, char **argv)
 		return 0;
 	}
 
-	/* Add or extract or info. */
-	if (! lsxfs_open (&fs, argv[i], (add != 0))) {
+	/* Add or extract or info or boot update. */
+	if (! lsxfs_open (&fs, argv[i],
+			(add != 0) || (boot_sector && boot_sector2))) {
 		fprintf (stderr, "%s: cannot open\n", argv[i]);
 		return -1;
 	}
@@ -363,6 +370,8 @@ int main (int argc, char **argv)
 		return 0;
 	}
 
+	add_boot (&fs);
+	
 	if (add) {
 		/* Add files i+1..argc-1 to filesystem. */
 		while (++i < argc)
