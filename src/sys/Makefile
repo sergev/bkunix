@@ -14,7 +14,7 @@ CC		= pdp11-cc
 #CC		= pdp11-pcc
 
 CFLAGS		= -O -I. -DKERNEL
-LIBS		= -L/usr/local/lib/pdp11 -lcrt
+LIBS		= $(shell sh findlib.sh $(CC) ) -lcrt
 
 # Using GNU binutils.
 AS		= pdp11-as
@@ -57,7 +57,10 @@ vpath %.c . dev
 #
 CPPFLAGS	+= -DDEC -DKL
 CSRCS		+= dev/kl.c dev/decfd.c
-OBJS		+= kl.o decfd.o
+DEVOBJS		= kl.o decfd.o
+OBJS		+= $(DEVOBJS)
+HIOBJS		= high.o mch.o $(COBJS) $(DEVOBJS)
+HIBASE		= 0120000
 
 all:		lsx #lsx1
 		@echo "Warning: For 10K LSX system, size must be less than 046000"
@@ -65,11 +68,16 @@ all:		lsx #lsx1
 		$(SIZE) lsx #lsx1
 
 clean:
-		rm -f *~ dev/*~ *.o *.s lsx lsx1 debug a.out lsx.dis debug.dis
+		rm -f *~ dev/*~ *.o *.s lsx lsx1 hsx debug a.out lsx.dis debug.dis hsx.dis
 
 lsx:		$(OBJS)
 		$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 		pdp11-disasm $@ > $@.dis
+
+hsx:		$(HIOBJS)
+		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(HIOBJS) $(LIBS)
+		$(SIZE) $@
+		pdp11-disasm -a$(HIBASE) $@ > $@.dis
 
 lsx1:		$(ASOBJS) $(CSRCS)
 		cat $(CSRCS) > kernel.c
