@@ -89,6 +89,7 @@ core()
 
 	u.u_error = 0;
 	u.u_dirp = "core";
+	u.u_segflg++;
 	ip = namei(1);
 	if(ip == NULL) {
 		if(u.u_error)
@@ -109,6 +110,7 @@ core()
 	u.u_count = (UCORE+USIZE)*64;
 	writei(ip);
 	iput(ip);
+	u.u_segflg--;
 	return(u.u_error==0);
 }
 

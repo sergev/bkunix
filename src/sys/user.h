@@ -19,8 +19,6 @@ struct user
 	int	u_rsav[2];		/* save r5,r6 when exchanging stacks */
 #ifdef BGOPTION
 	int	*u_ar0;			/* address of users saved R0 */
-	int	u_cutime[2];		/* sum of childs' utimes */
-	int	u_cstime[2];		/* sum of childs' stimes */
 	int	u_signal[NSIG];		/* disposition of signals */
 #endif
 					/* rsav must be first in structure */
@@ -54,12 +52,6 @@ struct user
 	int	u_ssav[2];		/* label variable for swapping */
 #ifndef BGOPTION
 	int	u_signal[NSIG];		/* disposition of signals */
-#endif
-	int	u_utime;		/* this process user time */
-	int	u_stime;		/* this process system time */
-#ifndef BGOPTION
-	int	u_cutime[2];		/* sum of childs' utimes */
-	int	u_cstime[2];		/* sum of childs' stimes */
 	int	*u_ar0;			/* address of users saved R0 */
 	int	u_prof[4];		/* profile arguments */
 #endif
