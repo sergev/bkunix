@@ -265,12 +265,6 @@ wait()
 		p->p_stat = NULL;
 		p->p_sig = 0;
 		q = (struct user*) bp->b_addr;
-		u.u_cstime[0] += q->u_cstime[0];
-		dpadd(u.u_cstime, q->u_cstime[1]);
-		dpadd(u.u_cstime, q->u_stime);
-		u.u_cutime[0] += q->u_cutime[0];
-		dpadd(u.u_cutime, q->u_cutime[1]);
-		dpadd(u.u_cutime, q->u_utime);
 		u.u_ar0[R1] = q->u_arg[0];
 		brelse(bp);
 		return;
@@ -295,12 +289,6 @@ sfork()
 	}
 	if(newproc()) {
 		u.u_ar0[R0] = cpid;
-		u.u_cstime[0] = 0;
-		u.u_cstime[1] = 0;
-		u.u_stime = 0;
-		u.u_cutime[0] = 0;
-		u.u_cutime[1] = 0;
-		u.u_utime = 0;
 		return;
 	}
 	u.u_ar0[R0] = cpid+1;

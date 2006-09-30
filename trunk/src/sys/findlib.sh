@@ -1,12 +1,17 @@
 #!/bin/sh
-set - `$1 -v .o`
+touch dummy$$.o
+set - `$1 -v -o /dev/null dummy$$.o 2>&1`
+rm dummy$$.o
 while ( (($#)) ) do 
 shift
 case $1 in
--L*) echo $1
-     exit 0
+-L*) lib="$lib $1"
      ;;
 esac
 done
+if [ -n "$lib" ]; then
+echo $lib
+exit 0
+fi
 exit 1
 

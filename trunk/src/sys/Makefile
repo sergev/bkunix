@@ -44,7 +44,7 @@ vpath %.c . dev
 # -DCLOCK     - set to be 0177546 or 0172540 for the line
 #		frequency or programmable clock, respectively.
 #
-#CPPFLAGS	+= -DCLOCK=0177540
+CPPFLAGS	+= -DCLOCK=0177546
 
 # Configuration of device drivers.
 # -DAED	 - AED 6200lp floppy
