@@ -49,7 +49,7 @@ call:
 #endif
 	inc	_user
 	mov	2(sp),r1	/ trap from user, get user stack
-	mov	$ TOPSYS,sp
+	mov	$ BOTUSR,sp
 	mov	-(r1),-(sp)	/ copy user stack to system stack
 	mov	-(r1),-(sp)
 	mov	-(r1),-(sp)
@@ -289,19 +289,20 @@ start:
 	cmp	r0,$ TOPSYS
 	blo	1b
 
+	mov	$_u,r0
+1:
+	clr	(r0)+
+	cmp	r0,$ BOTUSR
+	blo	1b
 / set up stack pointer
 
 	mov	r0,sp
 
 / and pointer to system stack
-#ifdef HIGH
 	mov	$ TOPSYS-2,_u
-#else
-	mov	$_u-2,_u
-#endif
 
 / set up previous mode and call main
-/ on return, enter user mode at 040000
+/ on return, enter user mode at BOTUSR
 
 	jsr	pc,_unixmain
 	mov	$ BOTUSR+8192,sp	/ set stack at first 8kbytes of user space

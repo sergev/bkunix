@@ -22,7 +22,7 @@
 #define TOPSYS	0160000	/* must not be an expression */
 #else
 #define BOTSYS	0	/* must not be an expression */
-#define TOPSYS	040000	/* must not be an expression */
+#define TOPSYS	037000	/* must not be an expression */
 #endif
 #define SYSSIZ	((TOPSYS-BOTSYS)/1024) 	/* system size in 1K bytes */
 #define USRSIZ	24	/* user program size in 1K bytes */
