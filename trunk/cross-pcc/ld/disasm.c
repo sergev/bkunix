@@ -592,7 +592,10 @@ properand (memaddr, code, argcode, argrel)
 	case 2:
 		if (reg == 7) {
 			printf ("$");
-			printf ("%d", sign_extend (argcode));
+			if ((argrel & A_RMASK) == A_REXT)
+				praddr (sign_extend (argcode), argrel);
+			else
+				printf ("%d", sign_extend (argcode));
 		} else {
 			printf ("(");
 			prreg (reg);
@@ -601,10 +604,11 @@ properand (memaddr, code, argcode, argrel)
 		break;
 	case 3:
 		if (reg == 7) {
-			if (code & JUMP)
+			printf ("*$");
+			if ((code & JUMP) || (argrel & A_RMASK) == A_REXT)
 				praddr (argcode, argrel);
 			else
-				printf ("*$%d", argcode);
+				printf ("%d", argcode);
 		} else {
 			printf ("*(");
 			prreg (reg);
@@ -627,7 +631,7 @@ properand (memaddr, code, argcode, argrel)
 			unsigned int address = memaddr + sign_extend (argcode);
 			if (mode == 7)
 				printf ("*");
-			if (!(code & JUMP))
+			if (! (code & JUMP) && (argrel & A_RMASK) != A_REXT)
 				printf ("$");
 			praddr (address, argrel);
 		} else {
