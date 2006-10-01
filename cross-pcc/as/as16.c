@@ -27,7 +27,7 @@ void opline()
 		return;
 	}
 
-	t = tok.v->type.b;
+	t = tok.v->type.u;
 	if(t == TYPEREGIS || t < TYPEOPFD || t > TYPEOPJCC) { /* not op code */
 		express();
 		dot += 2;

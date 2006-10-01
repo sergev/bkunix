@@ -224,12 +224,62 @@ getword (fd)
 }
 
 /*
+ * Read a.out header. Return 0 on error.
+ */
+int
+gethdr(fd, hdr)
+	FILE *fd;
+	register struct exec *hdr;
+{
+#ifdef __pdp11__
+	if (fread(hdr, sizeof(struct exec), 1, fd) != 1)
+		return 0;
+#else
+	unsigned char buf [16];
+
+	if (fread(buf, 16, 1, fd) != 1)
+		return 0;
+	hdr->a_magic = buf[0] | buf[1] << 8;
+	hdr->a_text = buf[2] | buf[3] << 8;
+	hdr->a_data = buf[4] | buf[5] << 8;
+	hdr->a_bss = buf[6] | buf[7] << 8;
+	hdr->a_syms = buf[8] | buf[9] << 8;
+	hdr->a_entry = buf[10] | buf[11] << 8;
+	hdr->a_unused = buf[12] | buf[13] << 8;
+	hdr->a_flag = buf[14] | buf[15] << 8;
+#endif
+	return 1;
+}
+
+/*
+ * Write a.out header.
+ */
+void
+puthdr(fd, hdr)
+	FILE *fd;
+	register struct exec *hdr;
+{
+#ifdef __pdp11__
+	fwrite(hdr, sizeof(struct exec), 1, fd);
+#else
+	putword(hdr->a_magic, fd);
+	putword(hdr->a_text, fd);
+	putword(hdr->a_data, fd);
+	putword(hdr->a_bss, fd);
+	putword(hdr->a_syms, fd);
+	putword(hdr->a_entry, fd);
+	putword(hdr->a_unused, fd);
+	putword(hdr->a_flag, fd);
+#endif
+}
+
+/*
  * Read archive header. Return 0 on error.
  */
 int
-getarhdr(hdr, fd)
-	register struct ar_hdr *hdr;
+getarhdr(fd, hdr)
 	FILE *fd;
+	register struct ar_hdr *hdr;
 {
 #ifdef __pdp11__
 	if (fread(hdr, AR_HDRSIZE, 1, fd) != 1)
@@ -249,6 +299,43 @@ getarhdr(hdr, fd)
 		(unsigned long) buf[22] << 16 | (unsigned long) buf[23] << 24;
 #endif
 	return 1;
+}
+
+/*
+ * Read a.out symbol. Return 0 on error.
+ */
+int
+getsym(fd, sym)
+	FILE *fd;
+	register struct nlist *sym;
+{
+#ifdef __pdp11__
+	if (fread(sym, sizeof(struct nlist), 1, fd) != 1)
+		return 0;
+#else
+	if (fread(sym->n_name, sizeof(sym->n_name), 1, fd) != 1)
+		return 0;
+	sym->n_type = getword(fd);
+	sym->n_value = getword(fd);
+#endif
+	return 1;
+}
+
+/*
+ * Write a.out symbol.
+ */
+void
+putsym(fd, sym)
+	FILE *fd;
+	register struct nlist *sym;
+{
+#ifdef __pdp11__
+	fwrite(sym, sizeof(struct nlist), 1, fd);
+#else
+	fwrite(sym->n_name, sizeof(sym->n_name), 1, fd);
+	putword(sym->n_type, fd);
+	putword(sym->n_value, fd);
+#endif
 }
 
 /*
@@ -290,7 +377,7 @@ readhdr(loff)
 	register int st, sd;
 
 	fseek(text, loff, 0);
-	if (fread(&filhdr, sizeof filhdr, 1, text) != 1) {
+	if (! gethdr(text, &filhdr)) {
 /*printf("loff = %ld (%ld)\n", loff, ftell(text));*/
 		error(1, "Cannot read header");
 	}
@@ -400,7 +487,7 @@ load1(libflg, loff)
 		filhdr.a_data + filhdr.a_data;
 	fseek(text, loff, 0);
 	for (n=0; n<filhdr.a_syms; n+=sizeof cursym) {
-		fread(&cursym, sizeof cursym, 1, text);
+		getsym(&cursym, text);
 		if ((cursym.n_type & N_EXT) == 0) {
 			if (Xflag==0 || cursym.n_name[0]!='L')
 				nloc += sizeof cursym;
@@ -463,7 +550,7 @@ again:
 	for (;;) {
 /*printf("load1arg: seek %ld\n", loff);*/
 		fseek(text, loff, 0);
-		if (! getarhdr(&archdr, text)) {
+		if (! getarhdr(text, &archdr)) {
 			if (nlinked) {
 				/* Scan archive again until
 				 * no unreferenced symbols found. */
@@ -617,7 +704,7 @@ setupout()
 	filhdr.a_entry = 0;
 	filhdr.a_unused = 0;
 	filhdr.a_flag = rflag ? 0 : A_NRELFLG;
-	fwrite(&filhdr, sizeof filhdr, 1, toutb);
+	puthdr(toutb, &filhdr);
 }
 
 void
@@ -686,12 +773,12 @@ load2(loff)
 		filhdr.a_text + filhdr.a_data, 0);
 	for (n=0; n<filhdr.a_syms; n+=sizeof cursym) {
 		symno++;
-		fread(&cursym, sizeof cursym, 1, text);
+		getsym(&cursym, text);
 		symreloc();
 		if ((cursym.n_type & N_EXT) == 0) {
 			if (! sflag && ! xflag && (! Xflag ||
 			    cursym.n_name[0] != 'L'))
-				fwrite(&cursym, sizeof cursym, 1, soutb);
+				putsym(soutb, &cursym);
 			continue;
 		}
 		sp = *lookup(cursym.n_name);
@@ -740,7 +827,7 @@ load2arg(filename)
 		if (p)
 			filename = p+1;
 		mkfsym(filename);
-		fwrite(&cursym, sizeof cursym, 1, soutb);
+		putsym(soutb, &cursym);
 		load2(0, 0);
 		fclose(text);
 		return;
@@ -748,13 +835,13 @@ load2arg(filename)
 	reloc = fopen(filname, "r");
 	for (lp = libp; *lp > 0; lp++) {
 		fseek(text, *lp, 0);
-		if (! getarhdr(&archdr, text)) {
+		if (! getarhdr(text, &archdr)) {
 /*printf("load2arg: %s(%.14s) offset %ld\n", filename, archdr.ar_name, *lp);*/
 			error(1, "Cannot read archive header");
 		}
 /*printf("load2arg%d/%d: %s(%.14s) offset %ld\n", fileno(text), fileno(reloc), filename, archdr.ar_name, *lp);*/
 		mkfsym(archdr.ar_name);
-		fwrite(&cursym, sizeof cursym, 1, soutb);
+		putsym(soutb, &cursym);
 		load2(*lp + AR_HDRSIZE);
 	}
 	libp = ++lp;
@@ -786,7 +873,7 @@ finishout()
 		if (xflag==0)
 			copy(soutb);
 		for (p=symtab; p < symp; p++)
-			fwrite(p, sizeof(*p), 1, toutb);
+			putsym(toutb, p);
 	}
 	fclose(toutb);
 }

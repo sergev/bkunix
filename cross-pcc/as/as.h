@@ -128,7 +128,6 @@ struct value {
 	union {
 		int i;
 		unsigned u;
-		char b;
 	} type;
 	union {
 		int i;
@@ -144,8 +143,7 @@ union token {
 };
 
 struct fb_tab {
-	char rel;
-	char lblix;
+	int label;
 	int val;
 };
 

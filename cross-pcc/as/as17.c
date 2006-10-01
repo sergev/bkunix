@@ -25,7 +25,7 @@ struct value express()
 	while(1) {
 
 		if((rv.type.u = tok.u) >= TOKSYMBOL) {	/* name/opcode */
-			rv.type.i = tok.v->type.b;
+			rv.type.i = tok.v->type.i;
 			rv.val.i = tok.v->val.i;
 			goto operand;
 		}

@@ -8,6 +8,67 @@
 char	tname[] = "/tmp/sXXXXXX";
 int	tf;
 
+/*
+ * Read a.out header. Return 0 on error.
+ */
+int
+readhdr(fd, hdr)
+	int fd;
+	register struct exec *hdr;
+{
+#ifdef __pdp11__
+	if (read(fd, hdr, sizeof(struct exec)) != sizeof(struct exec))
+		return 0;
+#else
+	unsigned char buf [16];
+
+	if (read(fd, buf, 16) != 16)
+		return 0;
+	hdr->a_magic = buf[0] | buf[1] << 8;
+	hdr->a_text = buf[2] | buf[3] << 8;
+	hdr->a_data = buf[4] | buf[5] << 8;
+	hdr->a_bss = buf[6] | buf[7] << 8;
+	hdr->a_syms = buf[8] | buf[9] << 8;
+	hdr->a_entry = buf[10] | buf[11] << 8;
+	hdr->a_unused = buf[12] | buf[13] << 8;
+	hdr->a_flag = buf[14] | buf[15] << 8;
+#endif
+	return 1;
+}
+
+/*
+ * Write a.out header.
+ */
+void
+writehdr(fd, hdr)
+	int fd;
+	register struct exec *hdr;
+{
+#ifdef __pdp11__
+	write(fd, hdr, sizeof(struct exec));
+#else
+	unsigned char buf [16];
+
+	buf[0] = hdr->a_magic;
+        buf[1] = hdr->a_magic >> 8;
+	buf[2] = hdr->a_text;
+	buf[3] = hdr->a_text >> 8;
+	buf[4] = hdr->a_data;
+	buf[5] = hdr->a_data >> 8;
+	buf[6] = hdr->a_bss;
+	buf[7] = hdr->a_bss >> 8;
+	buf[8] = hdr->a_syms;
+	buf[9] = hdr->a_syms >> 8;
+	buf[10] = hdr->a_entry;
+	buf[11] = hdr->a_entry >> 8;
+	buf[12] = hdr->a_unused;
+	buf[13] = hdr->a_unused >> 8;
+	buf[14] = hdr->a_flag;
+	buf[15] = hdr->a_flag >> 8;
+	write(fd, hdr, 16);
+#endif
+}
+
 int
 copy(name, fr, to, size)
 	char *name;
@@ -51,8 +112,7 @@ strip(name)
 		status = 1;
 		goto out;
 	}
-	read(f, (char*) &head, sizeof(head));
-	if (N_BADMAG(head)) {
+	if (! readhdr(f, &head) || N_BADMAG(head)) {
 		printf("%s not in a.out format\n", name);
 		status = 1;
 		goto out;
@@ -66,7 +126,7 @@ strip(name)
 	head.a_flag |= A_NRELFLG;
 
 	lseek(tf, (long) 0, 0);
-	write(tf, (char*) &head, sizeof(head));
+	writehdr(tf, &head);
 	if (copy(name, f, tf, size) != 0) {
 		status = 1;
 		goto out;

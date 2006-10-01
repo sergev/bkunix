@@ -384,8 +384,8 @@ struct node *at;
 }
 
 char *
-copy(na, ap)
-char *ap;
+copy(na, ap, ap2)
+	char *ap, *ap2;
 {
 	register char *p, *np;
 	char *onp;
@@ -399,7 +399,7 @@ char *ap;
 		n++;
 	while (*p++);
 	if (na>1) {
-		p = (&ap)[1];
+		p = ap2;
 		while (*p++)
 			n++;
 	}
@@ -408,7 +408,7 @@ char *ap;
 	while ((*np++ = *p++) != 0)
 		;
 	if (na>1) {
-		p = (&ap)[1];
+		p = ap2;
 		np--;
 		while ((*np++ = *p++) != 0);
 	}

@@ -27,7 +27,7 @@ struct value expres1()
 
 	while(1) {
 		if(tok.i > TOKSYMBOL) {
-			if((rv.type.i = tok.v->type.b) == TYPEUNDEF &&
+			if((rv.type.i = tok.v->type.i) == TYPEUNDEF &&
 			   passno != 0)
 			   aerror('u');
 			if(rv.type.i == TYPEEXT) {
@@ -42,7 +42,7 @@ struct value expres1()
 		if(tok.u >= FBBASE) {
 			pfb = curfb[tok.u - FBBASE];
 			rv.val.i = pfb->val;
-			rv.type.i = pfb->rel;
+			rv.type.i = (char) pfb->label;
 			goto operand;
 		}
 

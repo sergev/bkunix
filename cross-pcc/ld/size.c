@@ -8,6 +8,34 @@
 
 int base;
 
+/*
+ * Read a.out header. Return 0 on error.
+ */
+int
+readhdr(fd, hdr)
+	int fd;
+	register struct exec *hdr;
+{
+#ifdef __pdp11__
+	if (read(fd, hdr, sizeof(struct exec)) != sizeof(struct exec))
+		return 0;
+#else
+	unsigned char buf [16];
+
+	if (read(fd, buf, 16) != 16)
+		return 0;
+	hdr->a_magic = buf[0] | buf[1] << 8;
+	hdr->a_text = buf[2] | buf[3] << 8;
+	hdr->a_data = buf[4] | buf[5] << 8;
+	hdr->a_bss = buf[6] | buf[7] << 8;
+	hdr->a_syms = buf[8] | buf[9] << 8;
+	hdr->a_entry = buf[10] | buf[11] << 8;
+	hdr->a_unused = buf[12] | buf[13] << 8;
+	hdr->a_flag = buf[14] | buf[15] << 8;
+#endif
+	return 1;
+}
+
 void
 size(filename)
 	char *filename;
@@ -27,8 +55,7 @@ size(filename)
 			base==8 ? "oct" : "dec");
 		header_printed = 1;
 	}
-	read(f, &hdr, sizeof(hdr));
-	if (N_BADMAG(hdr)) {
+	if (! readhdr(f, &hdr) || N_BADMAG(hdr)) {
 		printf("%s: bad format\n", filename);
 		close(f);
 		return;

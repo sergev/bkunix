@@ -54,6 +54,9 @@ libc.a:		${OBJS}
 .S.o:
 		${CC} ${CPPFLAGS} -c $<
 
+.c.s:
+		${CC} ${CPPFLAGS} ${CFLAGS} -S $<
+
 depend:
 		@cp Makefile Makefile~~
 		(sed '/^### DO NOT DELETE THIS LINE/,$$d' Makefile;\

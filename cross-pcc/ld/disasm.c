@@ -814,6 +814,58 @@ prsection (addr, limit)
 	}
 }
 
+/*
+ * Read a.out header. Return 0 on error.
+ */
+int
+gethdr(fd, hdr)
+	FILE *fd;
+	register struct exec *hdr;
+{
+#ifdef __pdp11__
+	if (fread (hdr, sizeof(struct exec), 1, fd) != 1)
+		return 0;
+#else
+	unsigned char buf [16];
+
+	if (fread (buf, 16, 1, fd) != 1)
+		return 0;
+	hdr->a_magic = buf[0] | buf[1] << 8;
+	hdr->a_text = buf[2] | buf[3] << 8;
+	hdr->a_data = buf[4] | buf[5] << 8;
+	hdr->a_bss = buf[6] | buf[7] << 8;
+	hdr->a_syms = buf[8] | buf[9] << 8;
+	hdr->a_entry = buf[10] | buf[11] << 8;
+	hdr->a_unused = buf[12] | buf[13] << 8;
+	hdr->a_flag = buf[14] | buf[15] << 8;
+#endif
+	return 1;
+}
+
+/*
+ * Read a.out symbol. Return 0 on error.
+ */
+int
+getsym(fd, sym)
+	FILE *fd;
+	register struct nlist *sym;
+{
+#ifdef __pdp11__
+	if (fread(sym, sizeof(struct nlist), 1, fd) != 1)
+		return 0;
+#else
+	unsigned char buf [4];
+
+	if (fread(sym->n_name, sizeof(sym->n_name), 1, fd) != 1)
+		return 0;
+	if (fread(buf, 4, 1, fd) != 1)
+		return 0;
+	sym->n_type = buf[0] | buf[1] << 8;
+	sym->n_value = buf[2] | buf[3] << 8;
+#endif
+	return 1;
+}
+
 void
 disasm (fname)
 	register char *fname;
@@ -827,7 +879,7 @@ disasm (fname)
 		fprintf (stderr, "dis: %s not found\n", fname);
 		return;
 	}
-	if (fread (&hdr, sizeof(hdr), 1, textfd) != 1 || N_BADMAG (hdr)) {
+	if (! gethdr (textfd, &hdr) || N_BADMAG (hdr)) {
 		fprintf (stderr, "dis: %s not an object file\n", fname);
 		fclose (textfd);
 		return;
@@ -836,7 +888,7 @@ disasm (fname)
 	/* Read symbol table. */
 	fseek (textfd, N_SYMOFF (hdr), 0);
 	for (addr=0; addr<hdr.a_syms; addr+=sizeof(struct nlist)) {
-		if (fread (&sym, sizeof(sym), 1, textfd) != 1) {
+		if (! getsym (textfd, &sym)) {
 			fprintf (stderr, "dis: error reading symbol table\n");
 			fclose (textfd);
 			return;

@@ -1,8 +1,8 @@
 CC		= gcc -g -Wall
 CFLAGS		= -O
 DESTDIR		= /usr/local
-PROG		= pdp11-size pdp11-strip pdp11-disasm pdp11-reloc \
-		  pdp11-nm pdp11-ld pdp11-ar
+PROG		= pdp11-size pdp11-strip pdp11-disasm \
+		  pdp11-nm pdp11-ld pdp11-ar #pdp11-reloc
 
 all:		$(PROG)
 
@@ -10,10 +10,10 @@ install:	$(PROG)
 		install -s pdp11-size   ${DESTDIR}/bin/pdp11-size
 		install -s pdp11-strip  ${DESTDIR}/bin/pdp11-strip
 		install -s pdp11-disasm ${DESTDIR}/bin/pdp11-disasm
-		install -s pdp11-reloc  ${DESTDIR}/bin/pdp11-reloc
 		install -s pdp11-nm     ${DESTDIR}/bin/pdp11-nm
 		install -s pdp11-ld     ${DESTDIR}/bin/pdp11-ld
 		install -s pdp11-ar     ${DESTDIR}/bin/pdp11-ar
+#		install -s pdp11-reloc  ${DESTDIR}/bin/pdp11-reloc
 
 clean:
 		rm -f *~ *.o $(PROG)
