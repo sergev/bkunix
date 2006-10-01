@@ -13,9 +13,8 @@
  *
  * Return unsigned div/rem and condition codes of result.
  */
-#include "DEFS.h"
-
-ASENTRY(udiv)
+	.globl	udiv
+udiv:
 	cmp	r1,$1		/ if rhs > 1 && rhs < (2^16)/2 /*tricky*/
 	ble	9f		/   return ((unsigned long)lhs)/rhs
 	mov	r1,-(sp)
@@ -36,7 +35,8 @@ ASENTRY(udiv)
 	mov	$1,r0		/ else return 1
 	rts	pc
 
-ASENTRY(urem)
+	.globl	urem
+urem:
 	cmp	r1,$1		/ if rhs > 1 && rhs < (2^16)/2 /*tricky*/
 	ble	9f		/   return ((unsigned long)lhs)%rhs
 	mov	r1,-(sp)

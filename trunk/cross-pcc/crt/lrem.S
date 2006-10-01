@@ -11,7 +11,6 @@
  * 32-bit "%" routine.  Calls to lrem are generated automatically by the C
  * compiler.
  */
-#include "DEFS.h"
 
 /*
  * Lrem for fixed point hardware.
@@ -20,7 +19,8 @@
 			neg	low; \
 			sbc	high	/ high -= (low != 0)
 
-ASENTRY(lrem)
+	.globl	lrem
+lrem:
 	mov	r2,-(sp)	/ faster than csv/cret ...
 	mov	r3,-(sp)
 	mov	r4,-(sp)

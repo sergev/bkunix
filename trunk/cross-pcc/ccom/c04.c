@@ -1,7 +1,7 @@
 /*
  * C compiler
  */
-
+#include <stdarg.h>
 #include "c0.h"
 
 /*
@@ -376,36 +376,36 @@ doret()
  */
 /* VARARGS1 */
 void
-outcode(s, a)
-char *s;
+outcode(char *s, ...)
 {
-	register int *ap;
+	va_list ap;
 	register FILE *bufp;
 	register char *np;
-	int n;
+	register int n;
 
 	bufp = stdout;
 	if (strflg)
 		bufp = sbufp;
-	ap = &a;
+	va_start (ap, s);
 	for (;;) switch(*s++) {
 	case 'B':
-		fputc(*ap++, bufp);
+		fputc(va_arg(ap, int), bufp);
 		fputc(0376, bufp);
 		continue;
 
 	case 'N':
-		fputc(*ap, bufp);
-		fputc(*ap++>>8, bufp);
+		n = va_arg(ap, int);
+		fputc(n, bufp);
+		fputc(n>>8, bufp);
 		continue;
 
 	case 'F':
-		np = (char *)*ap++;
+		np = va_arg(ap, char*);
 		n = 1000;
 		goto str;
 
 	case 'S':
-		np = (char *)*ap++;
+		np = va_arg(ap, char*);
 		n = MAXCPS-1;
 		if (*np)
 			fputc('_', bufp);
@@ -431,6 +431,7 @@ char *s;
 			error("Write error on temp");
 			exit(1);
 		}
+		va_end (ap);
 		return;
 
 	default:

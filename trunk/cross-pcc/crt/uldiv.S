@@ -8,8 +8,6 @@
  *	1.0	05Jun93		2. Released into the Public Domain.
 */
 
-#include "DEFS.h"
-
 /*
  * All routines have both a C interface and an assembly interface.  Normally
  * the two are the same.  In the case of 'ulsh' the compiler has placed one
@@ -26,7 +24,8 @@
  */
 	.globl uldiv
 uldiv:
-ENTRY(uldiv)
+/ 	.globl	_uldiv
+/_uldiv:
 	mov	r2,-(sp)	/ faster than csv/cret ...
 	mov	r3,-(sp)
 	mov	r4,-(sp)
@@ -147,7 +146,8 @@ noadd:
  */
 	.globl	ualdiv
 ualdiv:
-ENTRY(ualdiv)
+/	.globl	_ualdiv
+/_ualdiv:
 	mov	r2,-(sp)	/ need a register to point at the lhs
 	mov	8(sp),-(sp)	/ The divide algorithm is long
 	mov	8(sp),-(sp)	/   enough that it just doesn't make sense
