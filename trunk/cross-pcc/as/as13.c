@@ -46,11 +46,11 @@ void assem()
 					goto ealoop;
 				}
 			}
-			savtok.v->type.b &= ~037;
+			savtok.v->type.u &= ~037;
 			v.type.u &= 037;
 			if(v.type.u == TYPEUNDEF)
 				v.val.i = 0;
-			savtok.v->type.b |= v.type.b;
+			savtok.v->type.u |= v.type.u;
 			savtok.v->val.i = v.val.i;
 			goto ealoop;
 		}  /* = */
@@ -58,9 +58,9 @@ void assem()
 		if(tok.i == ':') {
 			tok.i = savtok.i;
 			if(tok.u >= TOKSYMBOL) {
-				if(tok.v->type.b & 037)
+				if(tok.v->type.u & 037)
 					aerror('m');
-				tok.v->type.b |= dotrel;
+				tok.v->type.u |= dotrel;
 				tok.v->val.i = dot;
 				continue;
 			}
@@ -70,9 +70,8 @@ void assem()
 			}
 			i = fbcheck(numval);	/* n: */
 			curfbr[i] = dotrel;
-			nxtfb.rel = dotrel;
+			nxtfb.label = i << 8 | dotrel;
 			nxtfb.val = dot;
-			nxtfb.lblix = i;
 			curfb[i] = dot;
 			write_fb(fbfil, &nxtfb);
 			continue;
@@ -108,8 +107,8 @@ void write_fb(f, b)
 {
 	char buf[4];
 
-	buf[0] = b->rel;
-	buf[1] = b->lblix;
+	buf[0] = b->label;
+	buf[1] = b->label >> 8;
 	buf[2] = b->val;
 	buf[3] = b->val >> 8;
 	if(write(f, buf, 4) != 4)

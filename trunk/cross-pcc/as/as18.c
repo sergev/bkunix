@@ -21,7 +21,7 @@ unsigned savdot[3] = {0,0,0};		/* Saved . for txt/dat/bss*/
 */
 char curfbr[10] = {0,0,0,0,0,0,0,0,0,0};  /* Relocation		  */
 int curfb[10] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};  /* Value	  */
-struct fb_tab nxtfb = {0,0,0};		/* Entry descriptor	  */
+struct fb_tab nxtfb = {0,0};		/* Entry descriptor	  */
 
 /*
 	Files

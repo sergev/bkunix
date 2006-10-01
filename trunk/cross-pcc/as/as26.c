@@ -38,7 +38,7 @@ void opline()
 	/*
 		Handle non-opcode symbols
 	*/
-	tb = tok.v->type.b;
+	tb = tok.v->type.u;
 	if(tb == TYPEREGIS || tb == TYPEOPEST ||
 	   tb == TYPEOPESD || tb <  TYPEOPFD ||
 	   tb >  TYPEOPJCC) {
@@ -180,7 +180,7 @@ void opline()
 
 	case TYPEOPGLB:
 		while(tok.u >= TOKSYMBOL) {
-			tok.v->type.b |= TYPEEXT;
+			tok.v->type.u |= TYPEEXT;
 			readop();
 			if(tok.u != ',')
 				break;

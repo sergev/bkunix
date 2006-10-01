@@ -92,7 +92,7 @@ void doequal(t)
 	v.type.u &= 037;
 	if(v.type.u == TYPEUNDEF)
 		v.val.u = 0;
-	t->v->type.b = v.type.u;
+	t->v->type.u = v.type.u;
 	t->v->val.u = v.val.u;
 }
 
@@ -113,19 +113,20 @@ void docolon(t)
 		}
 		tok.u = numval;
 		fbadv();
-		curfb[tok.u]->rel = dotrel;
+		curfb[tok.u]->label &= ~0xff;
+		curfb[tok.u]->label |= dotrel;
 		brdelt = curfb[tok.u]->val - dot;
 		curfb[tok.u]->val = dot;
 		return;
 	}
 
 	if(passno == 0) {
-		ttype = tok.v->type.b & 037;
+		ttype = tok.v->type.u & 037;
 		if(ttype != 0 &&
 		    (ttype < TYPEOPEST || ttype > TYPEOPESD))
 			aerror('m');
-		tok.v->type.b &= ~037;
-		tok.v->type.b |= dotrel;
+		tok.v->type.u &= ~037;
+		tok.v->type.u |= dotrel;
 		brdelt = tok.v->val.u - dot;
 		tok.v->val.u = dot;
 		return;
@@ -160,11 +161,11 @@ void fbadv()
 		p = fbbufp;
 	else
 		++p;
-	while(p->lblix != tok.i && !(p->lblix & 0200)) {
+	while((p->label >> 8) != tok.i && !(p->label & ENDTABFLAG)) {
 		++p;
 	}
 	if(DEBUG)
-		printf("fbadv %d to %o %o ",tok.i,p->rel,p->val);
+		printf("fbadv %d to %o %o ", tok.i, (char) p->label, p->val);
 	nxtfb[tok.i] = p;
 }
 

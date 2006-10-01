@@ -93,13 +93,13 @@ main(argc, argv)
 	fp = fbbufp = fbtab;	/* was on end of symbol table... */
 	fin = fbfil;
 	while(agetw()) {
-		fp->rel = (tok.u & 0xff) - TYPETXT + TYPEOPEST;
-		fp->lblix = (tok.u >> 8) & 0xff;
+		fp->label = (unsigned char) (tok.u - TYPETXT + TYPEOPEST);
+		fp->label |= tok.u & ~0xff;
 		agetw();
 		fp->val = tok.i;
 		if(DEBUG)
-			printf("fbsetup %d type %o value %x\n",fp->lblix,
-				fp->rel,fp->val);
+			printf("fbsetup %d type %o value %x\n", fp->label >> 8,
+				(char) fp->label, fp->val);
 		++fp;
 	}
 	endtable = fp;
@@ -218,8 +218,8 @@ void doreloc(p)
 {
 	int t;
 
-	if((t = p->type.b) == TYPEUNDEF)
-		p->type.b |= defund;
+	if((t = p->type.i) == TYPEUNDEF)
+		p->type.i |= defund;
 	t &= 037;
 	if(t >= TYPEOPFD || t < TYPEDATA)
 		return;

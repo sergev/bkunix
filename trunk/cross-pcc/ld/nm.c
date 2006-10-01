@@ -15,6 +15,58 @@ int rflg = 1;
 int gflg;
 int pflg;
 
+/*
+ * Read a.out header. Return 0 on error.
+ */
+int
+readhdr(fd, hdr)
+	int fd;
+	register struct exec *hdr;
+{
+#ifdef __pdp11__
+	if (read(fd, hdr, sizeof(struct exec)) != sizeof(struct exec))
+		return 0;
+#else
+	unsigned char buf [16];
+
+	if (read(fd, buf, 16) != 16)
+		return 0;
+	hdr->a_magic = buf[0] | buf[1] << 8;
+	hdr->a_text = buf[2] | buf[3] << 8;
+	hdr->a_data = buf[4] | buf[5] << 8;
+	hdr->a_bss = buf[6] | buf[7] << 8;
+	hdr->a_syms = buf[8] | buf[9] << 8;
+	hdr->a_entry = buf[10] | buf[11] << 8;
+	hdr->a_unused = buf[12] | buf[13] << 8;
+	hdr->a_flag = buf[14] | buf[15] << 8;
+#endif
+	return 1;
+}
+
+/*
+ * Read a.out symbol. Return 0 on error.
+ */
+int
+readsym(fd, sym)
+	int fd;
+	register struct nlist *sym;
+{
+#ifdef __pdp11__
+	if (read(fd, sym, sizeof(struct nlist)) != sizeof(struct nlist))
+		return 0;
+#else
+	unsigned char buf [4];
+
+	if (read(fd, sym->n_name, sizeof(sym->n_name)) != sizeof(sym->n_name))
+		return 0;
+	if (read(fd, buf, 4) != 4)
+		return 0;
+	sym->n_type = buf[0] | buf[1] << 8;
+	sym->n_value = buf[2] | buf[3] << 8;
+#endif
+	return 1;
+}
+
 int
 compare(p1, p2)
 	struct nlist *p1, *p2;
@@ -41,8 +93,7 @@ names(filename, nameflg)
 		printf("%s: cannot open\n", filename);
 		return 1;
 	}
-	read(fi, &hdr, sizeof(hdr));
-	if (N_BADMAG(hdr)) {
+	if (! readhdr(fi, &hdr) || N_BADMAG(hdr)) {
 		printf("%s: bad format\n", filename);
 		return 1;
 	}
@@ -56,10 +107,13 @@ names(filename, nameflg)
 		printf("%s: out of memory\n", filename);
 		return 1;
 	}
-	if (lseek(fi, N_SYMOFF(hdr), 0) < 0 ||
-	    read(fi, nlp, hdr.a_syms) != hdr.a_syms) {
-		printf("%s: cannot read symbol table\n", filename);
+	if (lseek(fi, N_SYMOFF(hdr), 0) < 0) {
+badsym:		printf("%s: cannot read symbol table\n", filename);
 		return 1;
+	}
+	for (i=0; i<n; i++) {
+		if (! readsym(fi, nlp + i))
+			goto badsym;
 	}
 	if (pflg == 0)
 		qsort(nlp, n, sizeof(struct nlist), compare);
