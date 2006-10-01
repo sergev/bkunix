@@ -252,6 +252,7 @@ swap(rdflg)
 
 	p = &proc[cpid];
 	if(rdflg == B_WRITE) {
+#ifdef SQUEEZE
 		p1 = *(int*) USTACK;
 		p2 = (int*) (BOTUSR + (u.u_dsize<<6) + (p1 & 077));
 		if(p2 <= (int*) p1) {
@@ -262,6 +263,7 @@ swap(rdflg)
 				p1 += 2;
 			}
 		} else
+#endif
 			p->p_size = SWPSIZ<<3;
 	}
 	swbuf.b_flags = B_BUSY | rdflg;
@@ -274,15 +276,17 @@ swap(rdflg)
 	while((swbuf.b_flags&B_DONE)==0)
 		sleep(&swbuf, PSWP);
 	spl0();
+#ifdef SQUEEZE
 	if(rdflg == B_READ) {
 		p1 = TOPUSR;
 		p2 = (int*) ((p->p_size<<6) + BOTUSR - (USIZE<<6));
-		if(p2 <= (int*) p1)
+		if( p2 <= (int*) p1)
 			while(p1 >= *(int*)USTACK) {
 				p1 -= 2;
 				*((int*)p1) = *--p2;
 			}
 	}
+#endif
 	return(swbuf.b_flags&B_ERROR);
 }
 #endif

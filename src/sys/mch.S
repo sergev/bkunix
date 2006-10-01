@@ -294,8 +294,11 @@ start:
 	mov	r0,sp
 
 / and pointer to system stack
-
+#ifdef HIGH
+	mov	$ TOPSYS-2,_u
+#else
 	mov	$_u-2,_u
+#endif
 
 / set up previous mode and call main
 / on return, enter user mode at 040000
