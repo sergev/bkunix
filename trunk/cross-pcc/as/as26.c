@@ -153,7 +153,7 @@ void opline()
 	case TYPEOPASC:
 	opl17:
 		agetw();
-		while(tok.i >= 0) {
+		while((short) tok.i >= 0) {
 			outb(TYPEABS,tok.u & 0377);
 			agetw();
 		}

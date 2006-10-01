@@ -19,7 +19,7 @@ bad_user_address(addr)
 	 * its own data sometimes. */
 	if (u.u_segflg)
 		return 0;
-	if ((unsigned) addr < TOPSYS || (unsigned) addr >= TOPUSR) {
+	if ((unsigned) addr < BOTUSR || (unsigned) addr >= TOPUSR) {
 		u.u_error = EFAULT;
 		return 1;
 	}

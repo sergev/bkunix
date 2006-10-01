@@ -13,11 +13,11 @@ CC		= pdp11-cc
 # Johnson's portable compiler.
 #CC		= pdp11-pcc
 
-CFLAGS		= -O -I. -DKERNEL
+CFLAGS		= -O 
 LIBS		= $(shell sh findlib.sh $(CC) ) -lcrt
 
-# Using GNU binutils.
-AS		= pdp11-as
+# Using ported AT&T UNIX utils.
+AS		= pdp11-asm
 LD		= pdp11-ld
 SIZE		= pdp11-size -o
 LDFLAGS		= -X
@@ -38,13 +38,14 @@ OBJS		= $(ASOBJS) $(COBJS)
 #OBJS		+= debug.o
 
 vpath %.c . dev
+vpath %.S . boot
 
 # System configuration.
 # -DBGOPTION  - background processes
 # -DCLOCK     - set to be 0177546 or 0172540 for the line
 #		frequency or programmable clock, respectively.
 #
-CPPFLAGS	+= -DCLOCK=0177546
+#CPPFLAGS	+= -DCLOCK=0177546
 
 # Configuration of device drivers.
 # -DAED	 - AED 6200lp floppy
@@ -55,7 +56,7 @@ CPPFLAGS	+= -DCLOCK=0177546
 # -DKL   - KL/DL-11 console
 # -DTVT  - TV terminal
 #
-CPPFLAGS	+= -DDEC -DKL
+CPPFLAGS	= -I. -DKERNEL -DDEC -DKL -D$(WHERE)
 CSRCS		+= dev/kl.c dev/decfd.c
 DEVOBJS		= kl.o decfd.o
 OBJS		+= $(DEVOBJS)
@@ -74,10 +75,37 @@ lsx:		$(OBJS)
 		$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 		pdp11-disasm $@ > $@.dis
 
-hsx:		$(HIOBJS)
+hsx:
+		$(MAKE) WHERE=HIGH $(HIOBJS)
 		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(HIOBJS) $(LIBS)
 		$(SIZE) $@
+		pdp11-nm $@ > $@.map
 		pdp11-disasm -a$(HIBASE) $@ > $@.dis
+		pdp11-strip $@
+
+boot1:		rxboot.o
+		mv $< $@
+		pdp11-strip $@
+
+boot2hi:	boot/rxboot2.S
+		rm -f rxboot2.o
+		$(MAKE) WHERE=HIGH rxboot2.o
+		mv rxboot2.o $@
+		pdp11-strip $@
+
+boot2lo:	boot/rxboot2.S
+		rm -f rxboot2.o
+		$(MAKE) WHERE=LOW rxboot2.o
+		mv rxboot2.o $@
+		pdp11-strip $@
+
+hinstall:	clean hsx boot1 boot2hi
+		lsx-util -a root.dsk hsx
+		lsx-util -b boot1 -B boot2hi root.dsk
+
+linstall:	clean lsx boot1 boot2lo
+		lsx-util -a root.dsk lsx
+		lsx-util -b boot1 -B boot2lo root.dsk
 
 lsx1:		$(ASOBJS) $(CSRCS)
 		cat $(CSRCS) > kernel.c
@@ -109,8 +137,11 @@ depend:
 		mv Makefile~ Makefile
 
 ### DO NOT DELETE THIS LINE
+high.o: high.S param.h
 low.o: low.S param.h
 mch.o: mch.S param.h
+rxboot2.o: rxboot2.S param.h
+rxboot.o: rxboot.S
 alloc.o: alloc.c param.h systm.h filsys.h buf.h inode.h user.h
 bio.o: bio.c param.h user.h buf.h systm.h proc.h
 clock.o: clock.c param.h systm.h user.h proc.h

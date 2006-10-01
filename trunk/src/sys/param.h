@@ -17,12 +17,17 @@
  */
 #define NPROC	3	/* max number of processes */
 #define NBLKS	500	/* 256-word blocks per diskette */
+#ifdef HIGH
+#define BOTSYS	0120000	/* must not be an expression */
+#define TOPSYS	0160000	/* must not be an expression */
+#else
 #define BOTSYS	0	/* must not be an expression */
 #define TOPSYS	040000	/* must not be an expression */
+#endif
 #define SYSSIZ	((TOPSYS-BOTSYS)/1024) 	/* system size in 1K bytes */
 #define USRSIZ	24	/* user program size in 1K bytes */
 #define UCORE	(USRSIZ*16)
-#define BOTUSR	TOPSYS	/* must not be an expression */
+#define BOTUSR	040000	/* must not be an expression */
 #define TOPUSR	(BOTUSR+USRSIZ*(unsigned)1024)
 #define SWPSIZ	(USRSIZ*2+1)
 #ifdef BGOPTION
