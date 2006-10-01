@@ -11,11 +11,10 @@
  * 32-bit "/=" routine.  Calls to aldiv are generated automatically by the C
  * compiler.  See lrem for more detailed comments.
  */
-#include "DEFS.h"
+	.globl	lrem			/ 32-bit "%" routine
 
-.globl	lrem			/ 32-bit "%" routine
-
-ASENTRY(alrem)
+	.globl	alrem
+alrem:
 	mov	r2,-(sp)	/ need a register to point at the lhs
 	mov	8(sp),-(sp)	/ The fixed point remainder algorithm is long
 	mov	8(sp),-(sp)	/   enough that it just doesn't make sense

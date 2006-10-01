@@ -40,9 +40,7 @@
  * variables, space for them will have to be allocated by the function thereby
  * "moving" the empty parameter slot down.
  */
-#include "DEFS.h"
-
-.globl	csv
+	.globl	csv
 csv:
 	mov	r5,r0		/ save transfer address
 	mov	sp,r5
@@ -51,7 +49,7 @@ csv:
 	mov	r2,-(sp)
 	jsr	pc,(r0)
 
-.globl	cret
+	.globl	cret
 cret:
 	mov	r5,r1
 	mov	-(r1),r4	/ restore registers, reset stack,

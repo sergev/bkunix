@@ -30,7 +30,7 @@ libcrt.a:	${OBJS}
 		${AR} cru $@ ${OBJS}
 
 .S.o:
-		${CPP} -E ${CPPFLAGS} $< | $(AS) -o $@
+		${CC} ${CPPFLAGS} -c -o $@ $<
 
 depend:
 		@cp Makefile Makefile~~
@@ -44,17 +44,15 @@ depend:
 		mv Makefile~ Makefile
 
 ### DO NOT DELETE THIS LINE
-aldiv.o: aldiv.S DEFS.h
-almul.o: almul.S DEFS.h
-alrem.o: alrem.S DEFS.h
-csv.o: csv.S DEFS.h
-ldiv.o: ldiv.S DEFS.h
-lmul.o: lmul.S DEFS.h
-lrem.o: lrem.S DEFS.h
-udiv.o: udiv.S DEFS.h
-uldiv.o: uldiv.S DEFS.h
-ulrem.o: ulrem.S DEFS.h
-ulsh.o: ulsh.S DEFS.h
+aldiv.o: aldiv.S
+almul.o: almul.S
+alrem.o: alrem.S
+csv.o: csv.S
+ldiv.o: ldiv.S
+lmul.o: lmul.S
+lrem.o: lrem.S
+udiv.o: udiv.S
+ulrem.o: ulrem.S
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
 # see make depend above

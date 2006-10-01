@@ -11,11 +11,10 @@
  * 32-bit "/=" routine.  Calls to aldiv are generated automatically by the C
  * compiler.  See ldiv for more detailed comments.
  */
-#include "DEFS.h"
+	.globl	ldiv		/ 32-bit "/" routine
 
-.globl	ldiv			/ 32-bit "/" routine
-
-ASENTRY(aldiv)
+	.globl	aldiv
+aldiv:
 	mov	r2,-(sp)	/ need a register to point at the lhs
 	mov	8(sp),-(sp)	/ The fixed point divide algorithm is long
 	mov	8(sp),-(sp)	/   enough that it just doesn't make sense

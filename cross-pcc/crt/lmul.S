@@ -13,9 +13,8 @@
  * it under the door.  Calls to aldiv are generated automatically by the C
  * compiler.
  */
-#include "DEFS.h"
-
-ASENTRY(lmul)
+	.globl	lmul
+lmul:
 	mov	r2,-(sp)	/ faster than csv and just 1 more word
 	mov	r3,-(sp)
 	mov	8(sp),r2	/ r2 = loint(lhs)

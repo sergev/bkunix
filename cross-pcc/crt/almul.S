@@ -13,9 +13,8 @@
  * it under the door.  Calls to aldiv are generated automatically by the C
  * compiler.
  */
-#include "DEFS.h"
-
-ASENTRY(almul)
+	.globl	almul
+almul:
 	mov	r2,-(sp)	/ save r2-4
 	mov	r3,-(sp)
 	mov	r4,-(sp)

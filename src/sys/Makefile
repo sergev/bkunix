@@ -13,7 +13,7 @@ CC		= pdp11-cc
 # Johnson's portable compiler.
 #CC		= pdp11-pcc
 
-CFLAGS		= -O 
+CFLAGS		= -O
 LIBS		= $(shell sh findlib.sh $(CC) ) -lcrt
 
 # Using ported AT&T UNIX utils.
@@ -21,6 +21,7 @@ AS		= pdp11-asm
 LD		= pdp11-ld
 SIZE		= pdp11-size -o
 LDFLAGS		= -X
+WHERE		= LOW
 
 ASRCS		= low.S mch.S
 ASOBJS		= low.o mch.o

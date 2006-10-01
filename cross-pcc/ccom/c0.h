@@ -504,7 +504,7 @@ int getkeywords();
 int getnum();
 int mapch();
 int nextchar();
-void outcode();
+void outcode(char*, ...);
 int spnextchar();
 int subseq();
 

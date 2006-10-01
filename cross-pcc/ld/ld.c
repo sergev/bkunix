@@ -487,7 +487,7 @@ load1(libflg, loff)
 		filhdr.a_data + filhdr.a_data;
 	fseek(text, loff, 0);
 	for (n=0; n<filhdr.a_syms; n+=sizeof cursym) {
-		getsym(&cursym, text);
+		getsym(text, &cursym);
 		if ((cursym.n_type & N_EXT) == 0) {
 			if (Xflag==0 || cursym.n_name[0]!='L')
 				nloc += sizeof cursym;
@@ -773,7 +773,7 @@ load2(loff)
 		filhdr.a_text + filhdr.a_data, 0);
 	for (n=0; n<filhdr.a_syms; n+=sizeof cursym) {
 		symno++;
-		getsym(&cursym, text);
+		getsym(text, &cursym);
 		symreloc();
 		if ((cursym.n_type & N_EXT) == 0) {
 			if (! sflag && ! xflag && (! Xflag ||
