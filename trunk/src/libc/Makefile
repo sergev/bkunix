@@ -14,7 +14,8 @@ CPP		= cpp
 CFLAGS		= -O
 CPPFLAGS	= -I.
 
-SRCS		= crt0.S cerror.S exit.S fork.S read.S write.S \
+SRCS		= crt0.S nullsys.S nosys.S \
+		  cerror.S exit.S fork.S read.S write.S \
 		  open.S creat.S close.S wait.S link.S unlink.S \
 		  execv.S execl.S chdir.S time.S mknod.S chmod.S sbrk.S \
 		  stat.S seek.S getpid.S getuid.S stime.S fstat.S \
@@ -25,7 +26,7 @@ SRCS		= crt0.S cerror.S exit.S fork.S read.S write.S \
 		  memccpy.c memchr.c memcmp.c memcpy.c memset.c qsort.c \
 		  opendir.c closedir.c readdir.c
 
-OBJS		= cerror.o exit.o fork.o read.o write.o \
+OBJS		= nullsys.o nosys.o cerror.o exit.o fork.o read.o write.o \
 		  open.o creat.o close.o wait.o link.o unlink.o \
 		  execv.o execl.o chdir.o time.o mknod.o chmod.o sbrk.o \
 		  stat.o seek.o getpid.o getuid.o stime.o fstat.o \
