@@ -133,9 +133,9 @@ void sync PARAMS((void));
 int dup PARAMS((int));
 
 /*
- * Set signal handler.
+ * Set signal handler -- use <signal.h>.
+ * int signal PARAMS((int, int));
  */
-int signal PARAMS((int, int));
 
 #if 0
 /*

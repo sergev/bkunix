@@ -8,10 +8,10 @@
 #LIBS		=
 
 # Ritchie's compiler.
-CC		= pdp11-cc
+#CC		= pdp11-cc
 
 # Johnson's portable compiler.
-#CC		= pdp11-pcc
+CC		= pdp11-pcc
 
 CFLAGS		= -O
 LIBS		= $(shell sh findlib.sh $(CC) ) -lcrt

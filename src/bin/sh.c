@@ -3,10 +3,9 @@
  */
 #include <stdlib.h>
 #include <unistd.h>
+#include <signal.h>
 #include <setjmp.h>
 
-#define	INTR	2
-#define	QUIT	3
 #define LINSIZ	1000
 #define ARGSIZ	50
 #define TRESIZ	100
@@ -140,8 +139,8 @@ main(c, av)
 	}
 	if (**v == '-') {
 		setintr++;
-		signal(QUIT, 1);
-		signal(INTR, 1);
+		signal(SIGQUIT, SIG_IGN);
+		signal(SIGINT, SIG_IGN);
 	}
 	dolv = v+1;
 	dolc = c-1;
@@ -682,8 +681,8 @@ execute(t, pf1, pf2)
 			open("/dev/null", 0);
 		}
 		if ((f&FINT) == 0 && setintr) {
-			signal(INTR, 0);
-			signal(QUIT, 0);
+			signal(SIGINT, SIG_DFL);
+			signal(SIGQUIT, SIG_DFL);
 		}
 		if (t[DTYP] == TPAR) {
 			t1 = (int*) t[DSPR];
