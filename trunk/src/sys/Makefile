@@ -60,7 +60,7 @@ vpath %.S . boot
 CPPFLAGS	= -I. -DKERNEL -DKL -D$(WHERE) -D$(SYS)
 CSRCS		+= dev/kl.c dev/decfd.c
 DEVOBJS		= kl.o decfd.o
-BKDEVOBJS	= kl.o bkfd.o
+BKDEVOBJS	= bktty.o bkfd.o
 OBJS		+= $(DEVOBJS)
 HIOBJS		= high.o mch.o $(COBJS) $(DEVOBJS)
 BKOBJS		= high.o mch.o $(COBJS) $(BKDEVOBJS)
