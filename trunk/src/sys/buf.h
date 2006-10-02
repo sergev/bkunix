@@ -67,6 +67,7 @@ void bdwrite();
 void bflush();
 void iowait();
 void fdstrategy();
+void fdinit();
 #endif
 
 #endif /* BUF_H */

@@ -68,7 +68,9 @@ kwlp:	jsr	r0,call
 #endif
 
 /-----------------------
+#ifdef DEC
 	.globl	_fdintr
 fdintr:	jsr	r0,call
 	.word	_fdintr
+#endif
 

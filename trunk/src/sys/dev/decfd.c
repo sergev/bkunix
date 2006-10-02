@@ -163,3 +163,5 @@ fdintr()
 	}
 	fdstart();
 }
+
+fdinit() { }
