@@ -560,7 +560,8 @@ create_file:
 		return 0;
 	}
 	inode->dirty = 1;
-	inode->mode = (mode & 07777) | INODE_MODE_ALLOC;
+	inode->mode = mode & (07777 | INODE_MODE_FMT);
+	inode->mode |= INODE_MODE_ALLOC;
 	inode->nlink = 1;
 	inode->uid = 0;
 	inode->gid = 0;
@@ -628,6 +629,7 @@ int lsxfs_inode_alloc (lsxfs_t *fs, lsxfs_inode_t *inode)
 			return 0;
 		}
 		ino = fs->inode[--fs->ninode];
+		fs->dirty = 1;
 		if (! lsxfs_inode_get (fs, inode, ino)) {
 			fprintf (stderr, "inode_alloc: cannot get inode %d\n", ino);
 			return 0;

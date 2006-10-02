@@ -253,10 +253,10 @@ void scanner (lsxfs_inode_t *dir, lsxfs_inode_t *inode,
 
 	print_inode (inode, dirname, filename, out);
 
-	if (verbose) {
+	if (verbose > 1) {
 		/* Print a list of blocks. */
 		print_inode_blocks (inode, out);
-		if (verbose > 1) {
+		if (verbose > 2) {
 			lsxfs_inode_print (inode, out);
 			printf ("--------\n");
 		}
@@ -271,15 +271,40 @@ void scanner (lsxfs_inode_t *dir, lsxfs_inode_t *inode,
 	}
 }
 
+/*
+ * Create a directory.
+ */
+void add_directory (lsxfs_t *fs, char *name)
+{
+	lsxfs_inode_t dir;
+
+	if (! lsxfs_inode_by_name (fs, &dir, name, 1,
+	    INODE_MODE_FDIR | 0777)) {
+		fprintf (stderr, "%s: directory inode create failed\n", name);
+		return;
+	}
+	lsxfs_inode_save (&dir, 0);
+}
+
+/*
+ * Copy file to filesystem.
+ * When name is ended by slash as "name/", directory is created.
+ */
 void add_file (lsxfs_t *fs, char *name)
 {
 	lsxfs_file_t file;
 	FILE *fd;
-	char data [512];
+	char data [512], *p;
 	int len;
 
 	if (verbose) {
 		printf ("%s\n", name);
+	}
+	p = strrchr (name, '/');
+	if (p && p[1] == 0) {
+		*p = 0;
+		add_directory (fs, name);
+		return;
 	}
 	fd = fopen (name, "r");
 	if (! fd) {
@@ -388,7 +413,7 @@ int main (int argc, char **argv)
 	}
 
 	add_boot (&fs);
-	
+
 	if (add) {
 		/* Add files i+1..argc-1 to filesystem. */
 		while (++i < argc)
@@ -406,13 +431,13 @@ int main (int argc, char **argv)
 			fprintf (stderr, "%s: cannot get inode 1\n", argv[i]);
 			return -1;
 		}
-		lsxfs_inode_print (&inode, stdout);
 		if (verbose > 1) {
+			lsxfs_inode_print (&inode, stdout);
 			printf ("--------\n");
 			printf ("/\n");
 			print_inode_blocks (&inode, stdout);
-			lsxfs_directory_scan (&inode, "", scanner, (void*) stdout);
 		}
+		lsxfs_directory_scan (&inode, "", scanner, (void*) stdout);
 	}
 	lsxfs_close (&fs);
 	return 0;
