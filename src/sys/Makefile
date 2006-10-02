@@ -57,11 +57,13 @@ vpath %.S . boot
 # -DKL   - KL/DL-11 console
 # -DTVT  - TV terminal
 #
-CPPFLAGS	= -I. -DKERNEL -DDEC -DKL -D$(WHERE)
+CPPFLAGS	= -I. -DKERNEL -DKL -D$(WHERE) -D$(SYS)
 CSRCS		+= dev/kl.c dev/decfd.c
 DEVOBJS		= kl.o decfd.o
+BKDEVOBJS	= kl.o bkfd.o
 OBJS		+= $(DEVOBJS)
 HIOBJS		= high.o mch.o $(COBJS) $(DEVOBJS)
+BKOBJS		= high.o mch.o $(COBJS) $(BKDEVOBJS)
 HIBASE		= 0120000
 
 all:		lsx #lsx1
@@ -70,15 +72,24 @@ all:		lsx #lsx1
 		$(SIZE) lsx #lsx1
 
 clean:
-		rm -f *~ dev/*~ *.o *.s lsx lsx1 hsx debug a.out lsx.dis debug.dis hsx.dis
+		rm -f *~ dev/*~ *.o *.s lsx lsx1 hsx bsx debug a.out lsx.dis debug.dis hsx.dis
 
-lsx:		$(OBJS)
+lsx:		
+		$(MAKE) WHERE=LOW SYS=DEC $(OBJS)
 		$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 		pdp11-disasm $@ > $@.dis
 
 hsx:
-		$(MAKE) WHERE=HIGH $(HIOBJS)
+		$(MAKE) WHERE=HIGH SYS=DEC $(HIOBJS)
 		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(HIOBJS) $(LIBS)
+		$(SIZE) $@
+		pdp11-nm $@ > $@.map
+		pdp11-disasm -a$(HIBASE) $@ > $@.dis
+		pdp11-strip $@
+
+bsx:
+		$(MAKE) WHERE=HIGH SYS=BK $(BKOBJS)
+		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(BKOBJS) $(LIBS)
 		$(SIZE) $@
 		pdp11-nm $@ > $@.map
 		pdp11-disasm -a$(HIBASE) $@ > $@.dis
@@ -100,13 +111,17 @@ boot2lo:	boot/rxboot2.S
 		mv rxboot2.o $@
 		pdp11-strip $@
 
+bkboot:		bkboot.o
+		mv $< $@
+		pdp11-strip $@
 hinstall:	clean hsx boot1 boot2hi
-		lsx-util -a root.dsk hsx
-		lsx-util -b boot1 -B boot2hi root.dsk
+		lsx-util -b boot1 -B boot2hi -a root.dsk hsx
 
 linstall:	clean lsx boot1 boot2lo
-		lsx-util -a root.dsk lsx
-		lsx-util -b boot1 -B boot2lo root.dsk
+		lsx-util -b boot1 -B boot2lo -a root.dsk lsx
+
+bkinstall:	clean bsx bkboot
+		lsx-util -F -b bkboot -a bkroot.dsk bsx
 
 lsx1:		$(ASOBJS) $(CSRCS)
 		cat $(CSRCS) > kernel.c
@@ -124,7 +139,7 @@ count:		$(ASRCS) $(CSRCS)
 		wc $(ASRCS) $(CSRCS)
 
 .c.s:
-		$(CC) $(CFLAGS) -S $<
+		$(CC) $(CFLAGS) $(CPPFLAGS) -S $<
 
 depend:
 		@cp Makefile Makefile~~

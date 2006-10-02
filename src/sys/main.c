@@ -45,6 +45,12 @@ int
 ttputc (c)
         int c;
 {
+#ifdef BK
+asm("mov 4(r5),r0");
+asm("mov r5,-(sp)");
+asm("jsr pc,*$0102234");
+asm("mov (sp)+,r5");
+#else
 asm("clr *$tps");
 asm("mov 4(r5),r0");
 asm("jsr pc, putc");
@@ -63,6 +69,7 @@ asm("1:");
 asm("mov     r0,*$tpb");
 asm("rts     pc");
 asm("9: ");
+#endif
 }
 
 void
@@ -81,9 +88,12 @@ void panichalt(s)
 	ttputs("panic: ");
 	ttputs(s);
 	ttputs("\r\n");
-
+#ifdef BK
+	for(;;);
+#else
 	for (;;) 
 		asm("0");
+#endif
 }
 
 /*

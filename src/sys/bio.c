@@ -187,6 +187,7 @@ binit()
 		bp->b_dev = NODEV;
 		bp->b_addr = &buffers[i][0];
 	}
+	fdinit();
 }
 
 /*

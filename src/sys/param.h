@@ -25,9 +25,14 @@
 #define TOPSYS	037000	/* must not be an expression */
 #endif
 #define SYSSIZ	((TOPSYS-BOTSYS)/1024) 	/* system size in 1K bytes */
+#ifdef BK
+#define USRSIZ	15	/* temporarily */
+#define BOTUSR	02000	/* must not be an expression */
+#else
 #define USRSIZ	24	/* user program size in 1K bytes */
-#define UCORE	(USRSIZ*16)
 #define BOTUSR	040000	/* must not be an expression */
+#endif
+#define UCORE	(USRSIZ*16)
 #define TOPUSR	(BOTUSR+USRSIZ*(unsigned)1024)
 #define SWPSIZ	(USRSIZ*2+1)
 #ifdef BGOPTION

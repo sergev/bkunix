@@ -82,6 +82,7 @@ int lsxfs_sync (lsxfs_t *fs, int force);
 int lsxfs_create (lsxfs_t *fs, const char *filename, unsigned long bytes);
 int lsxfs_install_boot (lsxfs_t *fs, const char *filename,
 	const char *filename2);
+int lsxfs_install_single_boot (lsxfs_t *fs, const char *filename);
 int lsxfs_check (lsxfs_t *fs);
 void lsxfs_print (lsxfs_t *fs, FILE *out);
 

@@ -13,6 +13,7 @@ int add;
 int newfs;
 int check;
 int fix;
+int flat;
 unsigned long bytes;
 char *boot_sector;
 char *boot_sector2;
@@ -33,8 +34,9 @@ struct argp_option argp_options[] = {
 	{"fix",		'f', 0,		0,	"Fix bugs in filesystem" },
 	{"new",		'n', 0,		0,	"Create new filesystem, -s required" },
 	{"size",	's', "NUM",	0,	"Size in bytes for created filesystem" },
-	{"boot",	'b', "FILE",	0,	"Boot sector, -B required" },
+	{"boot",	'b', "FILE",	0,	"Boot sector, -B required if not -F" },
 	{"boot2",	'B', "FILE",	0,	"Secondary boot sector, -b required" },
+	{"flat",	'F', 0,		0,	"Flat mode, no sector remapping" },
 	{ 0 }
 };
 
@@ -61,6 +63,9 @@ int argp_parse_option (int key, char *arg, struct argp_state *state)
 		break;
 	case 'f':
 		++fix;
+		break;
+	case 'F':
+		++flat;
 		break;
 	case 's':
 		bytes = strtol (arg, 0, 0);
@@ -303,7 +308,19 @@ void add_file (lsxfs_t *fs, char *name)
 
 void add_boot (lsxfs_t *fs)
 {
-	if (boot_sector && boot_sector2) {
+	if (flat) {
+		if (boot_sector2) {
+			fprintf(stderr, "Secondary boot ignored\n");
+		}
+		if (boot_sector) {
+			if (! lsxfs_install_single_boot (fs, boot_sector)) {
+				fprintf (stderr, "%s: incorrect boot sector\n",
+				boot_sector);
+				return;
+			}
+			printf ("Boot sector %s installed\n", boot_sector);
+		}
+	} else if (boot_sector && boot_sector2) {
 		if (! lsxfs_install_boot (fs, boot_sector,
 		    boot_sector2)) {
 			fprintf (stderr, "%s: incorrect boot sector\n",
@@ -324,7 +341,7 @@ int main (int argc, char **argv)
 	argp_parse (&argp_parser, argc, argv, 0, &i, 0);
 	if ((! add && i != argc-1) || (add && i >= argc-1) ||
 	    (extract + newfs + check + add > 1) ||
-	    (! boot_sector ^ ! boot_sector2) ||
+	    (!flat && (! boot_sector ^ ! boot_sector2)) ||
 	    (newfs && bytes < 5120)) {
 		argp_help (&argp_parser, stderr, ARGP_HELP_USAGE, argv[0]);
 		return -1;
