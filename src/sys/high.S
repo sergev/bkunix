@@ -27,8 +27,10 @@ init:	clr	r0
 	mov	$060, r0	/ KL/DL-11 console interrupt handlers
 	mov	$klin, (r0)+
 	mov	$ IM, (r0)+
+#ifdef DEC
 	mov	$klou, (r0)+
 	mov	$ IM, (r0)+
+#endif
 #endif
 
 /-----------------------
@@ -54,10 +56,11 @@ go:	jmp	*$start
 	.globl	_klrint
 klin:	jsr	r0,call
 	.word	_klrint
-
+#ifdef DEC
 	.globl	_klxint
 klou:	jsr	r0,call
 	.word	_klxint
+#endif
 #endif
 
 /-----------------------
