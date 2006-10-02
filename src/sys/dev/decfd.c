@@ -164,4 +164,4 @@ fdintr()
 	fdstart();
 }
 
-fdinit() { }
+void fdinit() { }
