@@ -1,6 +1,6 @@
 ETC		= etc/init
 BIN		= bin/sh bin/ls bin/echo bin/cal bin/cp bin/date bin/mkdir \
-		  bin/sync
+		  bin/sync bin/mv bin/rmdir bin/stty
 DEV		= dev/tty8!c0:0 dev/fd0!b0:0 dev/fd1!b0:1
 DSK		= root.dsk usr.dsk
 FSUTIL		= ../fsutil/lsx-util
