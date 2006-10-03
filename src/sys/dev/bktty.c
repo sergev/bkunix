@@ -13,7 +13,7 @@
 #include "proc.h"
 
 /* console base address */
-#define	KLADDR	((struct klregs*) 0177760)
+#define	KLADDR	((struct klregs*) 0177660)
 #define	NKL11	1
 #define DSRDY	02
 #define	RDRENB	01
@@ -199,7 +199,7 @@ klopen()
 		tp->t_modes |= TOPEN;
 		tp->t_flags = ECHO|CRMOD;
 	}
-	KLADDR->klrcsr |= IENABLE|DSRDY|RDRENB;
+	KLADDR->klrcsr = 0;	/* enabling interrupts is inverted in BK */
 }
 
 void
@@ -214,7 +214,6 @@ klrint()
 	register int c;
 
 	c = KLADDR->klrbuf;
-	KLADDR->klrcsr |= RDRENB;
 	ttyinput(c);
 }
 

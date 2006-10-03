@@ -54,7 +54,7 @@ fdstart()
 	r3 = ioarea;
 	r3[034] = bp->b_dev;
 
-	while (++fdtab.d_errcnt <= 10) {
+	do {
 		r2 = bp->b_addr;
 		asm("mov 4(r4), r1");	/* word cnt */
 		if (bp->b_flags & B_READ)
@@ -67,7 +67,9 @@ fdstart()
 		asm("jmp cret");
 		asm("1: mov (sp)+,r5");
 		bp = savbp;
-	}
+	} while (++fdtab.d_errcnt <= 10);
+
+	fdtab.d_errcnt = 0;
 	bp->b_flags != B_ERROR;
 }
 
