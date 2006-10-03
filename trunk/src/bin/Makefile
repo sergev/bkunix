@@ -17,8 +17,7 @@ CC		= pdp11-pcc
 # Ritchie's compiler.
 #CC		= pdp11-cc
 
-PROGS		= sync echo cal ls sh cp date mkdir mv rm rmdir stty
-# TODO: od ed
+PROGS		= sync echo cal ls sh cp date mkdir mv rm rmdir stty od ed cat
 
 all:		$(PROGS)
 
@@ -44,21 +43,22 @@ depend:
 
 ### DO NOT DELETE THIS LINE
 cal.o: cal.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h
+cat.o: cat.c ../libc/stdio.h ../libc/ansidecl.h ../libc/unistd.h ../libc/fcntl.h ../libc/sys/types.h ../libc/sys/stat.h
 check.o: check.c
 cp.o: cp.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/string.h ../libc/unistd.h ../libc/fcntl.h ../libc/sys/types.h ../libc/sys/stat.h
 cpfp.o: cpfp.c
 date.o: date.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/unistd.h ../libc/time.h
 echo.o: echo.c ../libc/stdio.h ../libc/ansidecl.h
-ed.o: ed.c ../libc/signal.h ../libc/ansidecl.h ../libc/setjmp.h
+ed.o: ed.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/unistd.h ../libc/signal.h ../libc/fcntl.h ../libc/sgtty.h ../libc/setjmp.h ../libc/sys/wait.h
 hello.o: hello.c ../libc/unistd.h ../libc/ansidecl.h
 ls.o: ls.c ../libc/ansidecl.h ../libc/stdlib.h ../libc/stdio.h ../libc/string.h ../libc/unistd.h ../libc/fcntl.h ../libc/time.h ../libc/dirent.h ../libc/sys/types.h ../libc/sys/stat.h
 mkdir.o: mkdir.c ../libc/stdio.h ../libc/ansidecl.h ../libc/string.h ../libc/unistd.h ../libc/signal.h ../libc/sys/stat.h
-mv.o: mv.c
-od.o: od.c
-rm.o: rm.c
-rmdir.o: rmdir.c ../libc/sys/types.h ../libc/sys/stat.h ../libc/stdio.h
-sh.o: sh.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/unistd.h ../libc/signal.h ../libc/setjmp.h
-stty.o: stty.c
+mv.o: mv.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h ../libc/unistd.h ../libc/sys/stat.h ../libc/sys/wait.h
+od.o: od.c ../libc/stdio.h ../libc/ansidecl.h ../libc/unistd.h ../libc/fcntl.h
+rm.o: rm.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h ../libc/unistd.h ../libc/sys/stat.h ../libc/sys/wait.h
+rmdir.o: rmdir.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h ../libc/string.h ../libc/unistd.h ../libc/fcntl.h ../libc/dirent.h ../libc/sys/types.h ../libc/sys/stat.h
+sh.o: sh.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/unistd.h ../libc/signal.h ../libc/setjmp.h ../libc/sys/wait.h
+stty.o: stty.c ../libc/stdio.h ../libc/ansidecl.h ../libc/sgtty.h
 sync.o: sync.c ../libc/unistd.h ../libc/ansidecl.h
 testarith.o: testarith.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h
 testprintf.o: testprintf.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h ../libc/string.h
