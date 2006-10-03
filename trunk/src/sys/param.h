@@ -16,7 +16,6 @@
  * the following 4 variables may be modified.
  */
 #define NPROC	3	/* max number of processes */
-#define NBLKS	500	/* 256-word blocks per diskette */
 #ifdef HIGH
 #define BOTSYS	0120000	/* must not be an expression */
 #define TOPSYS	0160000	/* must not be an expression */
@@ -26,9 +25,11 @@
 #endif
 #define SYSSIZ	((TOPSYS-BOTSYS)/1024) 	/* system size in 1K bytes */
 #ifdef BK
+#define NBLKS	1600	/* 2-sided, 80 tracks, 10 sectors */
 #define USRSIZ	15	/* temporarily */
 #define BOTUSR	02000	/* must not be an expression */
 #else
+#define NBLKS	500	/* 256-word blocks per diskette */
 #define USRSIZ	24	/* user program size in 1K bytes */
 #define BOTUSR	040000	/* must not be an expression */
 #endif
