@@ -276,14 +276,78 @@ void scanner (lsxfs_inode_t *dir, lsxfs_inode_t *inode,
  */
 void add_directory (lsxfs_t *fs, char *name)
 {
-	lsxfs_inode_t dir;
+	lsxfs_inode_t dir, parent;
+	char buf [512], *p;
 
+	/* Open parent directory. */
+	strcpy (buf, name);
+	p = strrchr (buf, '/');
+	if (p)
+		*p = 0;
+	else
+		*buf = 0;
+	if (! lsxfs_inode_by_name (fs, &parent, buf, 0, 0)) {
+		fprintf (stderr, "%s: cannot open directory\n", buf);
+		return;
+	}
+
+	/* Create directory. */
 	if (! lsxfs_inode_by_name (fs, &dir, name, 1,
 	    INODE_MODE_FDIR | 0777)) {
 		fprintf (stderr, "%s: directory inode create failed\n", name);
 		return;
 	}
 	lsxfs_inode_save (&dir, 0);
+
+	/* Make link '.' */
+	strcpy (buf, name);
+	strcat (buf, "/.");
+	if (! lsxfs_inode_by_name (fs, &dir, buf, 3, dir.number)) {
+		fprintf (stderr, "%s: dot link failed\n", name);
+		return;
+	}
+	++dir.nlink;
+	lsxfs_inode_save (&dir, 1);
+/*printf ("*** inode %d: increment link counter to %d\n", dir.number, dir.nlink);*/
+
+	/* Make parent link '..' */
+	strcat (buf, ".");
+	if (! lsxfs_inode_by_name (fs, &dir, buf, 3, parent.number)) {
+		fprintf (stderr, "%s: dotdot link failed\n", name);
+		return;
+	}
+	if (! lsxfs_inode_get (fs, &parent, parent.number)) {
+		fprintf (stderr, "inode %d: cannot open parent\n", parent.number);
+		return;
+	}
+	++parent.nlink;
+	lsxfs_inode_save (&parent, 1);
+/*printf ("*** inode %d: increment link counter to %d\n", parent.number, parent.nlink);*/
+}
+
+/*
+ * Create a device node.
+ */
+void add_device (lsxfs_t *fs, char *name, char *spec)
+{
+	lsxfs_inode_t dev;
+	int majr, minr;
+	char type;
+
+	if (sscanf (spec, "%c%d:%d", &type, &majr, &minr) != 3 ||
+	    (type != 'c' && type != 'b') ||
+	    majr < 0 || majr > 255 || minr < 0 || minr > 255) {
+		fprintf (stderr, "%s: invalid device specification\n", spec);
+		fprintf (stderr, "expected c<major>:<minor> or b<major>:<minor>\n");
+		return;
+	}
+	if (! lsxfs_inode_by_name (fs, &dev, name, 1, 0666 |
+	    ((type == 'b') ? INODE_MODE_FBLK : INODE_MODE_FCHR))) {
+		fprintf (stderr, "%s: device inode create failed\n", name);
+		return;
+	}
+	dev.addr[0] = majr << 8 | minr;
+	lsxfs_inode_save (&dev, 1);
 }
 
 /*
@@ -304,6 +368,12 @@ void add_file (lsxfs_t *fs, char *name)
 	if (p && p[1] == 0) {
 		*p = 0;
 		add_directory (fs, name);
+		return;
+	}
+	p = strrchr (name, '!');
+	if (p) {
+		*p++ = 0;
+		add_device (fs, name, p);
 		return;
 	}
 	fd = fopen (name, "r");
