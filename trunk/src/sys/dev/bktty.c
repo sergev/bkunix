@@ -350,4 +350,5 @@ ttwrite()
 		ttyoutput(c);
 		ttstart();
 	}
+	ttstart();
 }
