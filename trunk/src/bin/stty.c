@@ -1,7 +1,8 @@
-#
 /*
  * set teletype modes
  */
+#include <stdio.h>
+#include <sgtty.h>
 
 /*
  * tty flags
@@ -9,13 +10,12 @@
 #define	LCASE	04
 #define	ECHO	010
 #define	CRMOD	020
-struct
-{
+
+struct {
 	char	*string;
 	int	set;
 	int	reset;
-} modes[]
-{
+} modes[] = {
 	"-nl",
 	CRMOD, 0,
 
@@ -42,65 +42,58 @@ struct
 
 	0,
 };
-char	*arg;
-int	mode[3];
 
-struct { char lobyte, hibyte; };
-
-main(argc, argv)
-char	*argv[];
+int
+eq(arg, string)
+	char *arg, *string;
 {
 	int i;
 
-	gtty(1, mode);
-	if(argc == 1) {
-		prmodes();
-		exit(0);
-	}
-	while(--argc > 0) {
-
-		arg = *++argv;
-		for(i = 0; modes[i].string; i++)
-			if(eq(modes[i].string)) {
-				mode[2] &= ~modes[i].reset;
-				mode[2] |= modes[i].set;
-			}
-		if(arg)
-			printf("unknown mode: %s\n", arg);
-	}
-	stty(1,mode);
-}
-
-eq(string)
-char *string;
-{
-	int i;
-
-	if(!arg)
-		return(0);
 	i = 0;
-loop:
-	if(arg[i] != string[i])
-		return(0);
-	if(arg[i++] != '\0')
-		goto loop;
-	arg = 0;
-	return(1);
+	while (arg[i] == string[i]) {
+		if (arg[i++] == '\0')
+			return 1;
+	}
+	return 0;
 }
 
-prmodes()
+void
+prmodes(m)
+	register int m;
 {
-	register m;
-
-	m = mode[2];
-	if(m & 020) printf("-nl ");
-	if(m & 010) printf("echo ");
-	if(m & 04) printf("lcase ");
+	if (m & 020)
+		printf("-nl ");
+	if (m & 010)
+		printf("echo ");
+	if (m & 04)
+		printf("lcase ");
 	printf("\n");
 }
 
-putchar(c)
+int
+main(argc, argv)
+	char **argv;
 {
+	int i;
+	char *arg;
+	struct sgttyb mode;
 
-	write(2, &c, 1);
+	gtty(1, &mode);
+	if (argc == 1) {
+		prmodes(mode.sg_flags);
+		return 0;
+	}
+	while (--argc > 0) {
+		arg = *++argv;
+		for(i = 0; modes[i].string; i++)
+			if (eq(arg, modes[i].string)) {
+				mode.sg_flags &= ~modes[i].reset;
+				mode.sg_flags |= modes[i].set;
+				arg = 0;
+			}
+		if (arg)
+			printf("unknown mode: %s\n", arg);
+	}
+	stty(1, &mode);
+	return 0;
 }

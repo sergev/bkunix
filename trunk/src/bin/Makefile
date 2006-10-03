@@ -17,13 +17,13 @@ CC		= pdp11-pcc
 # Ritchie's compiler.
 #CC		= pdp11-cc
 
-PROGS		= sync echo cal ls sh cp date mkdir
-# TODO: mv od rm rmdir stty ed
+PROGS		= sync echo cal ls sh cp date mkdir mv rm rmdir stty
+# TODO: od ed
 
 all:		$(PROGS)
 
 clean:
-		rm -f *~ *.o *.dis a.out $(PROGS)
+		/bin/rm -f *~ *.o *.dis a.out $(PROGS)
 
 %: %.o
 		$(CC) $(LDFLAGS) -o $@ $^

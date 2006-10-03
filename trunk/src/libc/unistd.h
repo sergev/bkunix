@@ -27,9 +27,9 @@ int open PARAMS((char*, int));
 int close PARAMS((int));
 
 /*
- * Get a status of child process.
+ * Get a status of child process -- use <sys/wait.h>.
+ * int wait PARAMS((int*));
  */
-int wait PARAMS((int*));
 
 /*
  * Create a new file.
@@ -117,10 +117,10 @@ int fstat PARAMS((int, struct stat*));
 void pause PARAMS((void));
 
 /*
- * Set and get terminal state.
+ * Set and get terminal state -- use <sgtty.h>.
+ * int stty PARAMS((int, int*));
+ * int gtty PARAMS((int, int*));
  */
-int stty PARAMS((int, int*));
-int gtty PARAMS((int, int*));
 
 /*
  * Force a write of modified buffers out to disk.
@@ -137,47 +137,7 @@ int dup PARAMS((int));
  * int signal PARAMS((int, int));
  */
 
-#if 0
 /*
- * Empty syscalls:
+ * Library functions:
  */
-	0, nullsys,			/*  0 = indir */
-	2, nullsys,			/* 16 = chown */
-	0, nullsys,			/* 23 = setuid */
-	3, nullsys,			/* 26 = ptrace */
-	1, nullsys,			/* 30 = smdate; inoperative */
-	0, nullsys,			/* 34 = nice */
-	1, nullsys,			/* 43 = times */
-	0, nullsys,			/* 46 = setgid */
-	0, nullsys,			/* 47 = getgid */
-
-/*
- * Unavalable syscalls:
- */
-	3, nosys,			/* 21 = mount */
-	1, nosys,			/* 22 = umount */
-	0, nosys,			/* 33 = x */
-	0, nosys,			/* 35 = sleep */
-	1, nosys,			/* 37 = kill */
-	0, nosys,			/* 38 = switch */
-	0, nosys,			/* 39 = x */
-	0, nosys,			/* 40 = x */
-	0, nosys,			/* 42 = pipe */
-	4, nosys,			/* 44 = prof */
-	0, nosys,			/* 45 = tiu */
-	0, nosys,			/* 49 = x */
-	0, nosys,			/* 50 = x */
-	0, nosys,			/* 51 = x */
-	0, nosys,			/* 52 = x */
-	0, nosys,			/* 53 = x */
-	0, nosys,			/* 54 = x */
-	0, nosys,			/* 55 = x */
-	0, nosys,			/* 56 = x */
-	0, nosys,			/* 57 = x */
-	0, nosys,			/* 58 = x */
-	0, nosys,			/* 59 = x */
-	0, nosys,			/* 60 = x */
-	0, nosys,			/* 61 = x */
-	0, nosys,			/* 62 = x */
-	0, nosys,			/* 63 = x */
-#endif
+int isatty PARAMS((int));

@@ -40,7 +40,7 @@ struct buf *abp;
 fdstart()
 {
 
-	register struct buf *bp; 
+	register struct buf *bp;
 	register char *r3, *r2;
 	static struct buf * savbp;
 
@@ -58,7 +58,7 @@ fdstart()
 		r2 = bp->b_addr;
 		asm("mov 4(r4), r1");	/* word cnt */
 		if (bp->b_flags & B_READ)
-			asm("neg r1");	/* negative cnt == write */
+			asm("neg r1");;	/* negative cnt == write */
 		asm("mov 010(r4), r0"); /* blk num */
 		asm("mov r5,-(sp)");	/* r5 will be corrupted */
 		asm("jsr pc, *$0160004");

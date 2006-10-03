@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <setjmp.h>
+#include <sys/wait.h>
 
 #define LINSIZ	1000
 #define ARGSIZ	50
