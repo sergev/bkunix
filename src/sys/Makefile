@@ -66,7 +66,7 @@ HIOBJS		= high.o mch.o $(COBJS) $(DEVOBJS)
 BKOBJS		= high.o mch.o $(COBJS) $(BKDEVOBJS)
 HIBASE		= 0120000
 
-all:		lsx #lsx1
+all:		lsx boot1 boot2lo #lsx1
 		@echo "Warning: For 10K LSX system, size must be less than 046000"
 		@echo "         for 8k lsx system size must be less than 036500"
 		$(SIZE) lsx #lsx1
@@ -74,7 +74,7 @@ all:		lsx #lsx1
 clean:
 		rm -f *~ dev/*~ *.o *.s lsx lsx1 hsx bsx debug a.out lsx.dis debug.dis hsx.dis
 
-lsx:		
+lsx:
 		$(MAKE) WHERE=LOW SYS=DEC $(OBJS)
 		$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 		pdp11-disasm $@ > $@.dis

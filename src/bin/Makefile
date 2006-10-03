@@ -17,9 +17,8 @@ CC		= pdp11-pcc
 # Ritchie's compiler.
 #CC		= pdp11-cc
 
-PROGS		= hello echo cal ls sh cp date mkdir
-# TODO: mv od rm rmdir stty check ed
-# sync
+PROGS		= sync echo cal ls sh cp date mkdir
+# TODO: mv od rm rmdir stty ed
 
 all:		$(PROGS)
 
@@ -44,25 +43,25 @@ depend:
 		mv Makefile~ Makefile
 
 ### DO NOT DELETE THIS LINE
-cal.o: cal.c ../libc/stdlib.h ../libc/ansidecl.h
+cal.o: cal.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h
 check.o: check.c
-cp.o: cp.c
+cp.o: cp.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/string.h ../libc/unistd.h ../libc/fcntl.h ../libc/sys/types.h ../libc/sys/stat.h
 cpfp.o: cpfp.c
-date.o: date.c
-echo.o: echo.c ../libc/stdlib.h ../libc/ansidecl.h
-ed.o: ed.c
-hello.o: hello.c ../libc/stdlib.h ../libc/ansidecl.h
-ls.o: ls.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/string.h ../libc/unistd.h ../libc/time.h
-mkdir.o: mkdir.c
+date.o: date.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/unistd.h ../libc/time.h
+echo.o: echo.c ../libc/stdio.h ../libc/ansidecl.h
+ed.o: ed.c ../libc/signal.h ../libc/ansidecl.h ../libc/setjmp.h
+hello.o: hello.c ../libc/unistd.h ../libc/ansidecl.h
+ls.o: ls.c ../libc/ansidecl.h ../libc/stdlib.h ../libc/stdio.h ../libc/string.h ../libc/unistd.h ../libc/fcntl.h ../libc/time.h ../libc/dirent.h ../libc/sys/types.h ../libc/sys/stat.h
+mkdir.o: mkdir.c ../libc/stdio.h ../libc/ansidecl.h ../libc/string.h ../libc/unistd.h ../libc/signal.h ../libc/sys/stat.h
 mv.o: mv.c
 od.o: od.c
 rm.o: rm.c
-rmdir.o: rmdir.c
-sh.o: sh.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/unistd.h
-size.o: size.c
-strip.o: strip.c ../libc/a.out.h
+rmdir.o: rmdir.c ../libc/sys/types.h ../libc/sys/stat.h ../libc/stdio.h
+sh.o: sh.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/unistd.h ../libc/signal.h ../libc/setjmp.h
 stty.o: stty.c
 sync.o: sync.c ../libc/unistd.h ../libc/ansidecl.h
+testarith.o: testarith.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h
+testprintf.o: testprintf.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h ../libc/string.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
 # see make depend above

@@ -19,7 +19,7 @@ CFLAGS		= -O -I../libc
 LDFLAGS		= -a$(TOPSYS)
 
 PROGS		= init
-# TODO: glob mkfs mknod clri
+# TODO: glob mknod mkfs fsck
 
 all:		$(PROGS)
 

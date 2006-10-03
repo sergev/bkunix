@@ -469,8 +469,9 @@ void lsxfs_dirent_unpack (lsxfs_dirent_t *dirent, unsigned char *data)
  * an inode. Note that the inode is locked.
  *
  * flag = 0 if name is saught
- *	1 if name is to be created
+ *	1 if name is to be created, mode is given
  *	2 if name is to be deleted
+ *	3 if name is to be linked, mode contains inode number
  */
 int lsxfs_inode_by_name (lsxfs_t *fs, lsxfs_inode_t *inode, char *name,
 	int op, int mode)
@@ -484,7 +485,7 @@ int lsxfs_inode_by_name (lsxfs_t *fs, lsxfs_inode_t *inode, char *name,
 	lsxfs_inode_t dir;
 
 	/* Start from root. */
-	if (! lsxfs_inode_get (fs, inode, LSXFS_ROOT_INODE)) {
+	if (! lsxfs_inode_get (fs, &dir, LSXFS_ROOT_INODE)) {
 		fprintf (stderr, "inode_open(): cannot get root\n");
 		return 0;
 	}
@@ -498,12 +499,14 @@ int lsxfs_inode_by_name (lsxfs_t *fs, lsxfs_inode_t *inode, char *name,
 cloop:
 	/* Here inode contains pointer
 	 * to last component matched. */
-	if (! c)
+	if (! c) {
+		*inode = dir;
 		return 1;
+	}
 
 	/* If there is another component,
 	 * inode must be a directory. */
-	if ((inode->mode & INODE_MODE_FMT) != INODE_MODE_FDIR) {
+	if ((dir.mode & INODE_MODE_FMT) != INODE_MODE_FDIR) {
 		return 0;
 	}
 
@@ -520,10 +523,10 @@ cloop:
 		c = *name++;
 
 	/* Search a directory, 16 bytes per file */
-	for (offset = 0; inode->size - offset >= 16; offset += 16) {
-		if (! lsxfs_inode_read (inode, offset, data, 16)) {
+	for (offset = 0; dir.size - offset >= 16; offset += 16) {
+		if (! lsxfs_inode_read (&dir, offset, data, 16)) {
 			fprintf (stderr, "inode %d: read error at offset %ld\n",
-				inode->number, offset);
+				dir.number, offset);
 			return 0;
 		}
 		inum = data [1] << 8 | data [0];
@@ -536,7 +539,7 @@ cloop:
 			if (op == 2 && ! c) {
 				goto delete_file;
 			}
-			if (! lsxfs_inode_get (fs, inode, inum)) {
+			if (! lsxfs_inode_get (fs, &dir, inum)) {
 				fprintf (stderr, "inode_open(): cannot get inode %d\n", inum);
 				return 0;
 			}
@@ -548,13 +551,14 @@ cloop:
 	 * is appropriate as per flag. */
 	if (op == 1 && ! c)
 		goto create_file;
+	if (op == 3 && ! c)
+		goto create_link;
 	return 0;
 
 	/*
-	 * Make a new file.
+	 * Make a new file, and return it's inode.
 	 */
 create_file:
-	dir = *inode;
 	if (! lsxfs_inode_alloc (fs, inode)) {
 		fprintf (stderr, "%s: cannot allocate inode\n", name);
 		return 0;
@@ -565,6 +569,10 @@ create_file:
 	inode->nlink = 1;
 	inode->uid = 0;
 	inode->gid = 0;
+	if (! lsxfs_inode_save (inode, 0)) {
+		fprintf (stderr, "%s: cannot save file inode\n", name);
+		return 0;
+	}
 
 	/* Write a directory entry. */
 	data[0] = inode->number;
@@ -580,17 +588,12 @@ write_back:
 		fprintf (stderr, "%s: cannot save directory inode\n", name);
 		return 0;
 	}
-	if (! lsxfs_inode_save (inode, 0)) {
-		fprintf (stderr, "%s: cannot save file inode\n", name);
-		return 0;
-	}
 	return 1;
 
 	/*
-	 * Delete file.
+	 * Delete file. Return inode of deleted file.
 	 */
 delete_file:
-	dir = *inode;
 	if (! lsxfs_inode_get (fs, inode, inum)) {
 		fprintf (stderr, "%s: cannot get inode %d\n", name, inum);
 		return 0;
@@ -607,6 +610,27 @@ delete_file:
 	}
 	memset (data, 0, 16);
 	goto write_back;
+
+	/*
+	 * Make a link. Return a directory inode.
+	 */
+create_link:
+	data[0] = mode;
+	data[1] = mode >> 8;
+/*printf ("*** link inode %d to %s\n", mode, dbuf);*/
+	memcpy (data+2, dbuf, 14);
+/*printf ("*** add entry '%.14s' to inode %d\n", dbuf, dir.number);*/
+	if (! lsxfs_inode_write (&dir, offset, data, 16)) {
+		fprintf (stderr, "inode %d: write error at offset %ld\n",
+			dir.number, offset);
+		return 0;
+	}
+	if (! lsxfs_inode_save (&dir, 0)) {
+		fprintf (stderr, "%s: cannot save directory inode\n", name);
+		return 0;
+	}
+	*inode = dir;
+	return 1;
 }
 
 /*
