@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 char shell[] = "/bin/sh";
 char minus[] = "-";
 char ctty[] = "/dev/tty8";

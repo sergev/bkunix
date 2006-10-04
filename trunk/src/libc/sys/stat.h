@@ -15,6 +15,8 @@ struct stat {
 	long		st_mtime;
 };
 
+#define	S_ALLOC	0100000		/* allocated */
+
 #define	S_IFMT	0060000		/* type of file */
 #define		S_IFDIR	0040000	/* directory */
 #define		S_IFCHR	0020000	/* character special */

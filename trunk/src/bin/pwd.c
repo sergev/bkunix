@@ -41,10 +41,10 @@ main()
 	stat("/", &dot);
 	rdev = dot.st_dev;
 	rino = dot.st_ino;
-printf ("/ dev=%d ino=%d\n", rdev, (int) rino);
+/*printf ("/ dev=%d ino=%d\n", rdev, (int) rino);*/
 	for (;;) {
 		stat(".", &dot);
-printf (". dev=%d ino=%d\n", (int) dot.st_dev, (int) dot.st_ino);
+/*printf (". dev=%d ino=%d\n", (int) dot.st_dev, (int) dot.st_ino);*/
 		if (dot.st_ino == rino && dot.st_dev == rdev)
 			break;
 		dir = opendir("..");
@@ -53,7 +53,7 @@ printf (". dev=%d ino=%d\n", (int) dot.st_dev, (int) dot.st_ino);
 			return 1;
 		}
 		stat("..", &dotdot);
-printf (".. dev=%d ino=%d\n", (int) dotdot.st_dev, (int) dotdot.st_ino);
+/*printf (".. dev=%d ino=%d\n", (int) dotdot.st_dev, (int) dotdot.st_ino);*/
 		chdir("..");
 		if (dot.st_dev == dotdot.st_dev) {
 			if (dot.st_ino == dotdot.st_ino)
@@ -73,12 +73,13 @@ printf (".. dev=%d ino=%d\n", (int) dotdot.st_dev, (int) dotdot.st_ino);
 					return 1;
 				}
 				stat(d->d_name, &dotdot);
-printf ("%.14s dev=%d ino=%d\n", d->d_name, (int) dotdot.st_dev, (int) dotdot.st_ino);
+/*printf ("%.14s dev=%d ino=%d\n", d->d_name, (int) dotdot.st_dev, (int) dotdot.st_ino);*/
 			} while (dotdot.st_ino != dot.st_ino ||
 				dotdot.st_dev != dot.st_dev);
 		}
 		closedir(dir);
 		cat(d->d_name);
+/*path[off] = 0; printf ("pwd %s\n", path);*/
 	}
 	write(1, "/", 1);
 	if (off < 0)
