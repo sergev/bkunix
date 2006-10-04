@@ -1,61 +1,89 @@
-char dot[] ".";
-char dotdot[] "..";
-char root[] "/";
-char name[512];
-int file, off -1;
-struct statb {int devn, inum, i[18];}x;
-struct entry { int jnum; char name[16];}y;
+/*
+ * Print working (current) directory
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <dirent.h>
 
-main() {
-	int n;
+char path[512];
+int off	= -1;
 
-loop0:
-	stat(dot, &x);
-	if((file = open(dotdot,0)) < 0) prname();
-loop1:
-	if((n = read(file,&y,16)) < 16) prname();
-	if(y.jnum != x.inum)goto loop1;
-	close(file);
-	if(y.jnum == 1) ckroot();
-	cat();
-	chdir(dotdot);
-	goto loop0;
-}
-ckroot() {
-	int i, n;
-
-	if((n = stat(y.name,&x)) < 0) prname();
-	i = x.devn;
-	if((n = chdir(root)) < 0) prname();
-	if((file = open(root,0)) < 0) prname();
-loop:
-	if((n = read(file,&y,16)) < 16) prname();
-	if(y.jnum == 0) goto loop;
-	if((n = stat(y.name,&x)) < 0) prname();
-	if(x.devn != i) goto loop;
-	x.i[0] =& 060000;
-	if(x.i[0] != 040000) goto loop;
-	if(y.name[0]=='.')if(((y.name[1]=='.') && (y.name[2]==0)) ||
-				(y.name[1] == 0)) goto pr;
-	cat();
-pr:
-	write(1,root,1);
-	prname();
-}
-prname() {
-	if(off<0)off=0;
-	name[off] = '\n';
-	write(1,name,off+1);
-	exit();
-}
-cat() {
-	int i, j;
+void
+cat(name)
+	char *name;
+{
+	register int i, j;
 
 	i = -1;
-	while(y.name[++i] != 0);
-	if((off+i+2) > 511) prname();
-	for(j=off+1; j>=0; --j) name[j+i+1] = name[j];
+	while (name[++i] != 0);
+	if ((off+i+2) > 511) {
+		write(2, "pwd: too long path\n", 19);
+		exit(1);
+	}
+	for (j=off+1; j>=0; --j)
+		path[j+i+1] = path[j];
 	off=i+off+1;
-	name[i] = root[0];
-	for(--i; i>=0; --i) name[i] = y.name[i];
+	path[i] = '/';
+	for (--i; i>=0; --i)
+		path[i] = name[i];
+}
+
+int
+main()
+{
+	int rdev, rino;
+	DIR *dir;
+	struct stat dot, dotdot;
+	register struct dirent *d;
+
+	stat("/", &dot);
+	rdev = dot.st_dev;
+	rino = dot.st_ino;
+printf ("/ dev=%d ino=%d\n", rdev, (int) rino);
+	for (;;) {
+		stat(".", &dot);
+printf (". dev=%d ino=%d\n", (int) dot.st_dev, (int) dot.st_ino);
+		if (dot.st_ino == rino && dot.st_dev == rdev)
+			break;
+		dir = opendir("..");
+		if (! dir) {
+			write(2, "pwd: cannot open ..\n", 20);
+			return 1;
+		}
+		stat("..", &dotdot);
+printf (".. dev=%d ino=%d\n", (int) dotdot.st_dev, (int) dotdot.st_ino);
+		chdir("..");
+		if (dot.st_dev == dotdot.st_dev) {
+			if (dot.st_ino == dotdot.st_ino)
+				break;
+			do {
+				d = readdir(dir);
+				if (! d) {
+					write(2, "read error in ..\n", 17);
+					return 1;
+				}
+			} while (d->d_ino != dot.st_ino);
+		} else {
+			do {
+				d = readdir(dir);
+				if (! d) {
+					write(2, "read error in ..\n", 17);
+					return 1;
+				}
+				stat(d->d_name, &dotdot);
+printf ("%.14s dev=%d ino=%d\n", d->d_name, (int) dotdot.st_dev, (int) dotdot.st_ino);
+			} while (dotdot.st_ino != dot.st_ino ||
+				dotdot.st_dev != dot.st_dev);
+		}
+		closedir(dir);
+		cat(d->d_name);
+	}
+	write(1, "/", 1);
+	if (off < 0)
+		off = 0;
+	path[off] = '\n';
+	write(1, path, off + 1);
+	return 0;
 }
