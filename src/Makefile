@@ -1,11 +1,11 @@
-ETC		= etc/init
+ETC		= etc/init etc/glob etc/mknod etc/mkfs
 BIN		= bin/sh bin/ls bin/echo bin/cal bin/cp bin/date bin/mkdir \
 		  bin/sync bin/mv bin/rm bin/rmdir bin/stty bin/od bin/ed \
 		  bin/cat bin/ln bin/wc bin/pwd
 SYS		= sys/lsx sys/boot1 sys/boot2lo
 
-DEV		= dev/tty8!c0:0 dev/fd0!b0:0 dev/fd1!b0:1
-DSK		= root.dsk usr.dsk
+DEV		= dev/tty8!c0:0 dev/fd0!b0:0 dev/fd1!b0:1 dev/fd2!b0:2
+DSK		= root.dsk #usr.dsk tmp.dsk
 FSUTIL		= ../fsutil/lsx-util
 
 all:		$(DSK)
@@ -26,6 +26,10 @@ root.dsk:	$(SYS) $(ETC) $(BIN)
 		$(FSUTIL) -c $@
 
 usr.dsk:
+		$(FSUTIL) -n -s256000 $@
+		$(FSUTIL) -c $@
+
+tmp.dsk:
 		$(FSUTIL) -n -s256000 $@
 		$(FSUTIL) -c $@
 

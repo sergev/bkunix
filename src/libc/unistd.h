@@ -50,6 +50,7 @@ int unlink PARAMS((char*));
  * Execute a file.
  */
 int execv PARAMS((char*, char**));
+int execl PARAMS((char*, char* /*, ...*/));
 
 /*
  * Change current working directory.
@@ -77,8 +78,9 @@ int chmod PARAMS((char*, int));
 char *sbrk PARAMS((int));
 
 /*
- * Get file status by file name.
+ * Get file status by file name --  use <sys/stat.h>.
  */
+struct stat;
 int stat PARAMS((char*, struct stat*));
 
 /*

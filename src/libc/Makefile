@@ -45,7 +45,7 @@ install:	all
 		install libc.a ${DESTDIR}/libc.a
 
 clean:
-		rm -f *~ *.o a.out core libc.a
+		rm -f *~ sys/*~ *.o a.out core libc.a
 
 
 libc.a:		${OBJS}

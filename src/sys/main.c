@@ -91,7 +91,7 @@ void panichalt(s)
 #ifdef BK
 	for(;;);
 #else
-	for (;;) 
+	for (;;)
 		asm("0");
 #endif
 }
