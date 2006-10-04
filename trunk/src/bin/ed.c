@@ -29,6 +29,8 @@
 
 #define	STAR	01
 
+#define TMPNAM	"/tmp/eXXXXXX"
+
 char	Q[]	= "";
 char	T[]	= "TMP";
 #define	READ	0
@@ -63,7 +65,7 @@ int	col;
 char	*globp;
 int	tfile	= -1;
 int	tline;
-char	tfname[] = "/tmp/eXXXXXX";
+char	tfname[sizeof(TMPNAM)];
 char	*loc1;
 char	*loc2;
 char	*locs;
@@ -318,7 +320,8 @@ append(f, a)
 		if ((dol-zero)+1 >= nlall) {
 			int *ozero = zero;
 			nlall += 512;
-			if ((zero = (int *)realloc((char *)zero, nlall*sizeof(int))) == 0) {
+			zero = (int*) realloc((char*) zero, nlall*sizeof(int));
+			if (! zero) {
 				lastc = '\n';
 				zero = ozero;
 				error("MEM?");
@@ -460,6 +463,7 @@ init()
 	iblock = -1;
 	oblock = -1;
 	ichanged = 0;
+	strcpy (tfname, TMPNAM);
 	tfile = mkstemp(tfname);
 	dot = dol = zero;
 }
@@ -1122,15 +1126,21 @@ getfile()
 }
 
 void
-putd()
+putd(a)
+	register int a;
 {
-	register int r;
+	register int b;
 
-	r = count%10;
-	count /= 10;
-	if (count)
-		putd();
-	putchr(r + '0');
+	if (a < 0) {
+		putchr('-');
+		a = - a;
+	}
+	b = a / 10;
+	if (b > 0) {
+		putd (b);
+		a -= b * 10;
+	}
+	putchr(a + '0');
 }
 
 void
@@ -1139,7 +1149,7 @@ exfile()
 	close(io);
 	io = -1;
 	if (vflag) {
-		putd();
+		putd((int) count);
 		putchr('\n');
 	}
 }
@@ -1530,8 +1540,7 @@ commands()
 	case '=':
 		setall();
 		newline();
-		count = (addr2-zero)&077777;
-		putd();
+		putd(addr2 - zero);
 		putchr('\n');
 		continue;
 

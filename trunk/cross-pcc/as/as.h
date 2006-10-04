@@ -12,7 +12,7 @@
 	Magic Numbers (Limits)
 */
 #define	SYMBOLS		200
-#define	USERSYMBOLS	600
+#define	USERSYMBOLS	700
 #define HSHSIZ		1553
 
 /*

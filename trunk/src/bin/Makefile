@@ -3,7 +3,7 @@ TOPSYS		= 040000
 
 AS		= pdp11-as
 LD		= pdp11-ld
-SIZE		= pdp11-size -o
+SIZE		= pdp11-size
 CFLAGS		= -O -I../libc
 LDFLAGS		= -a$(TOPSYS)
 
@@ -20,6 +20,7 @@ CC		= pdp11-pcc
 PROGS		= sync echo cal ls sh cp date mkdir mv rm rmdir stty od ed cat
 
 all:		$(PROGS)
+		$(SIZE) $(PROGS)
 
 clean:
 		/bin/rm -f *~ *.o *.dis a.out $(PROGS)
