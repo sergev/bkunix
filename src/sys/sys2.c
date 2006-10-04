@@ -260,30 +260,3 @@ mknod()
 out:
 	iput(ip);
 }
-
-/*
- * sleep system call
- * not to be confused with the sleep internal routine.
- */
-#if 0
-void
-sslep()
-{
-	unsigned int d[2];
-
-	spl7();
-	d[0] = time[0];
-	d[1] = time[1];
-	dpadd(d, u.u_ar0[R0]);
-
-	while(dpcmp(d[0], d[1], time[0], time[1]) > 0) {
-		if(dpcmp(tout[0], tout[1], time[0], time[1]) <= 0 ||
-		   dpcmp(tout[0], tout[1], d[0], d[1]) > 0) {
-			tout[0] = d[0];
-			tout[1] = d[1];
-		}
-		sleep(tout, PSLEP);
-	}
-	spl0();
-}
-#endif

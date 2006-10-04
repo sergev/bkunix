@@ -49,6 +49,11 @@ init:	clr	r0
 	mov	$ IM, (r0)+
 #endif
 
+#ifdef BK
+	mov	$0274, r0
+	mov	$klin, (r0)+
+	mov	$ IM, (r0)+
+#endif
 go:	jmp	*$start
 
 /-----------------------
