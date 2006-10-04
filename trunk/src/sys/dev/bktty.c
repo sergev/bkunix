@@ -19,6 +19,7 @@
 #define	RDRENB	01
 
 struct	tty kl11[NKL11];
+static char cursoff;
 
 void ttstart();
 
@@ -130,7 +131,7 @@ ttyoutput(ac)
 		break;
 
 	/* backspace */
-	case 010:
+	case CERASE:
 		if (*colp)
 			(*colp)--;
 		break;
@@ -330,6 +331,7 @@ ttread()
 {
 	register struct tty *tp;
 
+	if (cursoff) { ttputc(0232); cursoff=0; }
 	tp = kl11;
 	if (tp->t_canq.c_cc || canon(tp))
 		while (tp->t_canq.c_cc && passc(getc(&tp->t_canq))>=0);
@@ -345,6 +347,7 @@ ttwrite()
 	register struct tty *tp;
 	register int c;
 
+	if (!cursoff) { ttputc(0232); cursoff++; }
 	tp = kl11;
 	while ((c=cpass())>=0) {
 		ttyoutput(c);
