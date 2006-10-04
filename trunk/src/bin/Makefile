@@ -17,7 +17,8 @@ CC		= pdp11-pcc
 # Ritchie's compiler.
 #CC		= pdp11-cc
 
-PROGS		= sync echo cal ls sh cp date mkdir mv rm rmdir stty od ed cat
+PROGS		= sync echo cal ls sh cp date mkdir mv rm rmdir stty \
+		  od ed cat ln wc pwd
 
 all:		$(PROGS)
 		$(SIZE) $(PROGS)
@@ -31,7 +32,8 @@ clean:
 
 .c.s:
 		$(CC) $(CFLAGS) -S $<
-depend:
+
+depend:		clean
 		@cp Makefile Makefile~~
 		(sed '/^### DO NOT DELETE THIS LINE/,$$d' Makefile;\
 		echo '### DO NOT DELETE THIS LINE';\
@@ -52,10 +54,13 @@ date.o: date.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/unistd.h ../libc/time
 echo.o: echo.c ../libc/stdio.h ../libc/ansidecl.h
 ed.o: ed.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/unistd.h ../libc/signal.h ../libc/fcntl.h ../libc/sgtty.h ../libc/setjmp.h ../libc/sys/wait.h
 hello.o: hello.c ../libc/unistd.h ../libc/ansidecl.h
+ln.o: ln.c ../libc/unistd.h ../libc/ansidecl.h ../libc/sys/stat.h
 ls.o: ls.c ../libc/ansidecl.h ../libc/stdlib.h ../libc/stdio.h ../libc/string.h ../libc/unistd.h ../libc/fcntl.h ../libc/time.h ../libc/dirent.h ../libc/sys/types.h ../libc/sys/stat.h
 mkdir.o: mkdir.c ../libc/stdio.h ../libc/ansidecl.h ../libc/string.h ../libc/unistd.h ../libc/signal.h ../libc/sys/stat.h
 mv.o: mv.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h ../libc/unistd.h ../libc/sys/stat.h ../libc/sys/wait.h
 od.o: od.c ../libc/stdio.h ../libc/ansidecl.h ../libc/unistd.h ../libc/fcntl.h
+pwd.o: pwd.c ../libc/stdio.h ../libc/ansidecl.h ../libc/stdlib.h ../libc/unistd.h ../libc/sys/stat.h ../libc/dirent.h
+pwd-v6.o: pwd-v6.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/string.h ../libc/unistd.h ../libc/fcntl.h ../libc/dirent.h ../libc/sys/stat.h
 rm.o: rm.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h ../libc/unistd.h ../libc/sys/stat.h ../libc/sys/wait.h
 rmdir.o: rmdir.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h ../libc/string.h ../libc/unistd.h ../libc/fcntl.h ../libc/dirent.h ../libc/sys/types.h ../libc/sys/stat.h
 sh.o: sh.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/unistd.h ../libc/signal.h ../libc/setjmp.h ../libc/sys/wait.h
@@ -63,6 +68,7 @@ stty.o: stty.c ../libc/stdio.h ../libc/ansidecl.h ../libc/sgtty.h
 sync.o: sync.c ../libc/unistd.h ../libc/ansidecl.h
 testarith.o: testarith.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h
 testprintf.o: testprintf.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h ../libc/string.h
+wc.o: wc.c ../libc/stdio.h ../libc/ansidecl.h ../libc/string.h ../libc/unistd.h ../libc/fcntl.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
 # see make depend above

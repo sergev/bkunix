@@ -1,7 +1,7 @@
 ETC		= etc/init
 BIN		= bin/sh bin/ls bin/echo bin/cal bin/cp bin/date bin/mkdir \
 		  bin/sync bin/mv bin/rm bin/rmdir bin/stty bin/od bin/ed \
-		  bin/cat
+		  bin/cat bin/ln bin/wc bin/pwd
 SYS		= sys/lsx sys/boot1 sys/boot2lo
 
 DEV		= dev/tty8!c0:0 dev/fd0!b0:0 dev/fd1!b0:1
