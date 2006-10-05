@@ -15,7 +15,7 @@ struct	proc
 	char	p_sig;		/* signal number sent to this process */
 	int	p_wchan;	/* event process is awaiting */
 	int	p_clktim;	/* time to alarm clock signal */
-	int	p_size;		/* size of swap image in 32 word blocks */
+	int	p_size;		/* size of swap image in WORDS */
 };
 extern struct proc proc[];
 

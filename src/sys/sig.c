@@ -101,13 +101,8 @@ core()
 	itrunc(ip);
 	u.u_offset[0] = 0;
 	u.u_offset[1] = 0;
-/*
-	u.u_base = &u;
-	u.u_count = USIZE*64;
-	writei(ip);
-*/
 	u.u_base = (char*) &u;
-	u.u_count = (UCORE+USIZE)*64;
+	u.u_count = UCORE+USIZE;
 	writei(ip);
 	iput(ip);
 	u.u_segflg--;

@@ -108,7 +108,7 @@ exec()
 	 * try them out for possible
 	 * exceed of max sizes
 	 */
-	ds = ((u.u_arg[2]+u.u_arg[3]+63)>>6) & 01777;
+	ds = u.u_arg[2]+u.u_arg[3];
 	if(ds + SSIZE > UCORE)
 		goto bad;
 
@@ -310,7 +310,7 @@ sbreak()
 	 * set d to new-old
 	 * set n to new total size
 	 */
-	n = (((u.u_arg[0]-BOTUSR+63)>>6) & 01777);
+	n = ((u.u_arg[0]+1)&~1)-BOTUSR;
 	d = n - u.u_dsize;
 	n += USIZE+u.u_ssize;
 	if(n > UCORE) {

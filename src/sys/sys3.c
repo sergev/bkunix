@@ -25,7 +25,7 @@ stat1(ip, ub)
 	if (bad_user_address (ub) || bad_user_address (ub + 18))
 		return;
 	iupdat(ip);
-	bp = bread(ip->i_dev, (ip->i_number + 31) / 16);
+	bp = bread(ip->i_dev, (ip->i_number + 31) >> 4);
 	cp = &(ip->i_dev);
 	for(i=0; i<14; i++) {
 		*ub++ = *cp++;

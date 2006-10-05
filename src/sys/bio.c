@@ -254,22 +254,23 @@ swap(rdflg)
 	p = &proc[cpid];
 	if(rdflg == B_WRITE) {
 #ifdef SQUEEZE
+		/* untested after conversion to byte sizes*/
 		p1 = *(int*) USTACK;
-		p2 = (int*) (BOTUSR + (u.u_dsize<<6) + (p1 & 077));
+		p2 = (int*) (BOTUSR + u.u_dsize + (p1 & 077));
 		if(p2 <= (int*) p1) {
 			p->p_size = u.u_dsize + USIZE +
-			    ((TOPUSR >> 6) & 01777) - ((p1 >> 6) & 01777);
+			    (TOPUSR & 01777) - (p1 & 01777);
 			while(p1 < TOPUSR) {
 				*p2++ = *((int*)p1);
 				p1 += 2;
 			}
 		} else
 #endif
-			p->p_size = SWPSIZ<<3;
+			p->p_size = SWPSIZ<<8;
 	}
 	swbuf.b_flags = B_BUSY | rdflg;
 	swbuf.b_dev = SWAPDEV;
-	swbuf.b_wcount = -(((p->p_size+7)&~07)<<5);	/* 32 words per block */
+	swbuf.b_wcount = -p->p_size;
 	swbuf.b_blkno = SWPLO+cpid*SWPSIZ;
 	swbuf.b_addr = (char*) &u;
 	fdstrategy(&swbuf);
@@ -278,9 +279,10 @@ swap(rdflg)
 		sleep(&swbuf, PSWP);
 	spl0();
 #ifdef SQUEEZE
+	/* untested */
 	if(rdflg == B_READ) {
 		p1 = TOPUSR;
-		p2 = (int*) ((p->p_size<<6) + BOTUSR - (USIZE<<6));
+		p2 = (int*) (p->p_size + BOTUSR - USIZE);
 		if( p2 <= (int*) p1)
 			while(p1 >= *(int*)USTACK) {
 				p1 -= 2;
