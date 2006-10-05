@@ -39,6 +39,10 @@ static void bksend() {
 	asm("mov (sp)+, r5");
 }
 
+/*
+ * When called with c == 0, performs a flush,
+ * also flushes an \n.
+ */
 static void putbuf(c) 
 int c;
 {
@@ -76,8 +80,7 @@ flushtty()
 
 	tp = kl11;
 	while (getc(&tp->t_canq) >= 0);
-	/* while (getc(&tp->t_outq) >= 0); */
-	nch = 0;
+	nch = 0; /* kill output queue */
 	wakeup(&tp->t_rawq);
 	sps = spl7();
 	while (getc(&tp->t_rawq) >= 0);
@@ -95,34 +98,10 @@ wflushtty()
 
 	tp = kl11;
 	spl7();
-	/* while (tp->t_outq.c_cc) { ttstart(); } */
-	putbuf(0);
+	putbuf(0); /* flush output queue to screen */
 	flushtty();
 	spl0();
 }
-#if 0
-/*
- * Start output on the typewriter. It is used from the top half
- * after some characters have been put on the output queue,
- * from the interrupt routine to transmit the next
- * character, and after a timeout has finished.
- * If the SSTART bit is off for the tty the work is done here,
- * using the protocol of the single-line interfaces (KL, DL, DC);
- * otherwise the address word of the tty structure is
- * taken to be the name of the device-dependent startup routine.
- */
-void
-ttstart()
-{
-	register int c;
-	register struct tty *tp;
-
-	tp = kl11;
-	while ((c=getc(&tp->t_outq)) >= 0) {
-		ttputc(c);
-	}
-}
-#endif
 
 /*
  * put character on TTY output queue, adding delays,
@@ -158,7 +137,6 @@ ttyoutput(ac)
 	if(rtp->t_flags & CRMOD)
 		if (c=='\n')
 			ttyoutput('\r');
-	/* if (putc(c, &rtp->t_outq)) return; */
 	putbuf(c);
 	colp = &rtp->t_col;
 	switch (c) {
@@ -178,7 +156,6 @@ ttyoutput(ac)
 	case '\n':
 		*colp = 0;
 		break;
-
 
 	/* carriage return */
 	case '\r':
@@ -224,8 +201,7 @@ ttyinput(ac)
 	}
 	if(flags & ECHO) {
 		ttyoutput(c == CKILL ? '\n' : c);
-		/* ttstart(); */
-		putbuf(0);
+		putbuf(0); /* flush */
 	}
 }
 
@@ -369,16 +345,26 @@ void
 ttread()
 {
 	register struct tty *tp;
+	register char * base;
+	register int n;
 
 	if (cursoff) {
-		/* ttputc(0232); */
 		putbuf(0232);
 		cursoff=0;
 	}
 	putbuf(0);
 	tp = kl11;
-	if (tp->t_canq.c_cc || canon(tp))
-		while (tp->t_canq.c_cc && passc(getc(&tp->t_canq))>=0);
+	if (tp->t_canq.c_cc || canon(tp)) {
+		n = u.u_count;
+		base = u.u_base;
+		while (n && tp->t_canq.c_cc) {
+			*base++ = getc(&tp->t_canq);
+			--n;
+		}
+		u.u_base = base;
+		dpadd(u.u_offset, u.u_count-n);
+		u.u_count = n;
+	}
 }
 
 /*
@@ -388,18 +374,18 @@ ttread()
 void
 ttwrite()
 {
-	register struct tty *tp;
-	register int c;
-
+	register char *base;
+	register int n;
 	if (!cursoff) {
-		/* ttputc(0232); */
 		putbuf(0232);
 		cursoff++;
 	}
-	tp = kl11;
-	while ((c=cpass())>=0) {
-		ttyoutput(c);
-		/* ttstart(); */
+	base = u.u_base;
+	n = u.u_count;
+	dpadd(u.u_offset, n);
+	while (n--) {
+		ttyoutput(*base++);
 	}
-	/* ttstart(); */
+	u.u_count = 0;
+	u.u_base = base;
 }

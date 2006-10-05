@@ -43,9 +43,6 @@ iomove(kdata, an, flag)
 	register int n;
 
 	n = an;
-	if (bad_user_address (u.u_base) ||
-	    bad_user_address (u.u_base + n - 1))
-		return;
 	if (flag==B_WRITE)
 		memcpy (kdata, u.u_base, n);
 	else
