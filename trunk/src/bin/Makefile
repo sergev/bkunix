@@ -18,7 +18,8 @@ CC		= pdp11-pcc
 #CC		= pdp11-cc
 
 PROGS		= sync echo cal ls sh cp date mkdir mv rm rmdir stty \
-		  od ed cat ln wc pwd
+		  od ed cat ln wc pwd df
+# TODO: umount mount df
 
 all:		$(PROGS)
 		$(SIZE) $(PROGS)
@@ -47,20 +48,23 @@ depend:		clean
 ### DO NOT DELETE THIS LINE
 cal.o: cal.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h
 cat.o: cat.c ../libc/stdio.h ../libc/ansidecl.h ../libc/unistd.h ../libc/fcntl.h ../libc/sys/types.h ../libc/sys/stat.h
-check.o: check.c
 cp.o: cp.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/string.h ../libc/unistd.h ../libc/fcntl.h ../libc/sys/types.h ../libc/sys/stat.h
 cpfp.o: cpfp.c
 date.o: date.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/unistd.h ../libc/time.h
+df-bsd.o: df-bsd.c ../libc/sys/stat.h ../libc/stdio.h ../libc/ansidecl.h ../libc/stdlib.h ../libc/string.h ../libc/sys/fs.h
+df.o: df.c ../libc/stdio.h ../libc/ansidecl.h ../libc/string.h ../libc/unistd.h ../libc/dirent.h ../libc/mtab.h ../libc/sys/stat.h ../libc/sys/fs.h
 echo.o: echo.c ../libc/stdio.h ../libc/ansidecl.h
 ed.o: ed.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/unistd.h ../libc/signal.h ../libc/fcntl.h ../libc/sgtty.h ../libc/setjmp.h ../libc/sys/wait.h
 hello.o: hello.c ../libc/unistd.h ../libc/ansidecl.h
 ln.o: ln.c ../libc/unistd.h ../libc/ansidecl.h ../libc/sys/stat.h
 ls.o: ls.c ../libc/ansidecl.h ../libc/stdlib.h ../libc/stdio.h ../libc/string.h ../libc/unistd.h ../libc/fcntl.h ../libc/time.h ../libc/dirent.h ../libc/sys/types.h ../libc/sys/stat.h
 mkdir.o: mkdir.c ../libc/stdio.h ../libc/ansidecl.h ../libc/string.h ../libc/unistd.h ../libc/signal.h ../libc/sys/stat.h
+mount.o: mount.c
 mv.o: mv.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h ../libc/unistd.h ../libc/sys/stat.h ../libc/sys/wait.h
+nlist.o: nlist.c ../libc/sys/types.h ../libc/a.out.h ../libc/stdio.h ../libc/ansidecl.h
+nm.o: nm.c ../libc/string.h ../libc/ansidecl.h ../libc/stdio.h ../libc/stdlib.h ../libc/unistd.h ../libc/fcntl.h ../libc/a.out.h
 od.o: od.c ../libc/stdio.h ../libc/ansidecl.h ../libc/unistd.h ../libc/fcntl.h
 pwd.o: pwd.c ../libc/stdio.h ../libc/ansidecl.h ../libc/stdlib.h ../libc/unistd.h ../libc/sys/stat.h ../libc/dirent.h
-pwd-v6.o: pwd-v6.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/string.h ../libc/unistd.h ../libc/fcntl.h ../libc/dirent.h ../libc/sys/stat.h
 rm.o: rm.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h ../libc/unistd.h ../libc/sys/stat.h ../libc/sys/wait.h
 rmdir.o: rmdir.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h ../libc/string.h ../libc/unistd.h ../libc/fcntl.h ../libc/dirent.h ../libc/sys/types.h ../libc/sys/stat.h
 sh.o: sh.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/unistd.h ../libc/signal.h ../libc/setjmp.h ../libc/sys/wait.h
@@ -68,6 +72,7 @@ stty.o: stty.c ../libc/stdio.h ../libc/ansidecl.h ../libc/sgtty.h
 sync.o: sync.c ../libc/unistd.h ../libc/ansidecl.h
 testarith.o: testarith.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h
 testprintf.o: testprintf.c ../libc/stdlib.h ../libc/ansidecl.h ../libc/stdio.h ../libc/string.h
+umount.o: umount.c
 wc.o: wc.c ../libc/stdio.h ../libc/ansidecl.h ../libc/string.h ../libc/unistd.h ../libc/fcntl.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
