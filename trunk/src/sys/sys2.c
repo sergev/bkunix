@@ -19,6 +19,7 @@ rdwr(mode)
 {
 	register struct file *fp;
 	register int m;
+	register char *top;
 
 	m = mode;
 	fp = getf(u.u_ar0[R0]);
@@ -30,6 +31,14 @@ rdwr(mode)
 	}
 	u.u_base = (char*) u.u_arg[0];
 	u.u_count = u.u_arg[1];
+	top = u.u_base + u.u_count - 1;
+	if (bad_user_address(u.u_base) ||
+	    bad_user_address(top) ||
+	    (unsigned) top < (unsigned) u.u_base) {
+		u.u_error = EFAULT;
+		asm("0");
+		return;
+	}
 	u.u_offset[1] = fp->f_offset[1];
 	u.u_offset[0] = fp->f_offset[0];
 	if(m==FREAD)

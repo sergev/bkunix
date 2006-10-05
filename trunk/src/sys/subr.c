@@ -108,48 +108,6 @@ large:
 	return(nb);
 }
 
-/*
- * Pass back  c  to the user at his location u_base;
- * update u_base, u_count, and u_offset.  Return -1
- * on the last character of the user's read.
- * u_base is in the user address space unless u_segflg is set.
- */
-int
-passc(c)
-	int c;
-{
-	if (bad_user_address (u.u_base))
-		return -1;
-	*u.u_base++ = c;
-	u.u_count--;
-	if(++u.u_offset[1] == 0)
-		u.u_offset[0]++;
-	return(u.u_count == 0? -1: 0);
-}
-
-/*
- * Pick up and return the next character from the user's
- * write call at location u_base;
- * update u_base, u_count, and u_offset.  Return -1
- * when u_count is exhausted.  u_base is in the user's
- * address space unless u_segflg is set.
- */
-int
-cpass()
-{
-	register int c;
-
-	if(u.u_count == 0)
-		return(-1);
-	if (bad_user_address (u.u_base))
-		return -1;
-	c = *u.u_base++;
-	u.u_count--;
-	if(++u.u_offset[1] == 0)
-		u.u_offset[0]++;
-	return(c&0377);
-}
-
 void *
 memcpy (pto, pfrom, nbytes)
 	void *pto, *pfrom;
