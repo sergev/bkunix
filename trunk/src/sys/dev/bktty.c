@@ -81,7 +81,7 @@ ttstart()
 	register struct tty *tp;
 
 	tp = kl11;
-	if ((c=getc(&tp->t_outq)) >= 0) {
+	while ((c=getc(&tp->t_outq)) >= 0) {
 		ttputc(c);
 	}
 }

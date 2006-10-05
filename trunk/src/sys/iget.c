@@ -126,7 +126,7 @@ iupdat(p)
 	if((rp->i_flag&IUPD) != 0) {
 		rp->i_flag &= ~IUPD;
 		i = rp->i_number+31;
-		bp = bread(rp->i_dev, i/16);
+		bp = bread(rp->i_dev, i>>16);
 		idata = (int*) (bp->b_addr + 32 * (i & 017));
 		memcpy (idata, &rp->i_mode,
 			offset(inode, i_addr[8])-offset(inode, i_mode));

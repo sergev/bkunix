@@ -33,7 +33,7 @@
 #define USRSIZ	24	/* user program size in 1K bytes */
 #define BOTUSR	040000	/* must not be an expression */
 #endif
-#define UCORE	(USRSIZ*16)
+#define UCORE	(USRSIZ*1024)		/* bytes */
 #define TOPUSR	(BOTUSR+USRSIZ*(unsigned)1024)
 #define SWPSIZ	(USRSIZ*2+1)
 #ifdef BGOPTION
@@ -48,8 +48,7 @@
 #define NINODE	20		/* number of in core inodes */
 #define NFILE	20		/* number of in core file structures */
 #define NMOUNT	2		/* number of mountable file systems */
-#define SSIZE	20		/* initial stack size (*64 bytes) */
-#define SINCR	20		/* increment of stack (*64 bytes) */
+#define SSIZE	1280		/* initial stack size (in bytes) */
 #define NOFILE	15		/* max open files per process */
 #define CANBSIZ	132		/* max size of typewriter line */
 #define NCLIST	25		/* max total clist size */
@@ -93,7 +92,7 @@
  * fundamental constants
  * cannot be changed
  */
-#define USIZE	8		/* size of user block (*64) */
+#define USIZE	512		/* size of user block (bytes) */
 #define NULL	0
 #define NODEV	(-1)
 #define ROOTINO	1		/* i number of all roots */
