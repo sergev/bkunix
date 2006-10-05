@@ -113,5 +113,7 @@ void kill();
 void dup();
 void ssig();
 void bground();
+void smount();
+void sumount();
 
 #endif /* SYSTM_H */

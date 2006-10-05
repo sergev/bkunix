@@ -28,6 +28,43 @@ struct klregs {
 	int klrbuf;
 };
 
+static char outbuf[64];
+static char nch;
+
+static void bksend() {
+	asm("mov $_outbuf, r1");
+	asm("movb _nch, r2");
+	asm("mov r5, -(sp)");
+	asm("jsr pc, *$0107050");
+	asm("mov (sp)+, r5");
+}
+
+static void putbuf(c) 
+int c;
+{
+	register int sps;
+	sps = spl7();
+	if (c)
+		outbuf[nch++] = c;
+	else if (nch)
+		goto doit;
+	else
+		return;
+	if (nch == 64)
+		goto many;
+	if (c == '\n') {
+	doit:
+		if (nch == 1)
+			ttputc(outbuf[0]);
+		else {
+		many:
+			bksend();
+		}
+		nch = 0;
+	}
+	rstps(sps);
+}
+
 /*
  * flush all TTY queues
  */
@@ -39,7 +76,8 @@ flushtty()
 
 	tp = kl11;
 	while (getc(&tp->t_canq) >= 0);
-	while (getc(&tp->t_outq) >= 0);
+	/* while (getc(&tp->t_outq) >= 0); */
+	nch = 0;
 	wakeup(&tp->t_rawq);
 	sps = spl7();
 	while (getc(&tp->t_rawq) >= 0);
@@ -57,13 +95,12 @@ wflushtty()
 
 	tp = kl11;
 	spl7();
-	while (tp->t_outq.c_cc) {
-		ttstart();
-	}
+	/* while (tp->t_outq.c_cc) { ttstart(); } */
+	putbuf(0);
 	flushtty();
 	spl0();
 }
-
+#if 0
 /*
  * Start output on the typewriter. It is used from the top half
  * after some characters have been put on the output queue,
@@ -85,6 +122,7 @@ ttstart()
 		ttputc(c);
 	}
 }
+#endif
 
 /*
  * put character on TTY output queue, adding delays,
@@ -103,6 +141,7 @@ ttyoutput(ac)
 
 	rtp = kl11;
 	c = ac&0177;
+	if (!c) return;
 	/*
 	 * Turn tabs to spaces as required
 	 */
@@ -119,9 +158,8 @@ ttyoutput(ac)
 	if(rtp->t_flags & CRMOD)
 		if (c=='\n')
 			ttyoutput('\r');
-	if (putc(c, &rtp->t_outq))
-		return;
-
+	/* if (putc(c, &rtp->t_outq)) return; */
+	putbuf(c);
 	colp = &rtp->t_col;
 	switch (c) {
 
@@ -186,7 +224,8 @@ ttyinput(ac)
 	}
 	if(flags & ECHO) {
 		ttyoutput(c == CKILL ? '\n' : c);
-		ttstart();
+		/* ttstart(); */
+		putbuf(0);
 	}
 }
 
@@ -331,7 +370,12 @@ ttread()
 {
 	register struct tty *tp;
 
-	if (cursoff) { ttputc(0232); cursoff=0; }
+	if (cursoff) {
+		/* ttputc(0232); */
+		putbuf(0232);
+		cursoff=0;
+	}
+	putbuf(0);
 	tp = kl11;
 	if (tp->t_canq.c_cc || canon(tp))
 		while (tp->t_canq.c_cc && passc(getc(&tp->t_canq))>=0);
@@ -347,11 +391,15 @@ ttwrite()
 	register struct tty *tp;
 	register int c;
 
-	if (!cursoff) { ttputc(0232); cursoff++; }
+	if (!cursoff) {
+		/* ttputc(0232); */
+		putbuf(0232);
+		cursoff++;
+	}
 	tp = kl11;
 	while ((c=cpass())>=0) {
 		ttyoutput(c);
-		ttstart();
+		/* ttstart(); */
 	}
-	ttstart();
+	/* ttstart(); */
 }
