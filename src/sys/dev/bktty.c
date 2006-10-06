@@ -265,7 +265,11 @@ struct cblock {
 	char info[6];
 };
 
-/* The character lists-- space for 6*NCLIST characters */
+/*
+ *  The character lists-- space for 6*NCLIST characters if lucky,
+ * or 6 less otherwise: getc/putc needs the structs to be 8-aligned;
+ * cinit() takes care of that.
+ */
 struct cblock cfree[NCLIST];
 
 /* List head for unused character blocks. */
@@ -279,8 +283,9 @@ void
 cinit()
 {
 	register struct cblock *cp;
-
-	for (cp=cfree; cp <= &cfree[NCLIST-1]; cp++) {
+	cp = cfree;
+	cp = (struct cblock*) (((int)cp+7)&~7);
+	for (; cp <= &cfree[NCLIST-1]; cp++) {
 		cp->c_next = cfreelist;
 		cfreelist = cp;
 	}

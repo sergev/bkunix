@@ -36,7 +36,6 @@ rdwr(mode)
 	    bad_user_address(top) ||
 	    (unsigned) top < (unsigned) u.u_base) {
 		u.u_error = EFAULT;
-		asm("0");
 		return;
 	}
 	u.u_offset[1] = fp->f_offset[1];
