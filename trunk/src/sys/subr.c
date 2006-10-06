@@ -119,8 +119,6 @@ int
 passc(c)
 	int c;
 {
-	if (bad_user_address (u.u_base))
-		return -1;
 	*u.u_base++ = c;
 	u.u_count--;
 	if(++u.u_offset[1] == 0)
@@ -142,8 +140,6 @@ cpass()
 
 	if(u.u_count == 0)
 		return(-1);
-	if (bad_user_address (u.u_base))
-		return -1;
 	c = *u.u_base++;
 	u.u_count--;
 	if(++u.u_offset[1] == 0)
