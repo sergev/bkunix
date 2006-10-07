@@ -143,6 +143,8 @@ start:
 	add	$020,r0
 2:
 	mov	(r0)+,(r3)+
+	cmp	r3, $ TOPSYS
+	beq	1f
 	cmp	r0,$buf+512
 	blo	2b
 	jsr	pc,getblk
