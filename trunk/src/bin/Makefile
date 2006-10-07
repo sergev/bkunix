@@ -1,11 +1,11 @@
 # Base address of user programs.
-TOPSYS		= 040000
+BOTUSR		= 040000
 
 AS		= pdp11-as
 LD		= pdp11-ld
 SIZE		= pdp11-size
 CFLAGS		= -O -I../libc
-LDFLAGS		= -a$(TOPSYS)
+LDFLAGS		= -a$(BOTUSR)
 
 # GNU compiler.
 #CC		= pdp11-gcc -Wall -fomit-frame-pointer -fno-builtin
@@ -28,7 +28,7 @@ clean:
 
 %: %.o
 		$(CC) $(LDFLAGS) -o $@ $^
-		pdp11-disasm -a$(TOPSYS) $@ > $@.dis
+		pdp11-disasm -a$(BOTUSR) $@ > $@.dis
 
 .c.s:
 		$(CC) $(CFLAGS) -S $<

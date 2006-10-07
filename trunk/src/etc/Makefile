@@ -1,5 +1,5 @@
 # Base address of user programs.
-TOPSYS		= 040000
+BOTUSR		= 040000
 
 # GNU compiler.
 #CC		= pdp11-gcc -Wall
@@ -16,7 +16,7 @@ AS		= pdp11-as
 LD		= pdp11-ld
 SIZE		= pdp11-size -o
 CFLAGS		= -O -I../libc
-LDFLAGS		= -a$(TOPSYS)
+LDFLAGS		= -a$(BOTUSR)
 
 PROGS		= init glob mknod mkfs
 # TODO: fsck
@@ -28,11 +28,11 @@ clean:
 
 %: %.o
 		$(CC) $(LDFLAGS) -o $@ $^
-		pdp11-disasm -a$(TOPSYS) $@ > $@.dis
+		pdp11-disasm -a$(BOTUSR) $@ > $@.dis
 
 mkfs:		mkfs.o ../libfs/libfs.a
 		$(CC) $(LDFLAGS) -v -o $@ $^ ../libfs/libfs.a
-		pdp11-disasm -a$(TOPSYS) $@ > $@.dis
+		pdp11-disasm -a$(BOTUSR) $@ > $@.dis
 
 ../libfs/libfs.a:
 		$(MAKE) -C ../libfs

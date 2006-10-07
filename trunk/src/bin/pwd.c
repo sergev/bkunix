@@ -30,6 +30,25 @@ cat(name)
 		path[i] = name[i];
 }
 
+char * ckroot(dev, ino)
+int dev, ino;
+{
+	DIR * dir;
+	struct stat st;
+	register struct dirent * d;
+	chdir("/");
+	dir = opendir("/");
+	do {
+		d = readdir(dir);
+		if (! d) {
+			return "[mount point]";
+		}
+		stat(d->d_name, &st);
+	} while (st.st_dev != dev || st.st_ino != ino);
+	closedir(dir);
+	return d->d_name;
+}
+
 int
 main()
 {
@@ -56,8 +75,10 @@ main()
 /*printf (".. dev=%d ino=%d\n", (int) dotdot.st_dev, (int) dotdot.st_ino);*/
 		chdir("..");
 		if (dot.st_dev == dotdot.st_dev) {
-			if (dot.st_ino == dotdot.st_ino)
+			if (dot.st_ino == dotdot.st_ino) {
+				cat(ckroot(dot.st_dev, dot.st_ino));
 				break;
+			}
 			do {
 				d = readdir(dir);
 				if (! d) {
