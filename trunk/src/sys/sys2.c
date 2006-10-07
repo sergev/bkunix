@@ -18,29 +18,33 @@ rdwr(mode)
 	int mode;
 {
 	register struct file *fp;
-	register int m;
-	register char *top;
+	register unsigned base;
+	register unsigned cnt_top;
 
-	m = mode;
 	fp = getf(u.u_ar0[R0]);
 	if(fp == NULL)
 		return;
-	if((fp->f_flag&m) == 0) {
+	if((fp->f_flag&mode) == 0) {
 		u.u_error = EBADF;
 		return;
 	}
-	u.u_base = (char*) u.u_arg[0];
-	u.u_count = u.u_arg[1];
-	top = u.u_base + u.u_count - 1;
-	if (bad_user_address(u.u_base) ||
-	    bad_user_address(top) ||
-	    (unsigned) top < (unsigned) u.u_base) {
+	base = u.u_arg[0];
+	if (bad_user_address(base))
+		return;
+	cnt_top = u.u_arg[1];
+	if (cnt_top == 0)
+		return;
+	u.u_base = (char*) base;
+	u.u_count = cnt_top;
+	cnt_top += base - 1;
+	if (bad_user_address(cnt_top) ||
+	    cnt_top < base) {
 		u.u_error = EFAULT;
 		return;
 	}
 	u.u_offset[1] = fp->f_offset[1];
 	u.u_offset[0] = fp->f_offset[0];
-	if(m==FREAD)
+	if(mode==FREAD)
 		readi(fp->f_inode);
 	else
 		writei(fp->f_inode);

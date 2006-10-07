@@ -2,6 +2,7 @@
 
 rootdir = 1
 BOTSYS = 0120000
+TOPSYS = 0160000
 reset = 5
 large = 010000
 putc = 0102234
@@ -114,6 +115,8 @@ start:
 	add	$020,r0
 2:
 	mov	(r0)+,(r3)+
+	cmp	r3, $ TOPSYS	/ do not overfill
+	beq	1f
 	cmp	r0,$buf+512
 	blo	2b
 	jsr	pc,getblk

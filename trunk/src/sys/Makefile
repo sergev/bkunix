@@ -85,7 +85,6 @@ hsx:
 		$(SIZE) $@
 		pdp11-nm $@ > $@.map
 		pdp11-disasm -a$(HIBASE) $@ > $@.dis
-		pdp11-strip $@
 
 bsx:
 		$(MAKE) WHERE=HIGH SYS=BK $(BKOBJS)
@@ -93,7 +92,6 @@ bsx:
 		$(SIZE) $@
 		pdp11-nm $@ > $@.map
 		pdp11-disasm -a$(HIBASE) $@ > $@.dis
-		pdp11-strip $@
 
 boot1:		rxboot.o
 		mv $< $@
