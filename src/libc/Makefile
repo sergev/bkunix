@@ -25,7 +25,7 @@ SRCS		= crt0.S nullsys.S nosys.S \
 		  strncat.c strncmp.c strncpy.c strrchr.c \
 		  memccpy.c memchr.c memcmp.c memcpy.c memset.c qsort.c \
 		  opendir.c closedir.c readdir.c isatty.c mkstemp.c \
-		  readmtab.c
+		  readmtab.c mount.S umount.S
 
 OBJS		= nullsys.o nosys.o cerror.o exit.o fork.o read.o write.o \
 		  open.o creat.o close.o wait.o link.o unlink.o \
@@ -37,7 +37,7 @@ OBJS		= nullsys.o nosys.o cerror.o exit.o fork.o read.o write.o \
 		  strncat.o strncmp.o strncpy.o strrchr.o \
 		  memccpy.o memchr.o memcmp.o memcpy.o memset.o qsort.o \
 		  opendir.o closedir.o readdir.o isatty.o mkstemp.o \
-		  readmtab.o
+		  readmtab.o mount.o umount.o
 
 all:		crt0.o libc.a
 
