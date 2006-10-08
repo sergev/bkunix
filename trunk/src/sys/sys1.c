@@ -109,6 +109,10 @@ exec()
 	 * exceed of max sizes
 	 */
 	ds = u.u_arg[2]+u.u_arg[3];
+	c = nc + na*2 + 4;
+#ifdef LOWSTACK
+	ds += c;
+#endif
 	if(ds + SSIZE > UCORE)
 		goto bad;
 
@@ -133,10 +137,15 @@ exec()
 	u.u_dsize = ds;
 	u.u_ssize = SSIZE;
 	cp = bp->b_addr;
-	u.u_ar0[R6] = TOPUSR - nc - na*2 - 4;
+#ifdef LOWSTACK
+	u.u_ar0[R6] = BOTUSR + ds - c;
+	up = (char*) (ds - nc);
+#else
+	u.u_ar0[R6] = TOPUSR - c;
+	up = (char*) (TOPUSR - nc);
+#endif
 	sp = (int*) u.u_ar0[R6];
 	*sp++ = na;
-	up = (char*) (TOPUSR - nc);
 	while(na--) {
 		*sp++ = (int) up;
 		do {
@@ -311,8 +320,10 @@ sbreak()
 	 * set n to new total size
 	 */
 	n = ((u.u_arg[0]+1)&~1)-BOTUSR;
+#ifndef LOWSTACK
 	d = n - u.u_dsize;
 	n += USIZE+u.u_ssize;
+#endif
 	if(n > UCORE) {
 		u.u_error = E2BIG;
 		return;

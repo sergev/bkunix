@@ -32,7 +32,7 @@ root.dsk:	$(SYS) $(ETC) $(BIN)
 bkbuild:	$(BKSYS) $(ETC) $(BIN)
 
 bkroot.dsk:	clean
-		$(MAKE) BOTUSR=02000 bkbuild
+		$(MAKE) BOTUSR=02000 LOWSTACK=1 bkbuild
 		pdp11-strip $(ETC) $(BIN)
 		$(FSUTIL) -F -n -s819200 -bsys/bkboot $@
 		cp sys/bsx .

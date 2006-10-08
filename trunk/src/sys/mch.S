@@ -18,6 +18,16 @@ _u	= BOTUSR - usize
 	.globl	trap
 trap:
 	mfps	-4(sp)
+#ifdef BK
+	bit	$4,*$0177716
+	beq	1f
+	.globl	_stop
+	inc	_stop
+	tst	(sp)
+	bpl	1f
+	rti
+1:
+#endif
 	jsr	r0,call1
 	.word _trap
 	/ no return
@@ -192,6 +202,15 @@ _idle:
 	mtps	(sp)+
 	wait
 	mtps	(sp)+
+#ifdef BK
+	tst	_stop
+	beq	1f
+	mov	$2,-(sp)
+	.globl	_signal
+	jsr	pc,_signal
+	clr	_stop
+	tst	(sp)+
+#endif
 	rts	pc
 
 /-----------------------

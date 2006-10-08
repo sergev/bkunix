@@ -38,6 +38,9 @@ trap1(f)
 	u.u_intflg = 0;
 }
 
+#ifdef BK
+char stop;
+#endif
 /*
  * Called from l40.s or l45.s when a processor trap occurs.
  * The arguments are the words saved on the system stack
@@ -71,7 +74,12 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 		panic("unknown trap");
 
 	case 0+USER: /* bus error */
+#ifdef BK
+		i = stop ? SIGINT : SIGBUS;
+		stop = 0;
+#else
 		i = SIGBUS;
+#endif
 		break;
 
 	/*
@@ -143,6 +151,13 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 out:
 	if(issig())
 		psig();
+#ifdef BK
+	else if (stop) {
+		stop = 0;
+		psignal(u.u_procp, SIGINT);
+		psig();
+	}
+#endif
 }
 
 /*

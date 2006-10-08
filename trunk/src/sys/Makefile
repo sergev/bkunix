@@ -58,6 +58,11 @@ vpath %.S . boot
 # -DTVT  - TV terminal
 #
 CPPFLAGS	= -I. -DKERNEL -DKL -D$(WHERE) -D$(SYS)
+
+ifdef LOWSTACK
+CPPFLAGS	+= -DLOWSTACK=1
+endif
+
 CSRCS		+= dev/kl.c dev/decfd.c
 DEVOBJS		= kl.o decfd.o
 BKDEVOBJS	= bktty.o bkfd.o

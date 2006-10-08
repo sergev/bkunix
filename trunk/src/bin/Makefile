@@ -6,6 +6,9 @@ LD		= pdp11-ld
 SIZE		= pdp11-size
 CFLAGS		= -O -I../libc
 LDFLAGS		= -a$(BOTUSR)
+ifdef LOWSTACK
+LDFLAGS		+= -t1024
+endif
 
 # GNU compiler.
 #CC		= pdp11-gcc -Wall -fomit-frame-pointer -fno-builtin

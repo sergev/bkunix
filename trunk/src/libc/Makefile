@@ -13,6 +13,9 @@ AR		= pdp11-ar
 CPP		= cpp
 CFLAGS		= -O
 CPPFLAGS	= -I.
+ifdef LOWSTACK
+CPPFLAGS	+= -DLOWSTACK=1
+endif
 
 SRCS		= crt0.S nullsys.S nosys.S \
 		  cerror.S exit.S fork.S read.S write.S \

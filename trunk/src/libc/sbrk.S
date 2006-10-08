@@ -46,4 +46,8 @@ _brk:
 9:	sys	SYS_break
 2:	.word	0
 
+#ifdef LOWSTACK
+	.globl	nd
+#else
 nd:	.word	_end
+#endif

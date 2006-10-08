@@ -241,28 +241,28 @@ swap(rdflg,tab)
 	return(swbuf.b_flags&B_ERROR);
 }
 #endif
-
+#undef SQUEEZE 
 #ifndef BGOPTION
 int
 swap(rdflg)
 	int rdflg;
 {
 	register struct proc *p;
-	register unsigned p1;
-	register int *p2;
+	register int * p1;
+	register int * p2;
 
 	p = &proc[cpid];
 	if(rdflg == B_WRITE) {
 #ifdef SQUEEZE
 		/* untested after conversion to byte sizes*/
-		p1 = *(int*) USTACK;
-		p2 = (int*) (BOTUSR + u.u_dsize + (p1 & 077));
-		if(p2 <= (int*) p1) {
-			p->p_size = u.u_dsize + USIZE +
-			    (TOPUSR & 01777) - (p1 & 01777);
-			while(p1 < TOPUSR) {
-				*p2++ = *((int*)p1);
-				p1 += 2;
+		p1 = *(int**) USTACK;
+		p2 = (int*)(BOTUSR + u.u_dsize);
+		if(p1 - p2 >= 256) {
+			/* there is at least a block of empty space */
+			p->p_size = (int*)(u.u_dsize + USIZE +
+			    TOPUSR) - p1; /* p_size is words */
+			while(p1 != (int*)TOPUSR) {
+				*p2++ = *p1++;
 			}
 		} else
 #endif
@@ -281,12 +281,11 @@ swap(rdflg)
 #ifdef SQUEEZE
 	/* untested */
 	if(rdflg == B_READ) {
-		p1 = TOPUSR;
-		p2 = (int*) (p->p_size + BOTUSR - USIZE);
-		if( p2 <= (int*) p1)
-			while(p1 >= *(int*)USTACK) {
-				p1 -= 2;
-				*((int*)p1) = *--p2;
+		p1 = (int*)TOPUSR;
+		p2 = (int*)(BOTUSR - USIZE) + p->p_size;
+		if( p1 - p2 >= 256)
+			while(p1 >= *(int**)USTACK) {
+				*--p1 = *--p2;
 			}
 	}
 #endif
