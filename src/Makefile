@@ -6,14 +6,14 @@ SYS		= sys/lsx sys/boot1 sys/boot2lo
 BKSYS		= sys/bsx sys/bkboot
 
 DEV		= dev/tty8!c0:0 dev/fd0!b0:0 dev/fd1!b0:1 dev/fd2!b0:2
-DSK		= root.dsk usr.dsk bkroot.dsk #tmp.dsk
+DSK		= root.dsk usr.dsk #bkroot.dsk #tmp.dsk
 FSUTIL		= ../fsutil/lsx-util
 
 all:		$(DSK)
 		$(FSUTIL) -v root.dsk
 
 clean:
-		rm -f *~ $(DSK) lsx
+		rm -f *~ $(DSK) lsx bsx lsx.ini
 		$(MAKE) -C bin clean
 		$(MAKE) -C etc clean
 		$(MAKE) -C sys clean
@@ -62,3 +62,18 @@ $(BIN):
 
 $(ETC):
 		$(MAKE) -C etc
+
+run:		lsx.ini root.dsk
+		$(FSUTIL) -v root.dsk
+		pdp11 lsx.ini
+
+lsx.ini:
+		echo set log log > $@
+		echo set cpu 48k >> $@
+		echo attach rx0 root.dsk >> $@
+		echo attach rx1 usr.dsk >> $@
+		echo attach rx2 tmp.dsk >> $@
+		echo set cpu history=2000 >> $@
+		echo echo ===== Running boot: type '"lsx"' ===== >> $@
+		echo boot rx0 >> $@
+		echo echo When stopped, type: show cpu history >> $@

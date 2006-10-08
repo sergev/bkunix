@@ -13,7 +13,7 @@ fs_read (fs, data, bytes)
 		len = bytes;
 		if (len > 512)
 			len = 512;
-printf ("**read %d bytes at offset %ld\n", len, fs->seek);
+/*printf ("**read %d bytes at offset %ld\n", len, fs->seek);*/
 		if (read (fs->fd, (char*) data, len) != len)
 			return 0;
 		fs->seek += len;

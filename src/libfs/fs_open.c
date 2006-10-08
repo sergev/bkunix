@@ -20,7 +20,7 @@ fs_open (fs, filename, writable)
 	if (! fs_seek (fs, 512L))
 		return 0;
 
-printf ("**superblock read\n");
+/*printf ("**superblock read\n");*/
 	if (read (fs->fd, (char*) fs, FS_SUPERB_SIZE) != FS_SUPERB_SIZE)
 		return 0;
 
