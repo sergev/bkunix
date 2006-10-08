@@ -66,10 +66,10 @@ HIOBJS		= high.o mch.o $(COBJS) $(DEVOBJS)
 BKOBJS		= high.o mch.o $(COBJS) $(BKDEVOBJS)
 HIBASE		= 0120000
 
-all:		bsx boot1 boot2lo boot2hi #lsx1
+all:		lsx boot1 boot2lo boot2hi #lsx1
 		@echo "Warning: For 10K LSX system, size must be less than 046000"
 		@echo "         for 8k lsx system size must be less than 036500"
-		$(SIZE) bsx #lsx1
+		$(SIZE) lsx #lsx1
 
 clean:
 		rm -f *~ dev/*~ *.o *.s lsx lsx1 hsx bsx boot1 boot2lo boot2hi debug a.out lsx.dis debug.dis hsx.dis

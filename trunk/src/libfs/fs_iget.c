@@ -24,7 +24,7 @@ fs_iget (fs, inode, inum)
 	if (! fs_seek (fs, offset))
 		return 0;
 
-printf ("**inode %d read\n", inode->number);
+/*printf ("**inode %d read\n", inode->number);*/
 	if (read (fs->fd, (char*) inode, FS_INODE_SIZE) != FS_INODE_SIZE)
 		return 0;
 

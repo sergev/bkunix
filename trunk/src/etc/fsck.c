@@ -54,10 +54,9 @@ char		pathname [256];		/* file path name for pass2 */
 char		*pathp;			/* pointer to pathname position */
 char		*thisname;		/* ptr to current pathname component */
 
-char		*lost_found_name = "lost+found";
 unsigned short	lost_found_inode;	/* lost & found directory */
 
-int		free_list_corrupted;	/* corrupted free list */
+int		corrupted_free_list;	/* is free list corrupted? */
 int		bad_blocks;		/* num of bad blks seen (per inode) */
 int		dup_blocks;		/* num of dup blks seen (per inode) */
 
@@ -373,13 +372,14 @@ scan_directory (inode, blk, arg)
 			scan_filesize -= (&buf_data[FS_BSIZE] - dirp);
 			return SKIP;
 		}
+		memcpy (&direntry, dirp, sizeof(direntry));
 
 		/* For every directory entry, call handler. */
 		n = (*func) (inode->fs, &direntry);
 
 		if (n & ALTERD) {
 			if (buf_get (inode->fs, blk)) {
-				*(struct dirent*) dirp = direntry;
+				memcpy (dirp, &direntry, sizeof(direntry));
 				buf_dirty = 1;
 			} else
 				n &= ~ALTERD;
@@ -580,7 +580,7 @@ find_lost_found (fs)
 	/* Find lost_found directory inode number. */
 	if (! fs_iget (fs, &root, FS_ROOT_INODE))
 		return 0;
-	fi_name = lost_found_name;
+	fi_name = "lost+found";
 	fi_result = 0;
 	scan_inode (&root, DATA, scan_directory, find_inode);
 	return fi_result;
@@ -721,7 +721,7 @@ adjust_link_count (fs, inum, lcnt)
 		if (! move_to_lost_found (&inode))
 			clear_inode (fs, inum, 0);
 	} else {
-		printf ("LINK COUNT %s", (lost_found_inode==inum) ? lost_found_name :
+		printf ("LINK COUNT %s", (lost_found_inode==inum) ? "lost+found" :
 			S_ISDIR(inode.mode) ? "DIR" : "FILE");
 		pr_inode (&inode);
 		printf ("COUNT %d SHOULD BE %d\n",
@@ -744,7 +744,7 @@ pass5 (fs, blk, free_blocks)
 	unsigned short *free_blocks;
 {
 	if (outrange (fs, blk)) {
-		free_list_corrupted = 1;
+		corrupted_free_list = 1;
 		if (++bad_blocks >= MAXBAD) {
 			printf ("EXCESSIVE BAD BLKS IN FREE LIST.\n");
 			return STOP;
@@ -752,7 +752,7 @@ pass5 (fs, blk, free_blocks)
 		return SKIP;
 	}
 	if (in_free_list (blk)) {
-		free_list_corrupted = 1;
+		corrupted_free_list = 1;
 		if (++dup_blocks >= DUP_LIST_SIZE) {
 			printf ("EXCESSIVE DUP BLKS IN FREE LIST.\n");
 			return STOP;
@@ -766,7 +766,7 @@ pass5 (fs, blk, free_blocks)
 
 /*
  * Scan a free block list and return a number of free blocks.
- * If the list is corrupted, set 'free_list_corrupted' flag.
+ * If the list is corrupted, set 'corrupted_free_list' flag.
  */
 unsigned int
 chk_free_list (fs)
@@ -786,7 +786,7 @@ chk_free_list (fs)
 	for (;;) {
 		if (nfree <= 0 || nfree > 100) {
 			printf ("BAD FREEBLK COUNT\n");
-			free_list_corrupted = 1;
+			corrupted_free_list = 1;
 			break;
 		}
 		ap = base + nfree;
@@ -884,7 +884,7 @@ fsck (fs)
 			fs->fsize, fs->isize);
 		return 0;
 	}
-	free_list_corrupted = 0;
+	corrupted_free_list = 0;
 	total_files = 0;
 	used_blocks = 0;
 	dup_multi = dup_end = &dup_list[0];
@@ -1045,7 +1045,7 @@ fatal:		if (block_map)
 	free_map = calloc (block_map_size, sizeof (*free_map));
 	if (! free_map) {
 		printf ("NO MEMORY TO CHECK FREE LIST\n");
-		free_list_corrupted = 1;
+		corrupted_free_list = 1;
 		free_blocks = 0;
 	} else {
 		memcpy (free_map, block_map, block_map_size);
@@ -1056,20 +1056,20 @@ fatal:		if (block_map)
 		printf ("%d BAD BLKS IN FREE LIST\n", bad_blocks);
 	if (dup_blocks)
 		printf ("%d DUP BLKS IN FREE LIST\n", dup_blocks);
-	if (free_list_corrupted == 0) {
+	if (corrupted_free_list == 0) {
 		if (used_blocks + free_blocks != fs->fsize - fs->isize - 2) {
 			printf ("%d BLK(S) MISSING\n", fs->fsize -
 				fs->isize - 2 - used_blocks - free_blocks);
-			free_list_corrupted = 1;
+			corrupted_free_list = 1;
 		}
 	}
-	if (free_list_corrupted) {
+	if (corrupted_free_list) {
 		printf ("BAD FREE LIST\n");
 		if (! fs->writable)
-			free_list_corrupted = 0;
+			corrupted_free_list = 0;
 	}
 
-	if (free_list_corrupted) {
+	if (corrupted_free_list) {
 		printf ("** Phase 6 - Salvage Free List\n");
 		free_blocks = make_free_list (fs);
 	}

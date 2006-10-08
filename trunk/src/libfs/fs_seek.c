@@ -8,7 +8,7 @@ fs_seek (fs, offset)
 {
 	int r;
 
-printf ("seek %ld, block %ld\n", offset, offset >> 9);
+/*printf ("  seek %ld, block %ld\n", offset, offset >> 9);*/
 #ifdef __pdp11__
 	r = offset >> 9;
 	r = seek (fs->fd, r, 3);
