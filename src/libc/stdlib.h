@@ -6,3 +6,4 @@ int atoi PARAMS((char*));
 char *malloc PARAMS((unsigned));
 void free PARAMS((char*));
 char *realloc PARAMS((char*, unsigned));
+char *calloc PARAMS((unsigned, unsigned));

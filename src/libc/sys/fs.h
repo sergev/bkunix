@@ -53,6 +53,7 @@ int fs_write PARAMS((struct filesys*, unsigned char*, int));
 
 int fs_iget PARAMS((struct filesys*, struct inode*, unsigned short));
 int fs_isave PARAMS((struct inode*, int));
+void fs_iclear PARAMS((struct inode*));
 
 int fs_bwrite PARAMS((struct filesys*, unsigned short, unsigned char*));
 int fs_bread PARAMS((struct filesys*, unsigned short, unsigned char*));
@@ -64,7 +65,6 @@ int fs_dibfree PARAMS((struct filesys*, unsigned int));
 #if 0
 int fs_check PARAMS((struct filesys*);
 
-void fs_inode_clear PARAMS((struct inode *inode);
 void fs_inode_truncate PARAMS((struct inode *inode);
 void fs_inode_print PARAMS((struct inode *inode, FILE *out);
 int fs_inode_read PARAMS((struct inode *inode, unsigned long offset,
