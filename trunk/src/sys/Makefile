@@ -77,7 +77,8 @@ all:		lsx boot1 boot2lo boot2hi #lsx1
 		$(SIZE) lsx #lsx1
 
 clean:
-		rm -f *~ dev/*~ *.o *.s lsx lsx1 hsx bsx boot1 boot2lo boot2hi debug a.out lsx.dis debug.dis hsx.dis
+		rm -f *~ dev/*~ *.o *.s a.out lsx lsx1 hsx bsx
+		rm -f boot1 boot2lo boot2hi bkboot lsx.dis hsx.dis
 
 lsx:
 		$(MAKE) WHERE=LOW SYS=DEC $(OBJS)
@@ -132,12 +133,6 @@ lsx1:		$(ASOBJS) $(CSRCS)
 		$(CC) $(CFLAGS) $(CPPFLAGS) -c kernel.c
 		$(LD) $(LDFLAGS) -o $@ $(ASOBJS) kernel.o $(LIBS)
 		@rm -f kernel.c
-
-debug:		debug.c
-		$(CC) -DSTANDALONE -DDEBUG -S $<
-		$(CC) -DSTANDALONE -DDEBUG -c -o $@-sa.o $<
-		$(LD) $(LDFLAGS) -o $@ $@-sa.o $(LIBS)
-		pdp11-objdump -D $@ > $@.dis
 
 count:		$(ASRCS) $(CSRCS)
 		wc $(ASRCS) $(CSRCS)

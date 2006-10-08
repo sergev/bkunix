@@ -1,4 +1,3 @@
-#
 /*
  * C object code improver-- second part
  */

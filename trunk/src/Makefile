@@ -6,7 +6,8 @@ SYS		= sys/lsx sys/boot1 sys/boot2lo
 BKSYS		= sys/bsx sys/bkboot
 
 DEV		= dev/tty8!c0:0 dev/fd0!b0:0 dev/fd1!b0:1 dev/fd2!b0:2
-DSK		= root.dsk usr.dsk #bkroot.dsk #tmp.dsk
+DSK		= root.dsk usr.dsk
+#DSK		= bkroot.dsk usr.dsk
 FSUTIL		= ../fsutil/lsx-util
 
 all:		$(DSK)
@@ -47,10 +48,6 @@ usr.dsk:
 		$(FSUTIL) -n -s256000 $@
 		$(FSUTIL) -c $@
 
-tmp.dsk:
-		$(FSUTIL) -n -s256000 $@
-		$(FSUTIL) -c $@
-
 $(SYS):
 		$(MAKE) -C sys
 
@@ -72,7 +69,6 @@ lsx.ini:
 		echo set cpu 48k >> $@
 		echo attach rx0 root.dsk >> $@
 		echo attach rx1 usr.dsk >> $@
-		echo attach rx2 tmp.dsk >> $@
 		echo set cpu history=2000 >> $@
 		echo echo ===== Running boot: type '"lsx"' ===== >> $@
 		echo boot rx0 >> $@
