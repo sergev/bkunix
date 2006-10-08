@@ -1,0 +1,54 @@
+
+		BKUNIX - what could have been...
+
+Starting from the mid-1980s in the USSR a home microcomputer BK-0010 
+was produced that used the instruction set of DEC LSI-11.
+Its first version, released in 1985, had 32 Kb of RAM, out of which
+up to 16 Kb had to be reserved for the video memory.
+A tape recorder was the external storage device. A great variety of games,
+educational and text processing software, as well as a few programming
+systems have been written for it.
+
+Later, a floppy controller with an extra 16 Kb of RAM became available,
+and a flurry of "operating systems" (pseudographic file managers a la
+Norton Commander), some of them supporting the MS-DOS and the RT-11 file
+systems, achieved popularity. 
+
+When an improved version (BK-0011M, featuring 128 Kb of RAM, switchable
+video buffers, a timer, and a VT-100 compatible terminal emulator)
+got released, RT-11 (SJ - single job) had been ported to it,
+and it was the only "real" operating system available on the BK
+family of computers.
+
+			*	*	*
+
+After learning about the existence of Mini-Unix and LSX - the minimalistic
+Unix kernels derived from Unix V6, and reviving the latter from an incomplete
+floppy image dump, I realized that it could have been possible to run a real
+Unix on BK-0010! Indeed, LSX in its minimal configuration required only 40 Kb
+of RAM, and a BK with a floppy controller could provide up to 44 Kb.
+
+As all the LSX and Mini-Unix sources were written in an ancient dialect of the
+C language (no unsigned, void, long; weird - by today's standards - syntax
+of assignment operators and initializations), the first step was to patch
+the source to conform to the newer style of C. An initial attempt to use
+GCC for cross-development failed: it produced a buggy and size-inefficient
+code. We have settled on using the Ritchie C compiler from a BSD distribution
+and the Johnson Portable C compiler (PCC). In the process, quite a few bugs
+in PCC got fixed.
+
+Due to a peculiarity of the BK-0010 memory mapping we had to bring the
+kernel up into the 120000-160000 range of addresses. This, and the fact that
+the better compilers caused a noticeable reduction in code size, allowed us
+to squeeze back the mount/umount system calls.
+
+Before we proceed with the development of a purely BK-specific kernel,
+we would like to release the code in a state when it still can work on
+an LSI-11 (e.g. in the SIMH simulator). 
+
+Leonid Broukhis, Serge Vakulenko
+
+The source files of the V6 Unix operating system
+have been released under the BSD license
+by Caldera International,Inc.: http://www.tuhs.org/Archive/Caldera-license.pdf
+
