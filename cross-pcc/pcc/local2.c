@@ -906,7 +906,8 @@ optim2( p ) register NODE *p; {
 
 	case AND:
 		/* commute L and R to eliminate compliments and constants */
-		if( p->in.left->in.op==ICON || p->in.left->in.op==COMPL ) {
+		if( ( p->in.left->in.op==ICON && p->in.left->in.name[0]=='\0' ) ||
+		    p->in.left->in.op==COMPL ) {
 			r = p->in.left;
 			p->in.left = p->in.right;
 			p->in.right = r;
