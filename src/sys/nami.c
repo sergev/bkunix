@@ -90,6 +90,17 @@ cloop:
 		c = uchar();
 	if(u.u_error)
 		goto out;
+	/*
+	 * Special handling for ".." allowing chdir out of mounted
+	 * file system. We know NMOUNT == 2.
+	 */
+	if (u.u_dbuf[0]=='.' && u.u_dbuf[1]=='.' && u.u_dbuf[2]=='\0' &&
+	    dp->i_number == ROOTINO && dp->i_dev == mount[1].m_dev &&
+	    mount[1].m_inodp != 0) {
+		iput(dp);
+		dp = mount[1].m_inodp;
+		dp->i_count++;
+	}
 
 	/*
 	 * Set up to search a directory.
