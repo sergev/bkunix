@@ -1,5 +1,5 @@
 /*
- * cc - front end for Rithie's C compiler
+ * cc - front end for Ritchie's C compiler
  */
 #include <sys/param.h>
 #include <stdlib.h>
