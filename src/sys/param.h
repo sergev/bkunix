@@ -48,7 +48,11 @@
 #define NINODE	20		/* number of in core inodes */
 #define NFILE	20		/* number of in core file structures */
 #define NMOUNT	2		/* number of mountable file systems */
+#ifndef LOWSTACK
 #define SSIZE	1280		/* initial stack size (in bytes) */
+#else
+#define SSIZE	0		/* stack included in .bss */
+#endif
 #define NOFILE	15		/* max open files per process */
 #define CANBSIZ	132		/* max size of typewriter line */
 #define NCLIST	25		/* max total clist size */

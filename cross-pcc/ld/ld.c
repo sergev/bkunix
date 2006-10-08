@@ -42,6 +42,7 @@ struct nlocal {
 struct	nlocal	local[NSYM/2];
 
 unsigned aflag;		/* address to relocate, default absolute 0 */
+unsigned tflag;		/* stack size to add to .bss, default 0 */
 int	xflag;		/* discard local symbols */
 int	Xflag;		/* discard locals starting with 'L' */
 int	rflag;		/* preserve relocation bits, don't define common */
@@ -699,7 +700,7 @@ setupout()
 		filhdr.a_magic = A_FMAGIC;
 	filhdr.a_text = tsize;
 	filhdr.a_data = dsize;
-	filhdr.a_bss = bsize;
+	filhdr.a_bss = bsize + tflag;
 	filhdr.a_syms = sflag ? 0 : (ssize + (sizeof cursym)*(symp-symtab));
 	filhdr.a_entry = 0;
 	filhdr.a_unused = 0;
@@ -953,6 +954,16 @@ main(argc, argv)
 				option = *p++;
 			}
 			aflag = strtol (option, 0, 0);
+			continue;
+		case 't':
+			if (ap[2]) {		/* option -tN */
+				option = ap+2;
+			} else {		/* option -t N (with space) */
+				if (++c >= argc)
+					error(1, "Bad -t");
+				option = *p++;
+			}
+			tflag = strtol (option, 0, 0);
 			continue;
 		case 'o':
 			if (ap[2]) {		/* option -oN */

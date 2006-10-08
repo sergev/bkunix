@@ -17,6 +17,9 @@ LD		= pdp11-ld
 SIZE		= pdp11-size -o
 CFLAGS		= -O -I../libc
 LDFLAGS		= -a$(BOTUSR)
+ifdef LOWSTACK
+LDFLAGS		+= -t1024
+endif
 
 PROGS		= init glob mknod mkfs fsck
 
