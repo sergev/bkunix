@@ -915,7 +915,8 @@ optim2( p ) register NODE *p; {
 	case ASG AND:
 		/* change meaning of AND to ~R&L - bic on pdp11 */
 		r = p->in.right;
-		if( r->in.op==ICON ) { /* compliment constant */
+		if( r->in.op==ICON && r->in.name[0]=='\0' ) {
+			/* compliment constant */
 			r->tn.lval = ~r->tn.lval;
 			}
 		else if( r->in.op==COMPL ) { /* ~~A => A */

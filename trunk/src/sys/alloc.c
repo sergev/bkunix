@@ -217,11 +217,13 @@ getfs(dev)
 	int dev;
 {
 	register struct mount *p;
+	register struct buf *bp;
 
-	for(p = &mount[0]; p < &mount[NMOUNT]; p++)
-		if(p->m_bufp != NULL && p->m_dev == dev) {
-			return (struct filsys*) ((p->m_bufp)->b_addr);
-		}
+	for(p = &mount[0]; p < &mount[NMOUNT]; p++) {
+		bp = p->m_bufp;
+		if(bp && p->m_dev == dev)
+			return (struct filsys*) bp->b_addr;
+	}
 	panic("no fs");
 	return 0;
 }

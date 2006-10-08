@@ -160,8 +160,6 @@ depend:
 high.o: high.S param.h
 low.o: low.S param.h
 mch.o: mch.S param.h
-rxboot2.o: rxboot2.S param.h
-rxboot.o: rxboot.S
 alloc.o: alloc.c param.h systm.h filsys.h buf.h inode.h user.h
 bio.o: bio.c param.h user.h buf.h systm.h proc.h
 clock.o: clock.c param.h systm.h user.h proc.h
