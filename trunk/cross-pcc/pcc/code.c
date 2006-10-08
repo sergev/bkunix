@@ -274,6 +274,7 @@ static	int	lastoctal = 0;
 
 	i &= 07;
 	if( t < 0 ){ /* end of the string */
+		if( i & 1 ) printf( ",0" );	/* align on word boundary */
 		if( i != 0 ) putchar( '\n' );
 		}
 

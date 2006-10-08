@@ -1,170 +1,203 @@
-/*-
- * Copyright (c) 1992, 1993
- *	The Regents of the University of California.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
- * 4. Neither the name of the University nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+/*
+ * Copyright (c) 1980 Regents of the University of California.
+ * All rights reserved.  The Berkeley software License Agreement
+ * specifies the terms and conditions for redistribution.
  */
 #include <stdlib.h>
 
-#define min(a,b)	(a) < (b) ? a : b
+/*
+ * qsort.c:
+ * Our own version of the system qsort routine which is faster by an average
+ * of 25%, with lows and highs of 10% and 50%.
+ * The THRESHold below is the insertion sort threshold, and has been adjusted
+ * for records of size 48 bytes.
+ * The MTHREShold is where we stop finding a better median.
+ */
+
+#define		THRESH		4		/* threshold for insertion */
+#define		MTHRESH		6		/* threshold for median */
+
+static  int		(*qcmp)();		/* the comparison routine */
+static  int		qsz;			/* size of each record */
+static  int		thresh;			/* THRESHold in chars */
+static  int		mthresh;		/* MTHRESHold in chars */
 
 /*
- * Qsort routine from Bentley & McIlroy's "Engineering a Sort Function".
+ * qst:
+ * Do a quicksort
+ * First, find the median element, and put that one in the first place as the
+ * discriminator.  (This "median" is just the median of the first, last and
+ * middle elements).  (Using this median instead of the first element is a big
+ * win).  Then, the usual partitioning/swapping, followed by moving the
+ * discriminator into the right place.  Then, figure out the sizes of the two
+ * partions, do the smaller one recursively and the larger one via a repeat of
+ * this code.  Stopping when there are less than THRESH elements in a partition
+ * and cleaning up with an insertion sort (in our caller) is a huge win.
+ * All data swaps are done in-line, which is space-losing but time-saving.
+ * (And there are only three places where this is done).
  */
-#define swapcode(TYPE, parmi, parmj, n) { 		\
-	long i = (n) / sizeof (TYPE); 			\
-	TYPE *pi = (TYPE *) (parmi);			\
-	TYPE *pj = (TYPE *) (parmj);			\
-	do { 						\
-		TYPE t = *pi;				\
-		*pi++ = *pj;				\
-		*pj++ = t;				\
-        } while (--i > 0);				\
-}
-
-#define SWAPINIT(a, es) swaptype = ((char*)a - (char*)0) % sizeof(long) || \
-	es % sizeof(long) ? 2 : es == sizeof(long)? 0 : 1;
-
 static void
-swapfunc (a, b, n, swaptype)
-	char *a;
-	char *b;
-	int n;
-	int swaptype;
+qst(base, max)
+	char *base, *max;
 {
-	if(swaptype <= 1)
-		swapcode(long, a, b, n)
-	else
-		swapcode(char, a, b, n)
+	register char c, *i, *j, *jj;
+	register int ii;
+	char *mid, *tmp;
+	unsigned int lo, hi;
+
+	/*
+	 * At the top here, lo is the number of characters of elements in the
+	 * current partition.  (Which should be max - base).
+	 * Find the median of the first, last, and middle element and make
+	 * that the middle element.  Set j to largest of first and middle.
+	 * If max is larger than that guy, then it's that guy, else compare
+	 * max with loser of first and take larger.  Things are set up to
+	 * prefer the middle, then the first in case of ties.
+	 */
+	lo = max - base;		/* number of elements as chars */
+	do	{
+		mid = i = base + qsz * ((lo / qsz) >> 1);
+		if (lo >= mthresh) {
+			j = (qcmp((jj = base), i) > 0 ? jj : i);
+			if (qcmp(j, (tmp = max - qsz)) > 0) {
+				/* switch to first loser */
+				j = (j == jj ? i : jj);
+				if (qcmp(j, tmp) < 0)
+					j = tmp;
+			}
+			if (j != i) {
+				ii = qsz;
+				do	{
+					c = *i;
+					*i++ = *j;
+					*j++ = c;
+				} while (--ii);
+			}
+		}
+		/*
+		 * Semi-standard quicksort partitioning/swapping
+		 */
+		for (i = base, j = max - qsz; ; ) {
+			while (i < mid && qcmp(i, mid) <= 0)
+				i += qsz;
+			while (j > mid) {
+				if (qcmp(mid, j) <= 0) {
+					j -= qsz;
+					continue;
+				}
+				tmp = i + qsz;	/* value of i after swap */
+				if (i == mid) {
+					/* j <-> mid, new mid is j */
+					mid = jj = j;
+				} else {
+					/* i <-> j */
+					jj = j;
+					j -= qsz;
+				}
+				goto swap;
+			}
+			if (i == mid) {
+				break;
+			} else {
+				/* i <-> mid, new mid is i */
+				jj = mid;
+				tmp = mid = i;	/* value of i after swap */
+				j -= qsz;
+			}
+		swap:
+			ii = qsz;
+			do	{
+				c = *i;
+				*i++ = *jj;
+				*jj++ = c;
+			} while (--ii);
+			i = tmp;
+		}
+		/*
+		 * Look at sizes of the two partitions, do the smaller
+		 * one first by recursion, then do the larger one by
+		 * making sure lo is its size, base and max are update
+		 * correctly, and branching back.  But only repeat
+		 * (recursively or by branching) if the partition is
+		 * of at least size THRESH.
+		 */
+		i = (j = mid) + qsz;
+		if ((lo = j - base) <= (hi = max - i)) {
+			if (lo >= thresh)
+				qst(base, j);
+			base = i;
+			lo = hi;
+		} else {
+			if (hi >= thresh)
+				qst(i, max);
+			max = j;
+		}
+	} while (lo >= thresh);
 }
 
-#define swap(a, b)					\
-	if (swaptype == 0) {				\
-		long t = *(long *)(a);			\
-		*(long *)(a) = *(long *)(b);		\
-		*(long *)(b) = t;			\
-	} else						\
-		swapfunc(a, b, es, swaptype)
-
-#define vecswap(a, b, n) 	if ((n) > 0) swapfunc(a, b, n, swaptype)
-
-static char *
-med3 (a, b, c, cmp)
-	char *a;
-	char *b;
-	char *c;
-	int (*cmp)();
-{
-	return cmp(a, b) < 0 ?
-	       (cmp(b, c) < 0 ? b : (cmp(a, c) < 0 ? c : a ))
-              :(cmp(b, c) > 0 ? b : (cmp(a, c) < 0 ? a : c ));
-}
-
+/*
+ * qsort:
+ * First, set up some global parameters for qst to share.  Then, quicksort
+ * with qst(), and then a cleanup insertion sort ourselves.  Sound simple?
+ * It's not...
+ */
 void
-qsort (a, n, es, cmp)
-	char *a;
-	int n;
-	int es;
-	int (*cmp)();
+qsort(base, n, size, compar)
+	char	*base;
+	int	n;
+	int	size;
+	int	(*compar)();
 {
-	char *pa, *pb, *pc, *pd, *pl, *pm, *pn;
-	int d, r, swaptype, swap_cnt;
+	register char c, *i, *j, *lo, *hi;
+	char *min, *max;
 
-loop:	SWAPINIT(a, es);
-	swap_cnt = 0;
-	if (n < 7) {
-		for (pm = (char *) a + es; pm < (char *) a + n * es; pm += es)
-			for (pl = pm; pl > (char *) a && cmp(pl - es, pl) > 0;
-			     pl -= es)
-				swap(pl, pl - es);
+	if (n <= 1)
 		return;
+	qsz = size;
+	qcmp = compar;
+	thresh = qsz * THRESH;
+	mthresh = qsz * MTHRESH;
+	max = base + n * qsz;
+	if (n >= THRESH) {
+		qst(base, max);
+		hi = base + thresh;
+	} else {
+		hi = max;
 	}
-	pm = (char *) a + (n / 2) * es;
-	if (n > 7) {
-		pl = a;
-		pn = (char *) a + (n - 1) * es;
-		if (n > 40) {
-			d = (n / 8) * es;
-			pl = med3(pl, pl + d, pl + 2 * d, cmp);
-			pm = med3(pm - d, pm, pm + d, cmp);
-			pn = med3(pn - 2 * d, pn - d, pn, cmp);
+	/*
+	 * First put smallest element, which must be in the first THRESH, in
+	 * the first position as a sentinel.  This is done just by searching
+	 * the first THRESH elements (or the first n if n < THRESH), finding
+	 * the min, and swapping it into the first position.
+	 */
+	for (j = lo = base; (lo += qsz) < hi; )
+		if (qcmp(j, lo) > 0)
+			j = lo;
+	if (j != base) {
+		/* swap j into place */
+		for (i = base, hi = base + qsz; i < hi; ) {
+			c = *j;
+			*j++ = *i;
+			*i++ = c;
 		}
-		pm = med3(pl, pm, pn, cmp);
 	}
-	swap(a, pm);
-	pa = pb = (char *) a + es;
-
-	pc = pd = (char *) a + (n - 1) * es;
-	for (;;) {
-		while (pb <= pc && (r = cmp(pb, a)) <= 0) {
-			if (r == 0) {
-				swap_cnt = 1;
-				swap(pa, pb);
-				pa += es;
+	/*
+	 * With our sentinel in place, we now run the following hyper-fast
+	 * insertion sort.  For each remaining element, min, from [1] to [n-1],
+	 * set hi to the index of the element AFTER which this one goes.
+	 * Then, do the standard insertion sort shift on a character at a time
+	 * basis for each element in the frob.
+	 */
+	for (min = base; (hi = min += qsz) < max; ) {
+		while (qcmp(hi -= qsz, min) > 0)
+			continue;
+		if ((hi += qsz) != min) {
+			for (lo = min + qsz; --lo >= min; ) {
+				c = *lo;
+				for (i = j = lo; (j -= qsz) >= hi; i = j)
+					*i = *j;
+				*i = c;
 			}
-			pb += es;
 		}
-		while (pb <= pc && (r = cmp(pc, a)) >= 0) {
-			if (r == 0) {
-				swap_cnt = 1;
-				swap(pc, pd);
-				pd -= es;
-			}
-			pc -= es;
-		}
-		if (pb > pc)
-			break;
-		swap(pb, pc);
-		swap_cnt = 1;
-		pb += es;
-		pc -= es;
 	}
-	if (swap_cnt == 0) {  /* Switch to insertion sort */
-		for (pm = (char *) a + es; pm < (char *) a + n * es; pm += es)
-			for (pl = pm; pl > (char *) a && cmp(pl - es, pl) > 0;
-			     pl -= es)
-				swap(pl, pl - es);
-		return;
-	}
-
-	pn = (char*) a + n * es;
-	r = min (pa - (char*) a, pb - pa);
-	vecswap (a, pb - r, r);
-	r = min (pd - pc, pn - pd - es);
-	vecswap (pb, pn - r, r);
-	if ((r = pb - pa) > es)
-		qsort (a, r / es, es, cmp);
-	if ((r = pd - pc) > es) {
-		/* Iterate rather than recurse to save stack space */
-		a = pn - r;
-		n = r / es;
-		goto loop;
-	}
-/*		qsort(pn - r, r / es, es, cmp);*/
 }

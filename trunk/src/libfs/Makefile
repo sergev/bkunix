@@ -16,12 +16,12 @@ CPPFLAGS	= -I../libc
 
 SRCS		= fs_seek.c fs_open.c fs_close.c fs_sync.c \
 		  fs_read.c fs_write.c fs_print.c \
-		  fs_iget.c fs_isave.c \
+		  fs_iget.c fs_isave.c fs_iclear.c \
 		  fs_bread.c fs_bwrite.c fs_balloc.c fs_bfree.c
 
 OBJS		= fs_seek.o fs_open.o fs_close.o fs_sync.o \
 		  fs_read.o fs_write.o fs_print.o \
-		  fs_iget.o fs_isave.o \
+		  fs_iget.o fs_isave.o fs_iclear.o \
 		  fs_bread.o fs_bwrite.o fs_balloc.o fs_bfree.o
 
 all:		libfs.a

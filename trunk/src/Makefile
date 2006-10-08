@@ -1,4 +1,4 @@
-ETC		= etc/init etc/glob etc/mknod etc/mkfs
+ETC		= etc/init etc/glob etc/mknod etc/mkfs etc/fsck
 BIN		= bin/sh bin/ls bin/echo bin/cal bin/cp bin/date bin/mkdir \
 		  bin/sync bin/mv bin/rm bin/rmdir bin/stty bin/od bin/ed \
 		  bin/cat bin/ln bin/wc bin/pwd bin/df bin/mount bin/umount

@@ -66,13 +66,13 @@ HIOBJS		= high.o mch.o $(COBJS) $(DEVOBJS)
 BKOBJS		= high.o mch.o $(COBJS) $(BKDEVOBJS)
 HIBASE		= 0120000
 
-all:		lsx boot1 boot2lo #lsx1
+all:		bsx boot1 boot2lo boot2hi #lsx1
 		@echo "Warning: For 10K LSX system, size must be less than 046000"
 		@echo "         for 8k lsx system size must be less than 036500"
-		$(SIZE) lsx #lsx1
+		$(SIZE) bsx #lsx1
 
 clean:
-		rm -f *~ dev/*~ *.o *.s lsx lsx1 hsx bsx debug a.out lsx.dis debug.dis hsx.dis
+		rm -f *~ dev/*~ *.o *.s lsx lsx1 hsx bsx boot1 boot2lo boot2hi debug a.out lsx.dis debug.dis hsx.dis
 
 lsx:
 		$(MAKE) WHERE=LOW SYS=DEC $(OBJS)
@@ -112,6 +112,7 @@ boot2lo:	boot/rxboot2.S
 bkboot:		bkboot.o
 		mv $< $@
 		pdp11-strip $@
+
 hinstall:	clean hsx boot1 boot2hi
 		lsx-util -b boot1 -B boot2hi -a root.dsk hsx
 

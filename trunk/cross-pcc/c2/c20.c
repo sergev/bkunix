@@ -192,9 +192,13 @@ int input()
 					continue;
 				while (*++s == ' ');
 				p->op = FLABEL;
-				p->subop = getnum(s);
+				p->refc = getnum(s);
 				p->labno = atoi(line+2);
-				p->code = 0;
+				p->code = copy(1, s);
+				if (p->refc >= 0 && p->refc < 10)
+					p->subop = p->refc;
+				else
+					p->subop = 100;
 			} else {
 				p->op = LABEL;
 				p->subop = 0;
@@ -305,7 +309,7 @@ void output()
 
 	case FLABEL:
 		if (t->subop != 0)
-			printf("\tLF%d = %d\n", t->labno, t->subop);
+			printf("\tLF%d = %s\n", t->labno, t->code);
 		continue;
 
 	case TEXT:

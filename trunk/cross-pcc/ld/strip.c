@@ -65,7 +65,7 @@ writehdr(fd, hdr)
 	buf[13] = hdr->a_unused >> 8;
 	buf[14] = hdr->a_flag;
 	buf[15] = hdr->a_flag >> 8;
-	write(fd, hdr, 16);
+	write(fd, buf, 16);
 #endif
 }
 
