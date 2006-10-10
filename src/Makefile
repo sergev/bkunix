@@ -5,12 +5,12 @@ BIN		= bin/sh bin/ls bin/echo bin/cal bin/cp bin/date bin/mkdir \
 SYS		= sys/lsx sys/boot1 sys/boot2lo
 BKSYS		= sys/bsx sys/bkboot
 
-DEV		= dev/tty8!c0:0 dev/fd0!b0:0 dev/fd1!b0:1 dev/fd2!b0:2
+DEV		= dev/tty8!c0:0 dev/fd0!b0:0 dev/fd1!b0:1
 DSK		= root.dsk usr.dsk
 #DSK		= bkroot.dsk usr.dsk
-FSUTIL		= ../fsutil/lsx-util
+FSUTIL		= ../fsutil/u6fs-util
 
-all:		$(DSK)
+all:		$(DSK) $(FSUTIL)
 		$(FSUTIL) -v root.dsk
 
 clean:
@@ -18,8 +18,10 @@ clean:
 		$(MAKE) -C bin clean
 		$(MAKE) -C etc clean
 		$(MAKE) -C sys clean
+		$(MAKE) -C libc clean
+		$(MAKE) -C libfs clean
 
-root.dsk:	$(SYS) $(ETC) $(BIN)
+root.dsk:	$(SYS) $(ETC) $(BIN) $(FSUTIL)
 		pdp11-strip $(ETC) $(BIN)
 		$(FSUTIL) -n -s256000 -bsys/boot1 -Bsys/boot2lo $@
 		cp sys/lsx .
@@ -32,7 +34,7 @@ root.dsk:	$(SYS) $(ETC) $(BIN)
 
 bkbuild:	$(BKSYS) $(ETC) $(BIN)
 
-bkroot.dsk:	clean
+bkroot.dsk:	clean $(FSUTIL)
 		$(MAKE) BOTUSR=02000 LOWSTACK=1 bkbuild
 		pdp11-strip $(ETC) $(BIN)
 		$(FSUTIL) -F -n -s819200 -bsys/bkboot $@
@@ -44,7 +46,7 @@ bkroot.dsk:	clean
 		$(FSUTIL) -F -a $@ dev/ $(DEV)
 		$(FSUTIL) -F -c $@
 
-usr.dsk:
+usr.dsk:	$(FSUTIL)
 		$(FSUTIL) -n -s256000 $@
 		$(FSUTIL) -c $@
 
@@ -59,6 +61,9 @@ $(BIN):
 
 $(ETC):
 		$(MAKE) -C etc
+
+$(FSUTIL):
+		$(MAKE) -C ../fsutil
 
 run:		lsx.ini root.dsk
 		$(FSUTIL) -v root.dsk

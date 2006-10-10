@@ -3,7 +3,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "lsxfs.h"
+#include "u6fs.h"
 
 extern int verbose;
 
@@ -11,7 +11,7 @@ extern int verbose;
  * get name of boot load program
  * and read onto block 0
  */
-int lsxfs_install_boot (lsxfs_t *fs, const char *filename,
+int u6fs_install_boot (u6fs_t *fs, const char *filename,
 	const char *filename2)
 {
 	int fd, fd2, n, n2;
@@ -52,18 +52,18 @@ failed:		close (fd);
 	close (fd);
 	close (fd2);
 
-	if (! lsxfs_seek (fs, 0))
+	if (! u6fs_seek (fs, 0))
 		return 0;
-	if (! lsxfs_write (fs, buf, 512))
+	if (! u6fs_write (fs, buf, 512))
 		return 0;
-	if (! lsxfs_seek (fs, 256000))
+	if (! u6fs_seek (fs, 256000))
 		return 0;
-	if (! lsxfs_write (fs, buf2, 256))
+	if (! u6fs_write (fs, buf2, 256))
 		return 0;
 	return 1;
 }
 
-int lsxfs_install_single_boot (lsxfs_t *fs, const char *filename)
+int u6fs_install_single_boot (u6fs_t *fs, const char *filename)
 {
 	int fd, n;
 	unsigned char buf [512];
@@ -89,21 +89,21 @@ failed:		close (fd);
 		goto failed;
 	close (fd);
 
-	if (! lsxfs_seek (fs, 0))
+	if (! u6fs_seek (fs, 0))
 		return 0;
-	if (! lsxfs_write (fs, buf, 512))
+	if (! u6fs_write (fs, buf, 512))
 		return 0;
 	return 1;
 }
 
-static int build_inode_list (lsxfs_t *fs)
+static int build_inode_list (u6fs_t *fs)
 {
-	lsxfs_inode_t inode;
+	u6fs_inode_t inode;
 	unsigned int inum, total_inodes;
 
 	total_inodes = fs->isize * 16;
 	for (inum = 1; inum <= total_inodes; inum++) {
-		if (! lsxfs_inode_get (fs, &inode, inum))
+		if (! u6fs_inode_get (fs, &inode, inum))
 			return 0;
 		if (inode.mode == 0) {
 			fs->inode [fs->ninode++] = inum;
@@ -114,9 +114,9 @@ static int build_inode_list (lsxfs_t *fs)
 	return 1;
 }
 
-static int create_root_directory (lsxfs_t *fs)
+static int create_root_directory (u6fs_t *fs)
 {
-	lsxfs_inode_t inode;
+	u6fs_inode_t inode;
 	unsigned char buf [512];
 	unsigned int bno;
 
@@ -137,21 +137,21 @@ static int create_root_directory (lsxfs_t *fs)
 	inode.nlink = 2;
 	inode.size = 32;
 
-	if (! lsxfs_block_alloc (fs, &bno))
+	if (! u6fs_block_alloc (fs, &bno))
 		return 0;
-	if (! lsxfs_write_block (fs, bno, buf))
+	if (! u6fs_write_block (fs, bno, buf))
 		return 0;
 	inode.addr[0] = bno;
 
 	time (&inode.atime);
 	time (&inode.mtime);
 
-	if (! lsxfs_inode_save (&inode, 1))
+	if (! u6fs_inode_save (&inode, 1))
 		return 0;
 	return 1;
 }
 
-int lsxfs_create (lsxfs_t *fs, const char *filename, unsigned long bytes)
+int u6fs_create (u6fs_t *fs, const char *filename, unsigned long bytes)
 {
 	int n;
 	unsigned char buf [512];
@@ -179,17 +179,17 @@ int lsxfs_create (lsxfs_t *fs, const char *filename, unsigned long bytes)
 	} else
 		return 0;
 	/* build a list of free blocks */
-	lsxfs_block_free (fs, 0);
+	u6fs_block_free (fs, 0);
 	for (n = fs->fsize - 1; n >= fs->isize + 2; n--)
-		if (! lsxfs_block_free (fs, n))
+		if (! u6fs_block_free (fs, n))
 			return 0;
 
 	/* initialize inodes */
 	memset (buf, 0, 512);
-	if (! lsxfs_seek (fs, 1024))
+	if (! u6fs_seek (fs, 1024))
 		return 0;
 	for (n=0; n < fs->isize; n++)
-		if (! lsxfs_write (fs, buf, 512))
+		if (! u6fs_write (fs, buf, 512))
 			return 0;
 
 	/* root directory */
@@ -201,5 +201,5 @@ int lsxfs_create (lsxfs_t *fs, const char *filename, unsigned long bytes)
 		return 0;
 
 	/* write out super block */
-	return lsxfs_sync (fs, 1);
+	return u6fs_sync (fs, 1);
 }

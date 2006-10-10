@@ -3,11 +3,11 @@
 #include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "lsxfs.h"
+#include "u6fs.h"
 
 extern int verbose;
 
-int lsxfs_inode_get (lsxfs_t *fs, lsxfs_inode_t *inode, unsigned short inum)
+int u6fs_inode_get (u6fs_t *fs, u6fs_inode_t *inode, unsigned short inum)
 {
 	unsigned long offset;
 	unsigned char size2;
@@ -25,32 +25,32 @@ int lsxfs_inode_get (lsxfs_t *fs, lsxfs_inode_t *inode, unsigned short inum)
 		return 0;
 	offset = (inode->number + 31) * 32;
 
-	if (! lsxfs_seek (fs, offset))
+	if (! u6fs_seek (fs, offset))
 		return 0;
 
-	if (! lsxfs_read16 (fs, &inode->mode))	/* file type and access mode */
+	if (! u6fs_read16 (fs, &inode->mode))	/* file type and access mode */
 		return 0;
-	if (! lsxfs_read8 (fs, &inode->nlink))	/* directory entries */
+	if (! u6fs_read8 (fs, &inode->nlink))	/* directory entries */
 		return 0;
-	if (! lsxfs_read8 (fs, &inode->uid))	/* owner */
+	if (! u6fs_read8 (fs, &inode->uid))	/* owner */
 		return 0;
-	if (! lsxfs_read8 (fs, &inode->gid))	/* group of owner */
+	if (! u6fs_read8 (fs, &inode->gid))	/* group of owner */
 		return 0;
 
 	/* size */
-	if (! lsxfs_read8 (fs, &size2))
+	if (! u6fs_read8 (fs, &size2))
 		return 0;
-	if (! lsxfs_read16 (fs, &size10))
+	if (! u6fs_read16 (fs, &size10))
 		return 0;
 	inode->size = (unsigned long) size2 << 16 | size10;
 
 	for (i=0; i<8; ++i) {		/* device addresses constituting file */
-		if (! lsxfs_read16 (fs, &inode->addr[i]))
+		if (! u6fs_read16 (fs, &inode->addr[i]))
 			return 0;
 	}
-	if (! lsxfs_read32 (fs, &inode->atime))	/* last access time */
+	if (! u6fs_read32 (fs, &inode->atime))	/* last access time */
 		return 0;
-	if (! lsxfs_read32 (fs, &inode->mtime))	/* last modification time */
+	if (! u6fs_read32 (fs, &inode->mtime))	/* last modification time */
 		return 0;
 	return 1;
 }
@@ -64,7 +64,7 @@ int lsxfs_inode_get (lsxfs_t *fs, lsxfs_inode_t *inode, unsigned short inum)
  * a contiguous free list much longer
  * than FIFO.
  */
-void lsxfs_inode_truncate (lsxfs_inode_t *inode)
+void u6fs_inode_truncate (u6fs_inode_t *inode)
 {
 	unsigned short *blk;
 
@@ -77,11 +77,11 @@ void lsxfs_inode_truncate (lsxfs_inode_t *inode)
 			continue;
 
 		if (! (inode->mode & INODE_MODE_LARG))
-			lsxfs_block_free (inode->fs, *blk);
+			u6fs_block_free (inode->fs, *blk);
 		else if (blk == &inode->addr[7])
-			lsxfs_double_indirect_block_free (inode->fs, *blk);
+			u6fs_double_indirect_block_free (inode->fs, *blk);
 		else
-			lsxfs_indirect_block_free (inode->fs, *blk);
+			u6fs_indirect_block_free (inode->fs, *blk);
 
 		*blk = 0;
 	}
@@ -90,7 +90,7 @@ void lsxfs_inode_truncate (lsxfs_inode_t *inode)
 	inode->dirty = 1;
 }
 
-void lsxfs_inode_clear (lsxfs_inode_t *inode)
+void u6fs_inode_clear (u6fs_inode_t *inode)
 {
 	inode->dirty = 1;
 	inode->mode = 0;
@@ -103,7 +103,7 @@ void lsxfs_inode_clear (lsxfs_inode_t *inode)
 	inode->mtime = 0;
 }
 
-int lsxfs_inode_save (lsxfs_inode_t *inode, int force)
+int u6fs_inode_save (u6fs_inode_t *inode, int force)
 {
 	unsigned long offset;
 	int i;
@@ -119,38 +119,38 @@ int lsxfs_inode_save (lsxfs_inode_t *inode, int force)
 	time (&inode->atime);
 	time (&inode->mtime);
 
-	if (! lsxfs_seek (inode->fs, offset))
+	if (! u6fs_seek (inode->fs, offset))
 		return 0;
 
-	if (! lsxfs_write16 (inode->fs, inode->mode))	/* file type and access mode */
+	if (! u6fs_write16 (inode->fs, inode->mode))	/* file type and access mode */
 		return 0;
-	if (! lsxfs_write8 (inode->fs, inode->nlink))	/* directory entries */
+	if (! u6fs_write8 (inode->fs, inode->nlink))	/* directory entries */
 		return 0;
-	if (! lsxfs_write8 (inode->fs, inode->uid))	/* owner */
+	if (! u6fs_write8 (inode->fs, inode->uid))	/* owner */
 		return 0;
-	if (! lsxfs_write8 (inode->fs, inode->gid))	/* group of owner */
+	if (! u6fs_write8 (inode->fs, inode->gid))	/* group of owner */
 		return 0;
 
 	/* size */
-	if (! lsxfs_write8 (inode->fs, inode->size >> 16))
+	if (! u6fs_write8 (inode->fs, inode->size >> 16))
 		return 0;
-	if (! lsxfs_write16 (inode->fs, inode->size))
+	if (! u6fs_write16 (inode->fs, inode->size))
 		return 0;
 
 	for (i=0; i<8; ++i) {		/* device addresses constituting file */
-		if (! lsxfs_write16 (inode->fs, inode->addr[i]))
+		if (! u6fs_write16 (inode->fs, inode->addr[i]))
 			return 0;
 	}
-	if (! lsxfs_write32 (inode->fs, inode->atime))	/* last access time */
+	if (! u6fs_write32 (inode->fs, inode->atime))	/* last access time */
 		return 0;
-	if (! lsxfs_write32 (inode->fs, inode->mtime))	/* last modification time */
+	if (! u6fs_write32 (inode->fs, inode->mtime))	/* last modification time */
 		return 0;
 
 	inode->dirty = 0;
 	return 1;
 }
 
-void lsxfs_inode_print (lsxfs_inode_t *inode, FILE *out)
+void u6fs_inode_print (u6fs_inode_t *inode, FILE *out)
 {
 	int i;
 
@@ -188,17 +188,17 @@ void lsxfs_inode_print (lsxfs_inode_t *inode, FILE *out)
 	fprintf (out, "   Modified: %s", ctime (&inode->mtime));
 }
 
-void lsxfs_directory_scan (lsxfs_inode_t *dir, char *dirname,
-	lsxfs_directory_scanner_t scanner, void *arg)
+void u6fs_directory_scan (u6fs_inode_t *dir, char *dirname,
+	u6fs_directory_scanner_t scanner, void *arg)
 {
-	lsxfs_inode_t file;
+	u6fs_inode_t file;
 	unsigned long offset;
 	unsigned char data [17];
 	unsigned int inum;
 
 	/* 16 bytes per file */
 	for (offset = 0; dir->size - offset >= 16; offset += 16) {
-		if (! lsxfs_inode_read (dir, offset, data, 16)) {
+		if (! u6fs_inode_read (dir, offset, data, 16)) {
 			fprintf (stderr, "%s: read error at offset %ld\n",
 				dirname[0] ? dirname : "/", offset);
 			return;
@@ -210,7 +210,7 @@ void lsxfs_directory_scan (lsxfs_inode_t *dir, char *dirname,
 		    (data[2]=='.' && data[3]=='.' && data[4]==0))
 			continue;
 
-		if (! lsxfs_inode_get (dir->fs, &file, inum)) {
+		if (! u6fs_inode_get (dir->fs, &file, inum)) {
 			fprintf (stderr, "cannot scan inode %d\n", inum);
 			continue;
 		}
@@ -222,7 +222,7 @@ void lsxfs_directory_scan (lsxfs_inode_t *dir, char *dirname,
  * Return the physical block number on a device given the
  * inode and the logical block number in a file.
  */
-static unsigned short map_block (lsxfs_inode_t *inode, unsigned short lbn)
+static unsigned short map_block (u6fs_inode_t *inode, unsigned short lbn)
 {
 	unsigned char block [512];
 	unsigned int nb, i;
@@ -247,7 +247,7 @@ static unsigned short map_block (lsxfs_inode_t *inode, unsigned short lbn)
 	nb = inode->addr [i];
 	if (nb == 0)
 		return 0;
-	if (! lsxfs_read_block (inode->fs, nb, block))
+	if (! u6fs_read_block (inode->fs, nb, block))
 		return 0;
 
 	/* "huge" fetch of double indirect block */
@@ -256,7 +256,7 @@ static unsigned short map_block (lsxfs_inode_t *inode, unsigned short lbn)
 		nb = block [i+1] << 8 | block [i];
 		if (nb == 0)
 			return 0;
-		if (! lsxfs_read_block (inode->fs, nb, block))
+		if (! u6fs_read_block (inode->fs, nb, block))
 			return 0;
 	}
 
@@ -271,7 +271,7 @@ static unsigned short map_block (lsxfs_inode_t *inode, unsigned short lbn)
  * by returning the physical block number on a device given the
  * inode and the logical block number in a file.
  */
-static unsigned short map_block_write (lsxfs_inode_t *inode, unsigned short lbn)
+static unsigned short map_block_write (u6fs_inode_t *inode, unsigned short lbn)
 {
 	unsigned char block [512];
 	unsigned int nb, ib, i;
@@ -284,7 +284,7 @@ static unsigned short map_block_write (lsxfs_inode_t *inode, unsigned short lbn)
 		/* small file algorithm */
 		if (lbn > 7) {
 			/* convert small to large */
-			if (! lsxfs_block_alloc (inode->fs, &nb))
+			if (! u6fs_block_alloc (inode->fs, &nb))
 				return 0;
 			memset (block, 0, 512);
 			for (i=0; i<8; i++) {
@@ -293,7 +293,7 @@ static unsigned short map_block_write (lsxfs_inode_t *inode, unsigned short lbn)
 				inode->addr[i] = 0;
 			}
 			inode->addr[0] = nb;
-			if (! lsxfs_write_block (inode->fs, nb, block))
+			if (! u6fs_write_block (inode->fs, nb, block))
 				return 0;
 			inode->mode |= INODE_MODE_LARG;
 			inode->dirty = 1;
@@ -306,7 +306,7 @@ static unsigned short map_block_write (lsxfs_inode_t *inode, unsigned short lbn)
 		}
 
 		/* allocate new block */
-		if (! lsxfs_block_alloc (inode->fs, &nb))
+		if (! u6fs_block_alloc (inode->fs, &nb))
 			return 0;
 		inode->addr[lbn] = nb;
 		inode->dirty = 1;
@@ -319,10 +319,10 @@ large:
 		i = 7;
 	ib = inode->addr[i];
 	if (ib != 0) {
-		if (! lsxfs_read_block (inode->fs, ib, block))
+		if (! u6fs_read_block (inode->fs, ib, block))
 			return 0;
 	} else {
-		if (! lsxfs_block_alloc (inode->fs, &ib))
+		if (! u6fs_block_alloc (inode->fs, &ib))
 			return 0;
 		memset (block, 0, 512);
 		inode->addr[i] = ib;
@@ -334,16 +334,16 @@ large:
 		i = ((lbn >> 8) - 7) * 2;
 		nb = block [i+1] << 8 | block [i];
 		if (nb != 0) {
-			if (! lsxfs_read_block (inode->fs, nb, block))
+			if (! u6fs_read_block (inode->fs, nb, block))
 				return 0;
 		} else {
 			/* allocate new block */
-			if (! lsxfs_block_alloc (inode->fs, &nb))
+			if (! u6fs_block_alloc (inode->fs, &nb))
 				return 0;
 			memset (block, 0, 512);
 			block[i+i] = nb;
 			block[i+i+1] = nb >> 8;
-			if (! lsxfs_write_block (inode->fs, ib, block))
+			if (! u6fs_write_block (inode->fs, ib, block))
 				return 0;
 		}
 		ib = nb;
@@ -356,17 +356,17 @@ large:
 		return nb;
 
 	/* allocate new block */
-	if (! lsxfs_block_alloc (inode->fs, &nb))
+	if (! u6fs_block_alloc (inode->fs, &nb))
 		return 0;
 /*	printf ("inode %d: allocate new block %d\n", inode->number, nb);*/
 	block[i+i] = nb;
 	block[i+i+1] = nb >> 8;
-	if (! lsxfs_write_block (inode->fs, ib, block))
+	if (! u6fs_write_block (inode->fs, ib, block))
 		return 0;
 	return nb;
 }
 
-int lsxfs_inode_read (lsxfs_inode_t *inode, unsigned long offset,
+int u6fs_inode_read (u6fs_inode_t *inode, unsigned long offset,
 	unsigned char *data, unsigned long bytes)
 {
 	unsigned char block [512];
@@ -385,7 +385,7 @@ int lsxfs_inode_read (lsxfs_inode_t *inode, unsigned long offset,
 		if (bn == 0)
 			return 0;
 
-		if (! lsxfs_read_block (inode->fs, bn, block))
+		if (! u6fs_read_block (inode->fs, bn, block))
 			return 0;
 		memcpy (data, block + inblock_offset, n);
 		offset += n;
@@ -394,7 +394,7 @@ int lsxfs_inode_read (lsxfs_inode_t *inode, unsigned long offset,
 	return 1;
 }
 
-int lsxfs_inode_write (lsxfs_inode_t *inode, unsigned long offset,
+int u6fs_inode_write (u6fs_inode_t *inode, unsigned long offset,
 	unsigned char *data, unsigned long bytes)
 {
 	unsigned char block [512];
@@ -420,13 +420,13 @@ int lsxfs_inode_write (lsxfs_inode_t *inode, unsigned long offset,
 				inode->number, offset, n, bn);
 
 		if (n == 512) {
-			if (! lsxfs_write_block (inode->fs, bn, data))
+			if (! u6fs_write_block (inode->fs, bn, data))
 				return 0;
 		} else {
-			if (! lsxfs_read_block (inode->fs, bn, block))
+			if (! u6fs_read_block (inode->fs, bn, block))
 				return 0;
 			memcpy (block + inblock_offset, data, n);
-			if (! lsxfs_write_block (inode->fs, bn, block))
+			if (! u6fs_write_block (inode->fs, bn, block))
 				return 0;
 		}
 		offset += n;
@@ -438,7 +438,7 @@ int lsxfs_inode_write (lsxfs_inode_t *inode, unsigned long offset,
 /*
  * Convert from dirent to raw data.
  */
-void lsxfs_dirent_pack (unsigned char *data, lsxfs_dirent_t *dirent)
+void u6fs_dirent_pack (unsigned char *data, u6fs_dirent_t *dirent)
 {
 	int i;
 
@@ -453,7 +453,7 @@ void lsxfs_dirent_pack (unsigned char *data, lsxfs_dirent_t *dirent)
 /*
  * Read dirent from raw data.
  */
-void lsxfs_dirent_unpack (lsxfs_dirent_t *dirent, unsigned char *data)
+void u6fs_dirent_unpack (u6fs_dirent_t *dirent, unsigned char *data)
 {
 	int i;
 
@@ -473,7 +473,7 @@ void lsxfs_dirent_unpack (lsxfs_dirent_t *dirent, unsigned char *data)
  *	2 if name is to be deleted
  *	3 if name is to be linked, mode contains inode number
  */
-int lsxfs_inode_by_name (lsxfs_t *fs, lsxfs_inode_t *inode, char *name,
+int u6fs_inode_by_name (u6fs_t *fs, u6fs_inode_t *inode, char *name,
 	int op, int mode)
 {
 	int c;
@@ -482,10 +482,10 @@ int lsxfs_inode_by_name (lsxfs_t *fs, lsxfs_inode_t *inode, char *name,
 	unsigned long offset;
 	unsigned char data [16];
 	unsigned int inum;
-	lsxfs_inode_t dir;
+	u6fs_inode_t dir;
 
 	/* Start from root. */
-	if (! lsxfs_inode_get (fs, &dir, LSXFS_ROOT_INODE)) {
+	if (! u6fs_inode_get (fs, &dir, LSXFS_ROOT_INODE)) {
 		fprintf (stderr, "inode_open(): cannot get root\n");
 		return 0;
 	}
@@ -524,7 +524,7 @@ cloop:
 
 	/* Search a directory, 16 bytes per file */
 	for (offset = 0; dir.size - offset >= 16; offset += 16) {
-		if (! lsxfs_inode_read (&dir, offset, data, 16)) {
+		if (! u6fs_inode_read (&dir, offset, data, 16)) {
 			fprintf (stderr, "inode %d: read error at offset %ld\n",
 				dir.number, offset);
 			return 0;
@@ -539,7 +539,7 @@ cloop:
 			if (op == 2 && ! c) {
 				goto delete_file;
 			}
-			if (! lsxfs_inode_get (fs, &dir, inum)) {
+			if (! u6fs_inode_get (fs, &dir, inum)) {
 				fprintf (stderr, "inode_open(): cannot get inode %d\n", inum);
 				return 0;
 			}
@@ -559,7 +559,7 @@ cloop:
 	 * Make a new file, and return it's inode.
 	 */
 create_file:
-	if (! lsxfs_inode_alloc (fs, inode)) {
+	if (! u6fs_inode_alloc (fs, inode)) {
 		fprintf (stderr, "%s: cannot allocate inode\n", name);
 		return 0;
 	}
@@ -569,7 +569,7 @@ create_file:
 	inode->nlink = 1;
 	inode->uid = 0;
 	inode->gid = 0;
-	if (! lsxfs_inode_save (inode, 0)) {
+	if (! u6fs_inode_save (inode, 0)) {
 		fprintf (stderr, "%s: cannot save file inode\n", name);
 		return 0;
 	}
@@ -579,12 +579,12 @@ create_file:
 	data[1] = inode->number >> 8;
 	memcpy (data+2, dbuf, 14);
 write_back:
-	if (! lsxfs_inode_write (&dir, offset, data, 16)) {
+	if (! u6fs_inode_write (&dir, offset, data, 16)) {
 		fprintf (stderr, "inode %d: write error at offset %ld\n",
 			inode->number, offset);
 		return 0;
 	}
-	if (! lsxfs_inode_save (&dir, 0)) {
+	if (! u6fs_inode_save (&dir, 0)) {
 		fprintf (stderr, "%s: cannot save directory inode\n", name);
 		return 0;
 	}
@@ -594,15 +594,15 @@ write_back:
 	 * Delete file. Return inode of deleted file.
 	 */
 delete_file:
-	if (! lsxfs_inode_get (fs, inode, inum)) {
+	if (! u6fs_inode_get (fs, inode, inum)) {
 		fprintf (stderr, "%s: cannot get inode %d\n", name, inum);
 		return 0;
 	}
 	inode->dirty = 1;
 	inode->nlink--;
 	if (inode->nlink <= 0) {
-		lsxfs_inode_truncate (inode);
-		lsxfs_inode_clear (inode);
+		u6fs_inode_truncate (inode);
+		u6fs_inode_clear (inode);
 		if (inode->fs->ninode < 100) {
 			inode->fs->inode [inode->fs->ninode++] = inum;
 			inode->fs->dirty = 1;
@@ -620,12 +620,12 @@ create_link:
 /*printf ("*** link inode %d to %s\n", mode, dbuf);*/
 	memcpy (data+2, dbuf, 14);
 /*printf ("*** add entry '%.14s' to inode %d\n", dbuf, dir.number);*/
-	if (! lsxfs_inode_write (&dir, offset, data, 16)) {
+	if (! u6fs_inode_write (&dir, offset, data, 16)) {
 		fprintf (stderr, "inode %d: write error at offset %ld\n",
 			dir.number, offset);
 		return 0;
 	}
-	if (! lsxfs_inode_save (&dir, 0)) {
+	if (! u6fs_inode_save (&dir, 0)) {
 		fprintf (stderr, "%s: cannot save directory inode\n", name);
 		return 0;
 	}
@@ -644,7 +644,7 @@ create_link:
  * I list is instituted to pick
  * up 100 more.
  */
-int lsxfs_inode_alloc (lsxfs_t *fs, lsxfs_inode_t *inode)
+int u6fs_inode_alloc (u6fs_t *fs, u6fs_inode_t *inode)
 {
 	int ino;
 
@@ -654,12 +654,12 @@ int lsxfs_inode_alloc (lsxfs_t *fs, lsxfs_inode_t *inode)
 		}
 		ino = fs->inode[--fs->ninode];
 		fs->dirty = 1;
-		if (! lsxfs_inode_get (fs, inode, ino)) {
+		if (! u6fs_inode_get (fs, inode, ino)) {
 			fprintf (stderr, "inode_alloc: cannot get inode %d\n", ino);
 			return 0;
 		}
 		if (inode->mode == 0) {
-			lsxfs_inode_clear (inode);
+			u6fs_inode_clear (inode);
 			return 1;
 		}
 	}

@@ -120,13 +120,13 @@ bkboot:		bkboot.o
 		pdp11-strip $@
 
 hinstall:	clean hsx boot1 boot2hi
-		lsx-util -b boot1 -B boot2hi -a root.dsk hsx
+		u6fs-util -b boot1 -B boot2hi -a root.dsk hsx
 
 linstall:	clean lsx boot1 boot2lo
-		lsx-util -b boot1 -B boot2lo -a root.dsk lsx
+		u6fs-util -b boot1 -B boot2lo -a root.dsk lsx
 
 bkinstall:	clean bsx bkboot
-		lsx-util -F -b bkboot -a bkroot.dsk bsx
+		u6fs-util -F -b bkboot -a bkroot.dsk bsx
 
 lsx1:		$(ASOBJS) $(CSRCS)
 		cat $(CSRCS) > kernel.c

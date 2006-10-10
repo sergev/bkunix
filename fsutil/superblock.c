@@ -3,7 +3,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "lsxfs.h"
+#include "u6fs.h"
 
 extern int verbose;
 extern int flat;
@@ -20,7 +20,7 @@ static unsigned long deskew (unsigned long address)
 	return (track * 26 + sector) * 128 + offset;
 }
 
-int lsxfs_seek (lsxfs_t *fs, unsigned long offset)
+int u6fs_seek (u6fs_t *fs, unsigned long offset)
 {
 	unsigned long hw_address;
 
@@ -36,18 +36,18 @@ int lsxfs_seek (lsxfs_t *fs, unsigned long offset)
 	return 1;
 }
 
-static void update_seek (lsxfs_t *fs, unsigned int offset)
+static void update_seek (u6fs_t *fs, unsigned int offset)
 {
 	/* Update current seek position.
 	 * Called after read/write.
 	 * When out of 128-byte sector - seek needed. */
 	if (fs->seek % 128 + offset >= 128)
-		lsxfs_seek (fs, fs->seek + offset);
+		u6fs_seek (fs, fs->seek + offset);
 	else
 		fs->seek += offset;
 }
 
-int lsxfs_read8 (lsxfs_t *fs, unsigned char *val)
+int u6fs_read8 (u6fs_t *fs, unsigned char *val)
 {
 	if (read (fs->fd, val, 1) != 1) {
 		if (verbose)
@@ -58,7 +58,7 @@ int lsxfs_read8 (lsxfs_t *fs, unsigned char *val)
 	return 1;
 }
 
-int lsxfs_read16 (lsxfs_t *fs, unsigned short *val)
+int u6fs_read16 (u6fs_t *fs, unsigned short *val)
 {
 	unsigned char data [2];
 
@@ -72,7 +72,7 @@ int lsxfs_read16 (lsxfs_t *fs, unsigned short *val)
 	return 1;
 }
 
-int lsxfs_read32 (lsxfs_t *fs, unsigned long *val)
+int u6fs_read32 (u6fs_t *fs, unsigned long *val)
 {
 	unsigned char data [4];
 
@@ -87,7 +87,7 @@ int lsxfs_read32 (lsxfs_t *fs, unsigned long *val)
 	return 1;
 }
 
-int lsxfs_write8 (lsxfs_t *fs, unsigned char val)
+int u6fs_write8 (u6fs_t *fs, unsigned char val)
 {
 	if (write (fs->fd, &val, 1) != 1)
 		return 0;
@@ -95,7 +95,7 @@ int lsxfs_write8 (lsxfs_t *fs, unsigned char val)
 	return 1;
 }
 
-int lsxfs_write16 (lsxfs_t *fs, unsigned short val)
+int u6fs_write16 (u6fs_t *fs, unsigned short val)
 {
 	unsigned char data [2];
 
@@ -107,7 +107,7 @@ int lsxfs_write16 (lsxfs_t *fs, unsigned short val)
 	return 1;
 }
 
-int lsxfs_write32 (lsxfs_t *fs, unsigned long val)
+int u6fs_write32 (u6fs_t *fs, unsigned long val)
 {
 	unsigned char data [4];
 
@@ -121,7 +121,7 @@ int lsxfs_write32 (lsxfs_t *fs, unsigned long val)
 	return 1;
 }
 
-int lsxfs_read (lsxfs_t *fs, unsigned char *data, int bytes)
+int u6fs_read (u6fs_t *fs, unsigned char *data, int bytes)
 {
 	int len;
 
@@ -138,7 +138,7 @@ int lsxfs_read (lsxfs_t *fs, unsigned char *data, int bytes)
 	return 1;
 }
 
-int lsxfs_write (lsxfs_t *fs, unsigned char *data, int bytes)
+int u6fs_write (u6fs_t *fs, unsigned char *data, int bytes)
 {
 	int len;
 
@@ -157,7 +157,7 @@ int lsxfs_write (lsxfs_t *fs, unsigned char *data, int bytes)
 	return 1;
 }
 
-int lsxfs_open (lsxfs_t *fs, const char *filename, int writable)
+int u6fs_open (u6fs_t *fs, const char *filename, int writable)
 {
 	int i;
 
@@ -170,39 +170,39 @@ int lsxfs_open (lsxfs_t *fs, const char *filename, int writable)
 		return 0;
 	fs->writable = writable;
 
-	if (! lsxfs_seek (fs, 512))
+	if (! u6fs_seek (fs, 512))
 		return 0;
 
-	if (! lsxfs_read16 (fs, &fs->isize))	/* size in blocks of I list */
+	if (! u6fs_read16 (fs, &fs->isize))	/* size in blocks of I list */
 		return 0;
-	if (! lsxfs_read16 (fs, &fs->fsize))	/* size in blocks of entire volume */
+	if (! u6fs_read16 (fs, &fs->fsize))	/* size in blocks of entire volume */
 		return 0;
-	if (! lsxfs_read16 (fs, &fs->nfree))	/* number of in core free blocks (0-100) */
+	if (! u6fs_read16 (fs, &fs->nfree))	/* number of in core free blocks (0-100) */
 		return 0;
 	for (i=0; i<100; ++i) {			/* in core free blocks */
-		if (! lsxfs_read16 (fs, &fs->free[i]))
+		if (! u6fs_read16 (fs, &fs->free[i]))
 			return 0;
 	}
-	if (! lsxfs_read16 (fs, &fs->ninode))	/* number of in core I nodes (0-100) */
+	if (! u6fs_read16 (fs, &fs->ninode))	/* number of in core I nodes (0-100) */
 		return 0;
 	for (i=0; i<100; ++i) {			/* in core free I nodes */
-		if (! lsxfs_read16 (fs, &fs->inode[i]))
+		if (! u6fs_read16 (fs, &fs->inode[i]))
 			return 0;
 	}
-	if (! lsxfs_read8 (fs, &fs->flock))	/* lock during free list manipulation */
+	if (! u6fs_read8 (fs, &fs->flock))	/* lock during free list manipulation */
 		return 0;
-	if (! lsxfs_read8 (fs, &fs->ilock))	/* lock during I list manipulation */
+	if (! u6fs_read8 (fs, &fs->ilock))	/* lock during I list manipulation */
 		return 0;
-	if (! lsxfs_read8 (fs, &fs->fmod))	/* super block modified flag */
+	if (! u6fs_read8 (fs, &fs->fmod))	/* super block modified flag */
 		return 0;
-	if (! lsxfs_read8 (fs, &fs->ronly))	/* mounted read-only flag */
+	if (! u6fs_read8 (fs, &fs->ronly))	/* mounted read-only flag */
 		return 0;
-	if (! lsxfs_read32 (fs, &fs->time))	/* current date of last update */
+	if (! u6fs_read32 (fs, &fs->time))	/* current date of last update */
 		return 0;
 	return 1;
 }
 
-int lsxfs_sync (lsxfs_t *fs, int force)
+int u6fs_sync (u6fs_t *fs, int force)
 {
 	int i;
 
@@ -212,40 +212,40 @@ int lsxfs_sync (lsxfs_t *fs, int force)
 		return 1;
 
 	time (&fs->time);
-	if (! lsxfs_seek (fs, 512))
+	if (! u6fs_seek (fs, 512))
 		return 0;
 
-	if (! lsxfs_write16 (fs, fs->isize))	/* size in blocks of I list */
+	if (! u6fs_write16 (fs, fs->isize))	/* size in blocks of I list */
 		return 0;
-	if (! lsxfs_write16 (fs, fs->fsize))	/* size in blocks of entire volume */
+	if (! u6fs_write16 (fs, fs->fsize))	/* size in blocks of entire volume */
 		return 0;
-	if (! lsxfs_write16 (fs, fs->nfree))	/* number of in core free blocks (0-100) */
+	if (! u6fs_write16 (fs, fs->nfree))	/* number of in core free blocks (0-100) */
 		return 0;
 	for (i=0; i<100; ++i) {			/* in core free blocks */
-		if (! lsxfs_write16 (fs, fs->free[i]))
+		if (! u6fs_write16 (fs, fs->free[i]))
 			return 0;
 	}
-	if (! lsxfs_write16 (fs, fs->ninode))	/* number of in core I nodes (0-100) */
+	if (! u6fs_write16 (fs, fs->ninode))	/* number of in core I nodes (0-100) */
 		return 0;
 	for (i=0; i<100; ++i) {			/* in core free I nodes */
-		if (! lsxfs_write16 (fs, fs->inode[i]))
+		if (! u6fs_write16 (fs, fs->inode[i]))
 			return 0;
 	}
-	if (! lsxfs_write8 (fs, fs->flock))	/* lock during free list manipulation */
+	if (! u6fs_write8 (fs, fs->flock))	/* lock during free list manipulation */
 		return 0;
-	if (! lsxfs_write8 (fs, fs->ilock))	/* lock during I list manipulation */
+	if (! u6fs_write8 (fs, fs->ilock))	/* lock during I list manipulation */
 		return 0;
-	if (! lsxfs_write8 (fs, fs->fmod))	/* super block modified flag */
+	if (! u6fs_write8 (fs, fs->fmod))	/* super block modified flag */
 		return 0;
-	if (! lsxfs_write8 (fs, fs->ronly))	/* mounted read-only flag */
+	if (! u6fs_write8 (fs, fs->ronly))	/* mounted read-only flag */
 		return 0;
-	if (! lsxfs_write32 (fs, fs->time))	/* current date of last update */
+	if (! u6fs_write32 (fs, fs->time))	/* current date of last update */
 		return 0;
 	fs->dirty = 0;
 	return 1;
 }
 
-void lsxfs_print (lsxfs_t *fs, FILE *out)
+void u6fs_print (u6fs_t *fs, FILE *out)
 {
 	int i;
 
@@ -278,7 +278,7 @@ void lsxfs_print (lsxfs_t *fs, FILE *out)
 	fprintf (out, "    Last update time: %s", ctime (&fs->time));
 }
 
-void lsxfs_close (lsxfs_t *fs)
+void u6fs_close (u6fs_t *fs)
 {
 	if (fs->fd < 0)
 		return;

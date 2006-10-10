@@ -1,7 +1,7 @@
 CC		= gcc -g
 CFLAGS		= -O -Wall
 OBJS		= superblock.o block.c inode.o create.o check.o file.o
-PROGS		= lsx-util
+PROGS		= u6fs-util
 
 # For Mac OS X
 #LIBS		= -largp
@@ -21,10 +21,10 @@ rxboot2:	rxboot2.s
 clean:
 		rm -f *~ *.o *.lst *.dis $(PROGS) floppy.dsk
 
-lsx-util:	fsutil.o $(OBJS)
+u6fs-util:	fsutil.o $(OBJS)
 		$(CC) $(LDFLAGS) -o $@ fsutil.o $(OBJS) $(LIBS)
 
 floppy:		$(PROGS) rxboot rxboot2
-		./lsx-util -n -s256000 -brxboot -Brxboot2 -v floppy.dsk
-		./lsx-util floppy.dsk
-		./lsx-util -c -v floppy.dsk
+		./u6fs-util -n -s256000 -brxboot -Brxboot2 -v floppy.dsk
+		./u6fs-util floppy.dsk
+		./u6fs-util -c -v floppy.dsk

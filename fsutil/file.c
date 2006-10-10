@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <string.h>
-#include "lsxfs.h"
+#include "u6fs.h"
 
 extern int verbose;
 
-int lsxfs_file_create (lsxfs_t *fs, lsxfs_file_t *file, char *name, int mode)
+int u6fs_file_create (u6fs_t *fs, u6fs_file_t *file, char *name, int mode)
 {
-	if (! lsxfs_inode_by_name (fs, &file->inode, name, 1, mode)) {
+	if (! u6fs_inode_by_name (fs, &file->inode, name, 1, mode)) {
 		fprintf (stderr, "%s: inode open failed\n", name);
 		return 0;
 	}
@@ -14,16 +14,16 @@ int lsxfs_file_create (lsxfs_t *fs, lsxfs_file_t *file, char *name, int mode)
 		/* Cannot open directory on write. */
 		return 0;
 	}
-	lsxfs_inode_truncate (&file->inode);
-	lsxfs_inode_save (&file->inode, 0);
+	u6fs_inode_truncate (&file->inode);
+	u6fs_inode_save (&file->inode, 0);
 	file->writable = 1;
 	file->offset = 0;
 	return 1;
 }
 
-int lsxfs_file_open (lsxfs_t *fs, lsxfs_file_t *file, char *name, int wflag)
+int u6fs_file_open (u6fs_t *fs, u6fs_file_t *file, char *name, int wflag)
 {
-	if (! lsxfs_inode_by_name (fs, &file->inode, name, 0, 0)) {
+	if (! u6fs_inode_by_name (fs, &file->inode, name, 0, 0)) {
 		fprintf (stderr, "%s: inode open failed\n", name);
 		return 0;
 	}
@@ -36,9 +36,9 @@ int lsxfs_file_open (lsxfs_t *fs, lsxfs_file_t *file, char *name, int wflag)
 	return 1;
 }
 
-int lsxfs_file_read (lsxfs_file_t *file, unsigned char *data, unsigned long bytes)
+int u6fs_file_read (u6fs_file_t *file, unsigned char *data, unsigned long bytes)
 {
-	if (! lsxfs_inode_read (&file->inode, file->offset, data, bytes)) {
+	if (! u6fs_inode_read (&file->inode, file->offset, data, bytes)) {
 		fprintf (stderr, "inode %d: file write failed\n",
 			file->inode.number);
 		return 0;
@@ -47,11 +47,11 @@ int lsxfs_file_read (lsxfs_file_t *file, unsigned char *data, unsigned long byte
 	return 1;
 }
 
-int lsxfs_file_write (lsxfs_file_t *file, unsigned char *data, unsigned long bytes)
+int u6fs_file_write (u6fs_file_t *file, unsigned char *data, unsigned long bytes)
 {
 	if (! file->writable)
 		return 0;
-	if (! lsxfs_inode_write (&file->inode, file->offset, data, bytes)) {
+	if (! u6fs_inode_write (&file->inode, file->offset, data, bytes)) {
 		fprintf (stderr, "inode %d: file write failed\n",
 			file->inode.number);
 		return 0;
@@ -60,10 +60,10 @@ int lsxfs_file_write (lsxfs_file_t *file, unsigned char *data, unsigned long byt
 	return 1;
 }
 
-int lsxfs_file_close (lsxfs_file_t *file)
+int u6fs_file_close (u6fs_file_t *file)
 {
 	if (file->writable) {
-		if (! lsxfs_inode_save (&file->inode, 0)) {
+		if (! u6fs_inode_save (&file->inode, 0)) {
 			fprintf (stderr, "inode %d: file close failed\n",
 				file->inode.number);
 			return 0;
