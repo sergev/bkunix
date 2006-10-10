@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <argp.h>
-#include "lsxfs.h"
+#include "u6fs.h"
 
 int verbose;
 int extract;
@@ -103,7 +103,7 @@ const struct argp argp_parser = {
 	"\nPrint LSX file system information"
 };
 
-void print_inode (lsxfs_inode_t *inode,
+void print_inode (u6fs_inode_t *inode,
 	char *dirname, char *filename, FILE *out)
 {
 	fprintf (out, "%s/%s", dirname, filename);
@@ -125,14 +125,14 @@ void print_inode (lsxfs_inode_t *inode,
 	}
 }
 
-void print_indirect_block (lsxfs_t *fs, unsigned int bno, FILE *out)
+void print_indirect_block (u6fs_t *fs, unsigned int bno, FILE *out)
 {
 	unsigned short nb;
 	unsigned char data [LSXFS_BSIZE];
 	int i;
 
 	fprintf (out, " [%d]", bno);
-	if (! lsxfs_read_block (fs, bno, data)) {
+	if (! u6fs_read_block (fs, bno, data)) {
 		fprintf (stderr, "read error at block %d\n", bno);
 		return;
 	}
@@ -143,14 +143,14 @@ void print_indirect_block (lsxfs_t *fs, unsigned int bno, FILE *out)
 	}
 }
 
-void print_double_indirect_block (lsxfs_t *fs, unsigned int bno, FILE *out)
+void print_double_indirect_block (u6fs_t *fs, unsigned int bno, FILE *out)
 {
 	unsigned short nb;
 	unsigned char data [LSXFS_BSIZE];
 	int i;
 
 	fprintf (out, " [%d]", bno);
-	if (! lsxfs_read_block (fs, bno, data)) {
+	if (! u6fs_read_block (fs, bno, data)) {
 		fprintf (stderr, "read error at block %d\n", bno);
 		return;
 	}
@@ -161,7 +161,7 @@ void print_double_indirect_block (lsxfs_t *fs, unsigned int bno, FILE *out)
 	}
 }
 
-void print_inode_blocks (lsxfs_inode_t *inode, FILE *out)
+void print_inode_blocks (u6fs_inode_t *inode, FILE *out)
 {
 	int i;
 
@@ -189,7 +189,7 @@ void print_inode_blocks (lsxfs_inode_t *inode, FILE *out)
 	fprintf (out, "\n");
 }
 
-void extract_inode (lsxfs_inode_t *inode, char *path)
+void extract_inode (u6fs_inode_t *inode, char *path)
 {
 	int fd, n;
 	unsigned long offset;
@@ -204,7 +204,7 @@ void extract_inode (lsxfs_inode_t *inode, char *path)
 		n = inode->size - offset;
 		if (n > 512)
 			n = 512;
-		if (! lsxfs_inode_read (inode, offset, data, n)) {
+		if (! u6fs_inode_read (inode, offset, data, n)) {
 			fprintf (stderr, "%s: read error at offset %ld\n",
 				path, offset);
 			break;
@@ -217,7 +217,7 @@ void extract_inode (lsxfs_inode_t *inode, char *path)
 	close (fd);
 }
 
-void extractor (lsxfs_inode_t *dir, lsxfs_inode_t *inode,
+void extractor (u6fs_inode_t *dir, u6fs_inode_t *inode,
 	char *dirname, char *filename, void *arg)
 {
 	FILE *out = arg;
@@ -239,13 +239,13 @@ void extractor (lsxfs_inode_t *dir, lsxfs_inode_t *inode,
 		if (mkdir (path, 0775) < 0)
 			perror (path);
 		/* Scan subdirectory. */
-		lsxfs_directory_scan (inode, path, extractor, arg);
+		u6fs_directory_scan (inode, path, extractor, arg);
 	} else {
 		extract_inode (inode, path);
 	}
 }
 
-void scanner (lsxfs_inode_t *dir, lsxfs_inode_t *inode,
+void scanner (u6fs_inode_t *dir, u6fs_inode_t *inode,
 	char *dirname, char *filename, void *arg)
 {
 	FILE *out = arg;
@@ -257,7 +257,7 @@ void scanner (lsxfs_inode_t *dir, lsxfs_inode_t *inode,
 		/* Print a list of blocks. */
 		print_inode_blocks (inode, out);
 		if (verbose > 2) {
-			lsxfs_inode_print (inode, out);
+			u6fs_inode_print (inode, out);
 			printf ("--------\n");
 		}
 	}
@@ -267,16 +267,16 @@ void scanner (lsxfs_inode_t *dir, lsxfs_inode_t *inode,
 		strcpy (path, dirname);
 		strcat (path, "/");
 		strcat (path, filename);
-		lsxfs_directory_scan (inode, path, scanner, arg);
+		u6fs_directory_scan (inode, path, scanner, arg);
 	}
 }
 
 /*
  * Create a directory.
  */
-void add_directory (lsxfs_t *fs, char *name)
+void add_directory (u6fs_t *fs, char *name)
 {
-	lsxfs_inode_t dir, parent;
+	u6fs_inode_t dir, parent;
 	char buf [512], *p;
 
 	/* Open parent directory. */
@@ -286,51 +286,51 @@ void add_directory (lsxfs_t *fs, char *name)
 		*p = 0;
 	else
 		*buf = 0;
-	if (! lsxfs_inode_by_name (fs, &parent, buf, 0, 0)) {
+	if (! u6fs_inode_by_name (fs, &parent, buf, 0, 0)) {
 		fprintf (stderr, "%s: cannot open directory\n", buf);
 		return;
 	}
 
 	/* Create directory. */
-	if (! lsxfs_inode_by_name (fs, &dir, name, 1,
+	if (! u6fs_inode_by_name (fs, &dir, name, 1,
 	    INODE_MODE_FDIR | 0777)) {
 		fprintf (stderr, "%s: directory inode create failed\n", name);
 		return;
 	}
-	lsxfs_inode_save (&dir, 0);
+	u6fs_inode_save (&dir, 0);
 
 	/* Make link '.' */
 	strcpy (buf, name);
 	strcat (buf, "/.");
-	if (! lsxfs_inode_by_name (fs, &dir, buf, 3, dir.number)) {
+	if (! u6fs_inode_by_name (fs, &dir, buf, 3, dir.number)) {
 		fprintf (stderr, "%s: dot link failed\n", name);
 		return;
 	}
 	++dir.nlink;
-	lsxfs_inode_save (&dir, 1);
+	u6fs_inode_save (&dir, 1);
 /*printf ("*** inode %d: increment link counter to %d\n", dir.number, dir.nlink);*/
 
 	/* Make parent link '..' */
 	strcat (buf, ".");
-	if (! lsxfs_inode_by_name (fs, &dir, buf, 3, parent.number)) {
+	if (! u6fs_inode_by_name (fs, &dir, buf, 3, parent.number)) {
 		fprintf (stderr, "%s: dotdot link failed\n", name);
 		return;
 	}
-	if (! lsxfs_inode_get (fs, &parent, parent.number)) {
+	if (! u6fs_inode_get (fs, &parent, parent.number)) {
 		fprintf (stderr, "inode %d: cannot open parent\n", parent.number);
 		return;
 	}
 	++parent.nlink;
-	lsxfs_inode_save (&parent, 1);
+	u6fs_inode_save (&parent, 1);
 /*printf ("*** inode %d: increment link counter to %d\n", parent.number, parent.nlink);*/
 }
 
 /*
  * Create a device node.
  */
-void add_device (lsxfs_t *fs, char *name, char *spec)
+void add_device (u6fs_t *fs, char *name, char *spec)
 {
-	lsxfs_inode_t dev;
+	u6fs_inode_t dev;
 	int majr, minr;
 	char type;
 
@@ -341,22 +341,22 @@ void add_device (lsxfs_t *fs, char *name, char *spec)
 		fprintf (stderr, "expected c<major>:<minor> or b<major>:<minor>\n");
 		return;
 	}
-	if (! lsxfs_inode_by_name (fs, &dev, name, 1, 0666 |
+	if (! u6fs_inode_by_name (fs, &dev, name, 1, 0666 |
 	    ((type == 'b') ? INODE_MODE_FBLK : INODE_MODE_FCHR))) {
 		fprintf (stderr, "%s: device inode create failed\n", name);
 		return;
 	}
 	dev.addr[0] = majr << 8 | minr;
-	lsxfs_inode_save (&dev, 1);
+	u6fs_inode_save (&dev, 1);
 }
 
 /*
  * Copy file to filesystem.
  * When name is ended by slash as "name/", directory is created.
  */
-void add_file (lsxfs_t *fs, char *name)
+void add_file (u6fs_t *fs, char *name)
 {
-	lsxfs_file_t file;
+	u6fs_file_t file;
 	FILE *fd;
 	char data [512], *p;
 	int len;
@@ -381,7 +381,7 @@ void add_file (lsxfs_t *fs, char *name)
 		perror (name);
 		return;
 	}
-	if (! lsxfs_file_create (fs, &file, name, 0777)) {
+	if (! u6fs_file_create (fs, &file, name, 0777)) {
 		fprintf (stderr, "%s: cannot create\n", name);
 		return;
 	}
@@ -392,23 +392,23 @@ void add_file (lsxfs_t *fs, char *name)
 			perror (name);
 		if (len <= 0)
 			break;
-		if (! lsxfs_file_write (&file, data, len)) {
+		if (! u6fs_file_write (&file, data, len)) {
 			fprintf (stderr, "%s: write error\n", name);
 			break;
 		}
 	}
-	lsxfs_file_close (&file);
+	u6fs_file_close (&file);
 	fclose (fd);
 }
 
-void add_boot (lsxfs_t *fs)
+void add_boot (u6fs_t *fs)
 {
 	if (flat) {
 		if (boot_sector2) {
 			fprintf(stderr, "Secondary boot ignored\n");
 		}
 		if (boot_sector) {
-			if (! lsxfs_install_single_boot (fs, boot_sector)) {
+			if (! u6fs_install_single_boot (fs, boot_sector)) {
 				fprintf (stderr, "%s: incorrect boot sector\n",
 				boot_sector);
 				return;
@@ -416,7 +416,7 @@ void add_boot (lsxfs_t *fs)
 			printf ("Boot sector %s installed\n", boot_sector);
 		}
 	} else if (boot_sector && boot_sector2) {
-		if (! lsxfs_install_boot (fs, boot_sector,
+		if (! u6fs_install_boot (fs, boot_sector,
 		    boot_sector2)) {
 			fprintf (stderr, "%s: incorrect boot sector\n",
 				boot_sector);
@@ -430,8 +430,8 @@ void add_boot (lsxfs_t *fs)
 int main (int argc, char **argv)
 {
 	int i;
-	lsxfs_t fs;
-	lsxfs_inode_t inode;
+	u6fs_t fs;
+	u6fs_inode_t inode;
 
 	argp_parse (&argp_parser, argc, argv, 0, &i, 0);
 	if ((! add && i != argc-1) || (add && i >= argc-1) ||
@@ -443,29 +443,29 @@ int main (int argc, char **argv)
 	}
 	if (newfs) {
 		/* Create new filesystem. */
-		if (! lsxfs_create (&fs, argv[i], bytes)) {
+		if (! u6fs_create (&fs, argv[i], bytes)) {
 			fprintf (stderr, "%s: cannot create filesystem\n", argv[i]);
 			return -1;
 		}
 		printf ("Created filesystem %s - %ld bytes\n", argv[i], bytes);
 		add_boot (&fs);
-		lsxfs_close (&fs);
+		u6fs_close (&fs);
 		return 0;
 	}
 
 	if (check) {
 		/* Check filesystem for errors, and optionally fix them. */
-		if (! lsxfs_open (&fs, argv[i], fix)) {
+		if (! u6fs_open (&fs, argv[i], fix)) {
 			fprintf (stderr, "%s: cannot open\n", argv[i]);
 			return -1;
 		}
-		lsxfs_check (&fs);
-		lsxfs_close (&fs);
+		u6fs_check (&fs);
+		u6fs_close (&fs);
 		return 0;
 	}
 
 	/* Add or extract or info or boot update. */
-	if (! lsxfs_open (&fs, argv[i],
+	if (! u6fs_open (&fs, argv[i],
 			(add != 0) || (boot_sector && boot_sector2))) {
 		fprintf (stderr, "%s: cannot open\n", argv[i]);
 		return -1;
@@ -473,12 +473,12 @@ int main (int argc, char **argv)
 
 	if (extract) {
 		/* Extract all files to current directory. */
-		if (! lsxfs_inode_get (&fs, &inode, 1)) {
+		if (! u6fs_inode_get (&fs, &inode, 1)) {
 			fprintf (stderr, "%s: cannot get inode 1\n", argv[i]);
 			return -1;
 		}
-		lsxfs_directory_scan (&inode, ".", extractor, (void*) stdout);
-		lsxfs_close (&fs);
+		u6fs_directory_scan (&inode, ".", extractor, (void*) stdout);
+		u6fs_close (&fs);
 		return 0;
 	}
 
@@ -488,27 +488,27 @@ int main (int argc, char **argv)
 		/* Add files i+1..argc-1 to filesystem. */
 		while (++i < argc)
 			add_file (&fs, argv[i]);
-		lsxfs_sync (&fs, 0);
-		lsxfs_close (&fs);
+		u6fs_sync (&fs, 0);
+		u6fs_close (&fs);
 		return 0;
 	}
 
 	/* Print the structure of flesystem. */
-	lsxfs_print (&fs, stdout);
+	u6fs_print (&fs, stdout);
 	if (verbose) {
 		printf ("--------\n");
-		if (! lsxfs_inode_get (&fs, &inode, 1)) {
+		if (! u6fs_inode_get (&fs, &inode, 1)) {
 			fprintf (stderr, "%s: cannot get inode 1\n", argv[i]);
 			return -1;
 		}
 		if (verbose > 1) {
-			lsxfs_inode_print (&inode, stdout);
+			u6fs_inode_print (&inode, stdout);
 			printf ("--------\n");
 			printf ("/\n");
 			print_inode_blocks (&inode, stdout);
 		}
-		lsxfs_directory_scan (&inode, "", scanner, (void*) stdout);
+		u6fs_directory_scan (&inode, "", scanner, (void*) stdout);
 	}
-	lsxfs_close (&fs);
+	u6fs_close (&fs);
 	return 0;
 }

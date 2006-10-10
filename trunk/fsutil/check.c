@@ -4,7 +4,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "lsxfs.h"
+#include "u6fs.h"
 
 extern int verbose;
 
@@ -32,7 +32,7 @@ extern int verbose;
 #define outrange(fs,x)	((x) < (fs)->isize + 2 || (x) >= (fs)->fsize)
 
 /* block scan function, called by scan_inode for every file block */
-typedef int scanner_t (lsxfs_inode_t *inode, unsigned short blk, void *arg);
+typedef int scanner_t (u6fs_inode_t *inode, unsigned short blk, void *arg);
 
 static unsigned char	buf_data [LSXFS_BSIZE];	/* buffer data for scan_directory */
 static unsigned short	buf_bno;		/* buffer block number */
@@ -117,23 +117,23 @@ static void print_io_error (char *s, unsigned short blk)
 	printf ("\nCAN NOT %s: BLK %d\n", s, blk);
 }
 
-static void buf_flush (lsxfs_t *fs)
+static void buf_flush (u6fs_t *fs)
 {
 	if (buf_dirty && fs->writable) {
 /*printf ("WRITE blk %d\n", buf_bno);*/
-		if (! lsxfs_write_block (fs, buf_bno, buf_data))
+		if (! u6fs_write_block (fs, buf_bno, buf_data))
 			print_io_error ("WRITE", buf_bno);
 	}
 	buf_dirty = 0;
 }
 
-static int buf_get (lsxfs_t *fs, unsigned short blk)
+static int buf_get (u6fs_t *fs, unsigned short blk)
 {
 	if (buf_bno == blk)
 		return 1;
 	buf_flush (fs);
 /*printf ("read blk %d\n", blk);*/
-	if (! lsxfs_read_block (fs, blk, buf_data)) {
+	if (! u6fs_read_block (fs, blk, buf_data)) {
 		print_io_error ("READ", blk);
 		buf_bno = (unsigned short)-1;
 		return 0;
@@ -146,7 +146,7 @@ static int buf_get (lsxfs_t *fs, unsigned short blk)
  * Scan recursively the indirect block of the inode,
  * and for every block call the given function.
  */
-static int scan_indirect_block (lsxfs_inode_t *inode, unsigned short blk,
+static int scan_indirect_block (u6fs_inode_t *inode, unsigned short blk,
 	int double_indirect, int flg, scanner_t *func, void *arg)
 {
 	unsigned short nb;
@@ -162,7 +162,7 @@ static int scan_indirect_block (lsxfs_inode_t *inode, unsigned short blk,
 	if (outrange (inode->fs, blk))		/* protect thyself */
 		return SKIP;
 
-	if (! lsxfs_read_block (inode->fs, blk, data)) {
+	if (! u6fs_read_block (inode->fs, blk, data)) {
 		print_io_error ("READ", blk);
 		return SKIP;
 	}
@@ -189,7 +189,7 @@ static int scan_indirect_block (lsxfs_inode_t *inode, unsigned short blk,
  * - when ADDR - call func for both data and indirect blocks
  * - when DATA - only data blocks are processed
  */
-static int scan_inode (lsxfs_inode_t *inode, int flg, scanner_t *func, void *arg)
+static int scan_inode (u6fs_inode_t *inode, int flg, scanner_t *func, void *arg)
 {
 	unsigned short *ap;
 	int ret;
@@ -241,7 +241,7 @@ static void print_block_error (char *s, unsigned short blk, unsigned short inum)
  * Mark blocks as busy on block map.
  * If duplicates are found, put them into dup_list.
  */
-static int pass1 (lsxfs_inode_t *inode, unsigned short blk, void *arg)
+static int pass1 (u6fs_inode_t *inode, unsigned short blk, void *arg)
 {
 	unsigned short *dlp;
 	unsigned short *blocks = arg;
@@ -285,7 +285,7 @@ static int pass1 (lsxfs_inode_t *inode, unsigned short blk, void *arg)
 	return KEEPON;
 }
 
-static int pass1b (lsxfs_inode_t *inode, unsigned short blk, void *arg)
+static int pass1b (u6fs_inode_t *inode, unsigned short blk, void *arg)
 {
 	unsigned short *dlp;
 
@@ -307,9 +307,9 @@ static int pass1b (lsxfs_inode_t *inode, unsigned short blk, void *arg)
  * Read directory, and for every entry call given function.
  * If function altered the contents of entry, then write it back.
  */
-static int scan_directory (lsxfs_inode_t *inode, unsigned short blk, void *arg)
+static int scan_directory (u6fs_inode_t *inode, unsigned short blk, void *arg)
 {
-	lsxfs_dirent_t direntry;
+	u6fs_dirent_t direntry;
 	unsigned char *dirp;
 	int (*func) () = arg;
 	int n;
@@ -325,14 +325,14 @@ static int scan_directory (lsxfs_inode_t *inode, unsigned short blk, void *arg)
 			scan_filesize -= (&buf_data[LSXFS_BSIZE] - dirp);
 			return SKIP;
 		}
-		lsxfs_dirent_unpack (&direntry, dirp);
+		u6fs_dirent_unpack (&direntry, dirp);
 
 		/* For every directory entry, call handler. */
 		n = (*func) (inode->fs, &direntry);
 
 		if (n & ALTERD) {
 			if (buf_get (inode->fs, blk)) {
-				lsxfs_dirent_pack (dirp, &direntry);
+				u6fs_dirent_pack (dirp, &direntry);
 				buf_dirty = 1;
 			} else
 				n &= ~ALTERD;
@@ -345,7 +345,7 @@ static int scan_directory (lsxfs_inode_t *inode, unsigned short blk, void *arg)
 	return (scan_filesize > 0) ? KEEPON : STOP;
 }
 
-static void print_inode (lsxfs_inode_t *inode)
+static void print_inode (u6fs_inode_t *inode)
 {
 	char *p;
 
@@ -357,11 +357,11 @@ static void print_inode (lsxfs_inode_t *inode)
 	printf ("MTIME=%12.12s %4.4s\n", p+4, p+20);
 }
 
-static void print_dir_error (lsxfs_t *fs, unsigned short inum, char *s)
+static void print_dir_error (u6fs_t *fs, unsigned short inum, char *s)
 {
-	lsxfs_inode_t inode;
+	u6fs_inode_t inode;
 
-	if (! lsxfs_inode_get (fs, &inode, inum)) {
+	if (! u6fs_inode_get (fs, &inode, inum)) {
 		printf ("%s  I=%u\nNAME=%s\n", s, inum, pathname);
 		return;
 	}
@@ -371,16 +371,16 @@ static void print_dir_error (lsxfs_t *fs, unsigned short inum, char *s)
 		INODE_MODE_FDIR) ? "DIR" : "FILE", pathname);
 }
 
-static void scan_pass2 (lsxfs_t *fs, unsigned short inum);
+static void scan_pass2 (u6fs_t *fs, unsigned short inum);
 
 /*
  * Clear directory entries which refer to duplicated or unallocated inodes.
  * Decrement link counters.
  */
-static int pass2 (lsxfs_t *fs, lsxfs_dirent_t *dirp)
+static int pass2 (u6fs_t *fs, u6fs_dirent_t *dirp)
 {
 	int inum, n, ret = KEEPON;
-	lsxfs_inode_t inode;
+	u6fs_inode_t inode;
 
 	inum = dirp->ino;
 	if (inum == 0)
@@ -412,7 +412,7 @@ again:		switch (inode_state (inum)) {
 				ret |= ALTERD;
 				break;
 			}
-			if (! lsxfs_inode_get (fs, &inode, inum))
+			if (! u6fs_inode_get (fs, &inode, inum))
 				break;
 			set_inode_state (inum, ((inode.mode & INODE_MODE_FMT) ==
 				INODE_MODE_FDIR) ? DSTATE : FSTATE);
@@ -433,14 +433,14 @@ again:		switch (inode_state (inum)) {
  * Traverse directory tree. Call pass2 for every directory entry.
  * Keep current file name in 'pathname'.
  */
-static void scan_pass2 (lsxfs_t *fs, unsigned short inum)
+static void scan_pass2 (u6fs_t *fs, unsigned short inum)
 {
-	lsxfs_inode_t inode;
+	u6fs_inode_t inode;
 	char *savname;
 	unsigned long savsize;
 
 	set_inode_state (inum, FSTATE);
-	if (! lsxfs_inode_get (fs, &inode, inum))
+	if (! u6fs_inode_get (fs, &inode, inum))
 		return;
 	*pathp++ = '/';
 	savname = thisname;
@@ -456,7 +456,7 @@ static void scan_pass2 (lsxfs_t *fs, unsigned short inum)
  * The name is in 'find_inode_name'.
  * Put resulting inode number into 'find_inode_result'.
  */
-static int find_inode (lsxfs_t *fs, lsxfs_dirent_t *dirp)
+static int find_inode (u6fs_t *fs, u6fs_dirent_t *dirp)
 {
 	if (dirp->ino == 0)
 		return KEEPON;
@@ -473,7 +473,7 @@ static int find_inode (lsxfs_t *fs, lsxfs_dirent_t *dirp)
  * Find a free slot and make link to 'lost_inode'.
  * Create filename of a kind "#01234".
  */
-static int make_lost_entry (lsxfs_t *fs, lsxfs_dirent_t *dirp)
+static int make_lost_entry (u6fs_t *fs, u6fs_dirent_t *dirp)
 {
 	if (dirp->ino)
 		return KEEPON;
@@ -485,7 +485,7 @@ static int make_lost_entry (lsxfs_t *fs, lsxfs_dirent_t *dirp)
 /*
  * For entry ".." set inode number to 'lost_found_inode'.
  */
-static int dotdot_to_lost_found (lsxfs_t *fs, lsxfs_dirent_t *dirp)
+static int dotdot_to_lost_found (u6fs_t *fs, u6fs_dirent_t *dirp)
 {
 	if (dirp->name[0] == '.' && dirp->name[1] == '.' &&
 	    dirp->name[2] == 0) {
@@ -499,12 +499,12 @@ static int dotdot_to_lost_found (lsxfs_t *fs, lsxfs_dirent_t *dirp)
  * Return lost+found inode number.
  * TODO: create /lost+found when not available.
  */
-static unsigned short find_lost_found (lsxfs_t *fs)
+static unsigned short find_lost_found (u6fs_t *fs)
 {
-	lsxfs_inode_t root;
+	u6fs_inode_t root;
 
 	/* Find lost_found directory inode number. */
-	if (! lsxfs_inode_get (fs, &root, LSXFS_ROOT_INODE))
+	if (! u6fs_inode_get (fs, &root, LSXFS_ROOT_INODE))
 		return 0;
 	find_inode_name = lost_found_name;
 	find_inode_result = 0;
@@ -515,9 +515,9 @@ static unsigned short find_lost_found (lsxfs_t *fs)
 /*
  * Restore a link to parent directory - "..".
  */
-static int move_to_lost_found (lsxfs_inode_t *inode)
+static int move_to_lost_found (u6fs_inode_t *inode)
 {
-	lsxfs_inode_t lost_found;
+	u6fs_inode_t lost_found;
 
 	printf ("UNREF %s ", ((inode->mode & INODE_MODE_FMT) ==
 		INODE_MODE_FDIR) ? "DIR" : "FILE");
@@ -534,7 +534,7 @@ static int move_to_lost_found (lsxfs_inode_t *inode)
 			return 0;
 		}
 	}
-	if (! lsxfs_inode_get (inode->fs, &lost_found, lost_found_inode) ||
+	if (! u6fs_inode_get (inode->fs, &lost_found, lost_found_inode) ||
 	    ((lost_found.mode & INODE_MODE_FMT) != INODE_MODE_FDIR) ||
 	    inode_state (lost_found_inode) != FSTATE) {
 		printf ("SORRY. NO lost+found DIRECTORY\n\n");
@@ -543,7 +543,7 @@ static int move_to_lost_found (lsxfs_inode_t *inode)
 	if (lost_found.size % LSXFS_BSIZE) {
 		lost_found.size = (lost_found.size + LSXFS_BSIZE - 1) /
 			LSXFS_BSIZE * LSXFS_BSIZE;
-		if (! lsxfs_inode_save (&lost_found, 1)) {
+		if (! u6fs_inode_save (&lost_found, 1)) {
 			printf ("SORRY. ERROR WRITING lost+found I-NODE\n\n");
 			return 0;
 		}
@@ -561,10 +561,10 @@ static int move_to_lost_found (lsxfs_inode_t *inode)
 	if ((inode->mode & INODE_MODE_FMT) == INODE_MODE_FDIR) {
 		/* For ".." set inode number to lost_found_inode. */
 		scan_inode (inode, DATA, scan_directory, dotdot_to_lost_found);
-		if (lsxfs_inode_get (inode->fs, &lost_found, lost_found_inode)) {
+		if (u6fs_inode_get (inode->fs, &lost_found, lost_found_inode)) {
 			lost_found.nlink++;
 			++link_count [lost_found.number];
-			if (! lsxfs_inode_save (&lost_found, 1)) {
+			if (! u6fs_inode_save (&lost_found, 1)) {
 				printf ("SORRY. ERROR WRITING lost+found I-NODE\n\n");
 				return 0;
 			}
@@ -577,7 +577,7 @@ static int move_to_lost_found (lsxfs_inode_t *inode)
 /*
  * Mark the block as free. Remove it from dup list.
  */
-static int pass4 (lsxfs_inode_t *inode, unsigned short blk, void *arg)
+static int pass4 (u6fs_inode_t *inode, unsigned short blk, void *arg)
 {
 	unsigned short *dlp;
 	unsigned short *blocks = arg;
@@ -601,11 +601,11 @@ static int pass4 (lsxfs_inode_t *inode, unsigned short blk, void *arg)
 /*
  * Clear the inode, mark it's blocks as free.
  */
-static void clear_inode (lsxfs_t *fs, unsigned short inum, char *msg)
+static void clear_inode (u6fs_t *fs, unsigned short inum, char *msg)
 {
-	lsxfs_inode_t inode;
+	u6fs_inode_t inode;
 
-	if (! lsxfs_inode_get (fs, &inode, inum))
+	if (! u6fs_inode_get (fs, &inode, inum))
 		return;
 	if (msg) {
 		printf ("%s %s", msg, ((inode.mode & INODE_MODE_FMT) ==
@@ -615,8 +615,8 @@ static void clear_inode (lsxfs_t *fs, unsigned short inum, char *msg)
 	if (fs->writable) {
 		total_files--;
 		scan_inode (&inode, ADDR, pass4, 0);
-		lsxfs_inode_clear (&inode);
-		lsxfs_inode_save (&inode, 1);
+		u6fs_inode_clear (&inode);
+		u6fs_inode_save (&inode, 1);
 	}
 }
 
@@ -624,11 +624,11 @@ static void clear_inode (lsxfs_t *fs, unsigned short inum, char *msg)
  * Fix the link count of the inode.
  * If no links - move it to lost+found.
  */
-static void adjust_link_count (lsxfs_t *fs, unsigned short inum, short lcnt)
+static void adjust_link_count (u6fs_t *fs, unsigned short inum, short lcnt)
 {
-	lsxfs_inode_t inode;
+	u6fs_inode_t inode;
 
-	if (! lsxfs_inode_get (fs, &inode, inum))
+	if (! u6fs_inode_get (fs, &inode, inum))
 		return;
 	if (inode.nlink == lcnt) {
 		/* No links to file - move to lost+found. */
@@ -643,7 +643,7 @@ static void adjust_link_count (lsxfs_t *fs, unsigned short inum, short lcnt)
 			inode.nlink, inode.nlink - lcnt);
 		if (fs->writable) {
 			inode.nlink -= lcnt;
-			lsxfs_inode_save (&inode, 1);
+			u6fs_inode_save (&inode, 1);
 		}
 	}
 }
@@ -652,7 +652,7 @@ static void adjust_link_count (lsxfs_t *fs, unsigned short inum, short lcnt)
  * Called from check_free_list() for every block in free list.
  * Count free blocks, detect duplicates.
  */
-static int pass5 (lsxfs_t *fs, unsigned short blk, unsigned short *free_blocks)
+static int pass5 (u6fs_t *fs, unsigned short blk, unsigned short *free_blocks)
 {
 	if (outrange (fs, blk)) {
 		free_list_corrupted = 1;
@@ -679,7 +679,7 @@ static int pass5 (lsxfs_t *fs, unsigned short blk, unsigned short *free_blocks)
  * Scan a free block list and return a number of free blocks.
  * If the list is corrupted, set 'free_list_corrupted' flag.
  */
-static unsigned short check_free_list (lsxfs_t *fs)
+static unsigned short check_free_list (u6fs_t *fs)
 {
 	unsigned short *ap, *base;
 	unsigned short free_blocks, nfree;
@@ -705,13 +705,13 @@ static unsigned short check_free_list (lsxfs_t *fs)
 		}
 		if (*ap == 0 || pass5 (fs, *ap, &free_blocks) != KEEPON)
 			break;
-		if (! lsxfs_read_block (fs, *ap, (char*) data)) {
+		if (! u6fs_read_block (fs, *ap, (char*) data)) {
 			print_io_error ("READ", *ap);
 			break;
 		}
-		nfree = lsx_short (data[0]);
+		nfree = lsb_short (data[0]);
 		for (i=0; i<100; ++i)
-			list [i] = lsx_short (data[i+1]);
+			list [i] = lsb_short (data[i+1]);
 		base = list;
 	}
 	return free_blocks;
@@ -720,7 +720,7 @@ static unsigned short check_free_list (lsxfs_t *fs)
 /*
  * Check a list of free inodes.
  */
-static void check_free_inode_list (lsxfs_t *fs)
+static void check_free_inode_list (u6fs_t *fs)
 {
 	int i;
 	unsigned short inum;
@@ -743,7 +743,7 @@ static void check_free_inode_list (lsxfs_t *fs)
 /*
  * Build a free block list from scratch.
  */
-static unsigned short make_free_list (lsxfs_t *fs)
+static unsigned short make_free_list (u6fs_t *fs)
 {
 	unsigned short free_blocks, n;
 
@@ -756,12 +756,12 @@ static unsigned short make_free_list (lsxfs_t *fs)
 	free_blocks = 0;
 
 	/* Build a list of free blocks */
-	lsxfs_block_free (fs, 0);
+	u6fs_block_free (fs, 0);
 	for (n = fs->fsize - 1; n >= fs->isize + 2; n--) {
 		if (block_is_busy (n))
 			continue;
 		++free_blocks;
-		if (! lsxfs_block_free (fs, n))
+		if (! u6fs_block_free (fs, n))
 			return 0;
 	}
 	return free_blocks;
@@ -772,9 +772,9 @@ static unsigned short make_free_list (lsxfs_t *fs)
  * When readonly - just check and print errors.
  * If the system is open on read/write - fix errors.
  */
-int lsxfs_check (lsxfs_t *fs)
+int u6fs_check (u6fs_t *fs)
 {
-	lsxfs_inode_t inode;
+	u6fs_inode_t inode;
 	int n;
 	unsigned short inum;
 	unsigned short block_map_size;		/* number of free blocks */
@@ -817,7 +817,7 @@ fatal:		if (block_map)
 	printf ("** Phase 1 - Check Blocks and Sizes\n");
 	last_allocated_inode = 0;
 	for (inum = 1; inum <= fs->isize * LSXFS_INODES_PER_BLOCK; inum++) {
-		if (! lsxfs_inode_get (fs, &inode, inum))
+		if (! u6fs_inode_get (fs, &inode, inum))
 			continue;
 		if (inode.mode & INODE_MODE_ALLOC) {
 /*printf ("inode %d: %#o\n", inode.number, inode.mode);*/
@@ -847,16 +847,16 @@ fatal:		if (block_map)
 		else if (inode.mode != 0) {
 			printf ("PARTIALLY ALLOCATED INODE I=%u\n", inum);
 			if (fs->writable)
-				lsxfs_inode_clear (&inode);
+				u6fs_inode_clear (&inode);
 		}
-		lsxfs_inode_save (&inode, 0);
+		u6fs_inode_save (&inode, 0);
 	}
 	if (dup_end != &dup_list[0]) {
 		printf ("** Phase 1b - Rescan For More DUPS\n");
 		for (inum = 1; inum <= last_allocated_inode; inum++) {
 			if (inode_state (inum) == USTATE)
 				continue;
-			if (! lsxfs_inode_get (fs, &inode, inum))
+			if (! u6fs_inode_get (fs, &inode, inum))
 				continue;
 			if (scan_inode (&inode, ADDR, pass1b, 0) & STOP)
 				break;
@@ -873,11 +873,11 @@ fatal:		if (block_map)
 		printf ("ROOT INODE NOT DIRECTORY\n");
 		if (! fs->writable)
 			goto fatal;
-		if (! lsxfs_inode_get (fs, &inode, LSXFS_ROOT_INODE))
+		if (! u6fs_inode_get (fs, &inode, LSXFS_ROOT_INODE))
 			goto fatal;
 		inode.mode &= ~INODE_MODE_FMT;
 		inode.mode |= INODE_MODE_FDIR;
-		lsxfs_inode_save (&inode, 1);
+		u6fs_inode_save (&inode, 1);
 		set_inode_state (LSXFS_ROOT_INODE, DSTATE);
 	case DSTATE:
 		scan_pass2 (fs, LSXFS_ROOT_INODE);
@@ -896,7 +896,7 @@ fatal:		if (block_map)
 			find_inode_name = "..";
 			ino = inum;
 			do {
-				if (! lsxfs_inode_get (fs, &inode, ino))
+				if (! u6fs_inode_get (fs, &inode, ino))
 					break;
 				find_inode_result = 0;
 				scan_inode (&inode, DATA, scan_directory, find_inode);
@@ -984,7 +984,7 @@ fatal:		if (block_map)
 		fs->dirty = 1;
 	}
 	buf_flush (fs);
-	lsxfs_sync (fs, 0);
+	u6fs_sync (fs, 0);
 	if (fs->modified)
 		printf ("\n***** FILE SYSTEM WAS MODIFIED *****\n");
 
