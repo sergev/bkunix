@@ -8,6 +8,10 @@
  * The _exectrap flags is used by the debugger and causes
  * a trace trap on the first instruction of the executed instruction
  * to give a chance to set breakpoints.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
 #include <syscall.h>
 

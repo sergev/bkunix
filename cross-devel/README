@@ -1,3 +1,17 @@
-This is a port of C compiler for PDP-11, taken from 2.11BSD.
+This is a port of development system for PDP-11, taken from 2.11BSD.
+It includes:
+
+  * as		- AT&T assembler
+  * ccom	- Ritchie's C compiler
+  * mip, pcc	- Johnson's portable C compiler
+  * cpp		- C preprocessor
+  * c2		- optimizer for assembler output of C compilers
+  * cc		- compiler front end utilities
+  * ld		- linker, archiver, disassembler, and other a.out utilities
+  * crt		- C run time library for long and unsigned arithmetic
+
+This directory is part of BKUNIX project, which is distributed
+under the terms of the GNU General Public License (GPL).
+See the accompanying file "COPYING" for more details.
 ___
 Serge Vakulenko, <vak@cronyx.ru>

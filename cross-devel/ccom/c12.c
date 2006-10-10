@@ -1,7 +1,10 @@
 /*
- *		C compiler part 2 -- expression optimizer
+ * C compiler part 2 -- expression optimizer
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
-
 #include "c1.h"
 #include <sys/param.h>		/* for MAX */
 

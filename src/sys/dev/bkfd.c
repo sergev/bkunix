@@ -1,10 +1,13 @@
 /*
  * FD/HDD firmware ROM interface for BK UNIX
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
 #include "param.h"
 #include "buf.h"
 #include "user.h"
-
 
 struct devtab fdtab;
 #define NFDBLK 1600

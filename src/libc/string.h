@@ -1,3 +1,13 @@
+/*
+ * String handling functions.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
+#ifndef _STRING_H_
+#define _STRING_H_ 1
+
 #include <ansidecl.h>
 
 int strlen PARAMS((char*));
@@ -16,3 +26,5 @@ char *memccpy PARAMS((char*, char*, int, int));
 char *memchr PARAMS((char*, int, int));
 char *memcpy PARAMS((char*, char*, int));
 char *memset PARAMS((char*, int, int));
+
+#endif /* _STRING_H_ */

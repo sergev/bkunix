@@ -1,11 +1,14 @@
 /*
  * Header for object code improver
  *
- *	Several character buffers (used to store contents of registers,
- *	constants, etc) needed to be increased in size to handle the
- *	larger symbols passed thru from the compiler.
+ * Several character buffers (used to store contents of registers,
+ * constants, etc) needed to be increased in size to handle the
+ * larger symbols passed thru from the compiler.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

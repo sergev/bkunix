@@ -1,3 +1,12 @@
+/*
+ * Data structures for unix v6 filesystem.
+ *
+ * Copyright (C) 2006 Serge Vakulenko, <vak@cronyx.ru>
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 #define LSXFS_BSIZE		512	/* block size */
 #define LSXFS_ROOT_INODE	1	/* root directory in inode 1 */
 #define LSXFS_INODES_PER_BLOCK	16	/* inodes per block */

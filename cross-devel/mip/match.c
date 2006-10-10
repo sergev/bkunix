@@ -1,7 +1,8 @@
-#if	!defined(lint) && defined(DOSCCS)
-static char *sccsid ="@(#)match.c	4.4.1 (2.11BSD GTE) 1/17/95";
-#endif
-
+/*
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 # include "pass2.h"
 
 # ifdef WCARD1

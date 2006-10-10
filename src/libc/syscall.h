@@ -1,6 +1,13 @@
 /*
  * System call numbers.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
+#ifndef _SYSCALL_H_
+#define _SYSCALL_H_ 1
+
 #define SYS_exit	1	/* Terminate the calling process */
 #define SYS_fork	2	/* Create a new process */
 #define SYS_read	3	/* Read/write file */
@@ -20,6 +27,8 @@
 #define SYS_stat	18	/* Get file status by file name */
 #define SYS_seek	19	/* Reposition read/write file offset */
 #define SYS_getpid	20	/* Get calling process identification */
+#define SYS_mount	21	/* Mount file systems */
+#define SYS_umount	22	/* Unmount file systems */
 #define SYS_getuid	24	/* Get user identification */
 #define SYS_stime	25	/* Set time of day */
 #define SYS_alarm	27	/* Get/set value of process alarm timer */
@@ -30,3 +39,5 @@
 #define SYS_sync	36	/* Force a write of modified buffers out to disk */
 #define SYS_dup		41	/* Duplicate an existing file descriptor */
 #define SYS_signal	48	/* Set signal handler */
+
+#endif /* _SYSCALL_H_ */

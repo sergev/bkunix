@@ -1,9 +1,12 @@
 /*
-	as - PDP/11 assember, Part 1
-
-	Some support routines
-*/
-
+ * as - PDP/11 assember, Part 1
+ *
+ * Some support routines
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 #include <stdio.h>
 #include "as.h"
 #include "as1.h"

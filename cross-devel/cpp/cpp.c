@@ -2,6 +2,10 @@
  * C command
  * written by John F. Reiser
  * July/August 1978
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
 #ifdef FLEXNAMES
 #define	NCPS	128

@@ -1,14 +1,15 @@
-/*	localdefs.h	4.1	85/03/19	*/
 /*
  * Definitions of symbols local to PCC.
  *
  * This file is not included directly by PCC sources -- instead it is
- *	preprocessed along with <pcc.h> to yield two files, pcclocal.h
- *	and pcctokens.  The preprocessing strips off the PCC_ prefix
- *	from all the symbols, since the PCC has no potential clashes...
+ * preprocessed along with <pcc.h> to yield two files, pcclocal.h
+ * and pcctokens.  The preprocessing strips off the PCC_ prefix
+ * from all the symbols, since the PCC has no potential clashes...
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
-
-
 # ifndef	PCC_LOCALTOKENS
 
 # define	PCC_LOCALTOKENS	100

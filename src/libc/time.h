@@ -3,6 +3,9 @@
  * All rights reserved.  The Berkeley software License Agreement
  * specifies the terms and conditions for redistribution.
  */
+#ifndef _TIME_H_
+#define _TIME_H_ 1
+
 #include <ansidecl.h>
 
 /*
@@ -30,3 +33,5 @@ struct tm *gmtime PARAMS((long*));
 struct tm *localtime PARAMS((long*));
 char *asctime PARAMS((struct tm*));
 char *ctime PARAMS((long*));
+
+#endif /* _TIME_H_ */

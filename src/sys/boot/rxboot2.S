@@ -1,5 +1,10 @@
-/disk boot 
-
+/*
+ * Disk boot stage 2.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 #include "param.h"
 
 core = 12
@@ -59,7 +64,7 @@ start:
 	beq	1f
 	cmp	r0,$'@
 	beq	1b
-	cmp	r0,$' 
+	cmp	r0,$040			/ space
 	beq	2b
 	cmp	r0,$'#
 	bne	3b
@@ -228,7 +233,7 @@ rblk:
 	L1:	bit	$040,(r4)
 		beq	L1
 		mov	(pc)+,(r4)	/ *ptcs = READ|GO|UNIT
-	readop:	7
+	readop:	.word	7
 		mov	(sp),r1		/ now calculate sector,track
 					/ sector = (sectr * 3) % 26 + 1
 		asl	r1
@@ -406,11 +411,10 @@ nm:
 		<rx boot:\0>
 	.endif
 	.even
-in:	rootdir
+in:	.word	rootdir
 end:
 
 inode = ..-1024
 mode = inode
 addr = inode+8
 buf = inode+32
-

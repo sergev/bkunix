@@ -6,6 +6,10 @@
  *  Version	Date		Modification
  *	0.0	02Feb91		1. Initial inspiration struck.
  *	1.0	05Jun93		2. Released into the Public Domain.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
 
 /*

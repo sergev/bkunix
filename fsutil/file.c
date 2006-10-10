@@ -1,3 +1,12 @@
+/*
+ * File i/o routines for unix v6 filesystem.
+ *
+ * Copyright (C) 2006 Serge Vakulenko, <vak@cronyx.ru>
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 #include <stdio.h>
 #include <string.h>
 #include "u6fs.h"

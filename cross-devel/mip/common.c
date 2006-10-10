@@ -1,5 +1,8 @@
-/*	common.c	4.2.1	95/01/17	*/
-
+/*
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 #ifdef PASS1COMMON
 #include "pass1.h"
 #else

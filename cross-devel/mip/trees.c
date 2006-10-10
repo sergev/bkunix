@@ -1,7 +1,8 @@
-#if	!defined(lint) && defined(DOSCCS)
-static char *sccsid ="@(#)trees.c	4.10.1 (2.11BSD GTE) 1/17/95";
-#endif
-
+/*
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 # include "pass1.h"
 
 # include <setjmp.h>

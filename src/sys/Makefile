@@ -8,10 +8,10 @@
 #LIBS		=
 
 # Ritchie's compiler.
-#CC		= pdp11-cc
+CC		= pdp11-cc
 
 # Johnson's portable compiler.
-CC		= pdp11-pcc
+#CC		= pdp11-pcc
 
 CFLAGS		= -O
 LIBS		= $(shell sh findlib.sh $(CC) ) -lcrt
@@ -32,11 +32,6 @@ COBJS		= alloc.o bio.o \
 		  clock.o fio.o iget.o main.o nami.o rdwri.o sig.o slp.o \
 		  subr.o sys1.o sys2.o sys3.o sys4.o sysent.o trap.o
 OBJS		= $(ASOBJS) $(COBJS)
-
-# Debug mode: use debuf_printf().
-#CFLAGS		+= -DDEBUG
-#CSRCS		+= debug.c
-#OBJS		+= debug.o
 
 vpath %.c . dev
 vpath %.S . boot
@@ -77,7 +72,7 @@ all:		lsx boot1 boot2lo boot2hi #lsx1
 		$(SIZE) lsx #lsx1
 
 clean:
-		rm -f *~ dev/*~ *.o *.s a.out lsx lsx1 hsx bsx
+		rm -f *~ dev/*~ boot/*~ *.o *.s a.out lsx lsx1 hsx bsx
 		rm -f boot1 boot2lo boot2hi bkboot lsx.dis hsx.dis
 
 lsx:
@@ -158,7 +153,6 @@ mch.o: mch.S param.h
 alloc.o: alloc.c param.h systm.h filsys.h buf.h inode.h user.h
 bio.o: bio.c param.h user.h buf.h systm.h proc.h
 clock.o: clock.c param.h systm.h user.h proc.h
-debug.o: debug.c
 fio.o: fio.c param.h user.h filsys.h file.h inode.h reg.h
 iget.o: iget.c param.h systm.h user.h inode.h filsys.h buf.h
 main.o: main.c param.h user.h systm.h proc.h inode.h

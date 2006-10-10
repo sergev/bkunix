@@ -1,5 +1,5 @@
 /*
- * global command --
+ * Global command --
  *	glob params
  *
  * "*" in params matches r.e ".*"
@@ -7,13 +7,16 @@
  * "[...]" in params matches character class
  * "[...a-z...]" in params matches a through z.
  *
- * perform command with argument list
- * constructed as follows:
+ * Perform command with argument list constructed as follows:
  * - if param does not contain "*", "[", or "?", use it as is
  * - if it does, find all files in current directory
  *   which match the param, sort them, and use them
  *
- * prepend the command name with "/bin" or "/usr/bin" as required.
+ * Prepend the command name with "/bin" or "/usr/bin" as required.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
 #include <stdlib.h>
 #include <unistd.h>

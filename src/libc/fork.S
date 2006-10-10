@@ -4,6 +4,10 @@
  *
  * pid == 0 in child process;
  * pid == -1 means error return in child
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
 #include <syscall.h>
 

@@ -1,3 +1,13 @@
+/*
+ * Structure of archive file.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
+#ifndef _AR_H_
+#define _AR_H_ 1
+
 #define	ARCMAGIC 0177545
 
 struct ar_hdr {
@@ -10,3 +20,5 @@ struct ar_hdr {
 };
 
 #define AR_HDRSIZE	(14 + 4 + 1 + 1 + 2 + 4)
+
+#endif /* _AR_H_ */

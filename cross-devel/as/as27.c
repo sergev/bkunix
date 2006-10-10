@@ -1,9 +1,12 @@
 /*
-	AS - PDP/11 Assembler, Part II
-
-	Expression parsing / evaluation.
-*/
-
+ * AS - PDP/11 Assembler, Part II
+ *
+ * Expression parsing / evaluation.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 #include <stdio.h>
 #include "as.h"
 #include "as2.h"

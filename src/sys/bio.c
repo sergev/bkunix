@@ -1,5 +1,9 @@
 /*
  * Copyright 1975 Bell Telephone Laboratories Inc
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
 #include "param.h"
 #include "user.h"
@@ -241,7 +245,7 @@ swap(rdflg,tab)
 	return(swbuf.b_flags&B_ERROR);
 }
 #endif
-#undef SQUEEZE 
+#undef SQUEEZE
 #ifndef BGOPTION
 int
 swap(rdflg)

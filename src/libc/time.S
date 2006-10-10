@@ -3,6 +3,10 @@
  *	tvec = time(tvec);
  *
  * tvec[0], tvec[1] contain the time
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
 #include <syscall.h>
 

@@ -1,6 +1,10 @@
 /*
-	Header file for first part of as - PDP/11 Assember
-*/
+ * Header file for first part of as - PDP/11 Assember
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 
 /*
 	Symbol Table
