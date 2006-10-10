@@ -1,13 +1,14 @@
 /* C compiler
  *
- *	2.1	(2.11BSD)	1996/01/04
- *
  * Called from cc:
  *   c0 source temp1 temp2 [ profileflag ]
  * temp1 gets most of the intermediate code;
  * strings are put on temp2, which c1 reads after temp1.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
-
 #include <stdlib.h>
 #include <string.h>
 #include "c0.h"

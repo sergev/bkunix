@@ -1,30 +1,35 @@
-/
-/	rxboot.p -- rx11 skeleton bootstrap program.
-/	this program takes only one sector.
-/	rxboot.p is stored in boot location
-/		sector	1
-/		track	1
-/	pathname bootstrap is located in location
-/		** see l_sectr table 
-/	this program assumes that the bootstrap rom
-/	leaves the unit number (0,1) in register r0.
-/	this program in turn leaves the unit number
-/	(0,1) in register r0 when it jumps to the
-/	pathname bootstrap program.
-/
-/	modified by ljh for new rx layout 2/10/77
-rxcs	=0177170
-rxdb	=rxcs+2
-go	=1
-empty	=2
-intlev	=2
-rdrx	=6
-unit_1	=020
-done	=040
-treq	=0200
-initrx	=040000
-halt	=0
-nop	=0240
+/*
+ * rxboot.p -- rx11 skeleton bootstrap program.
+ * this program takes only one sector.
+ * rxboot.p is stored in boot location
+ *	sector	1
+ *	track	1
+ * pathname bootstrap is located in location
+ *	** see l_sectr table
+ * this program assumes that the bootstrap rom
+ * leaves the unit number (0,1) in register r0.
+ * this program in turn leaves the unit number
+ * (0,1) in register r0 when it jumps to the
+ * pathname bootstrap program.
+ *
+ * modified by ljh for new rx layout 2/10/77
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
+rxcs	= 0177170
+rxdb	= rxcs+2
+go	= 1
+empty	= 2
+intlev	= 2
+rdrx	= 6
+unit_1	= 020
+done	= 040
+treq	= 0200
+initrx	= 040000
+halt	= 0
+nop	= 0240
 	.text
 	.globl	rxboot,_rxboot
 _rxboot:
@@ -42,7 +47,7 @@ next:
 	beq	next
 	mov	(pc)+,*r1	/read sector instruction
 readop:
-	rdrx+go			/can be modified by unit number
+	.word	rdrx+go		/can be modified by unit number
 1:
 	tstb	*r1		/transfer request flag
 	jeq	1b
@@ -86,7 +91,7 @@ l_sctr:
 	.byte 10, 1		/ sector 10	track 1
 	.byte 21, 0		/ sector 21	track 0
 	.byte 24, 0		/ sector 24	track 0
-	0			/ end of table
+	.word 0			/ end of table
 bufaddr:
 	.word 0200		/start of pathname bootstrap
 	.even

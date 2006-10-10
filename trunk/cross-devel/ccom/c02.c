@@ -1,7 +1,10 @@
 /*
  * C compiler
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
-
 #include "c0.h"
 
 /*
@@ -338,7 +341,7 @@ stmt:
 		case GOTO:
 			if ( (o1 = simplegoto()) )
 				branch(o1);
-			else 
+			else
 				dogoto();
 			goto semi;
 
@@ -400,7 +403,7 @@ stmt:
 			hardif:
 				if ((o=symbol())!=SEMI)
 					goto syntax;
-				if ((o1=symbol())==KEYW && cval==ELSE) 
+				if ((o1=symbol())==KEYW && cval==ELSE)
 					goto stmt;
 				peeksym = o1;
 				return;
@@ -781,8 +784,8 @@ nameconflict(ocs, cs)
 register struct nmlist *ocs, *cs;
 {
 
-	for (; ocs!=NULL; ocs = ocs->nextnm) 
-		if (ocs!=cs && ocs->hclass==EXTERN && 
+	for (; ocs!=NULL; ocs = ocs->nextnm)
+		if (ocs!=cs && ocs->hclass==EXTERN &&
 		    strncmp(cs->name, ocs->name, MAXCPS-1) == 0)
 			error("names %s and %s conflict", cs->name, ocs->name);
 }

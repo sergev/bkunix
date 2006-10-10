@@ -1,5 +1,8 @@
-/*	manifest.h	4.1.1	95/01/17	*/
-
+/*
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 #ifndef _MANIFEST_
 #define	_MANIFEST_
 
@@ -118,4 +121,5 @@ typedef	unsigned int TWORD;
 #else
 #include "onepass.h"
 #endif
-#endif
+
+#endif /* _MANIFEST_ */

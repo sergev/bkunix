@@ -1,8 +1,12 @@
+/*
+ * Get next entry in a directory.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 #include <dirent.h>
 
-/*
- * get next entry in a directory.
- */
 struct dirent *
 readdir(dirp)
 	register DIR *dirp;

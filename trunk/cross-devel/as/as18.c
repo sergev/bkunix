@@ -1,7 +1,10 @@
 /*
-	as - PDP/11 assembler part 1 global data initialization
-*/
-
+ * as - PDP/11 assembler part 1 global data initialization
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 #include "as.h"
 #include "as1.h"
 

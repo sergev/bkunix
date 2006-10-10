@@ -1,3 +1,13 @@
+/*
+ * Filesystem data structures.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
+#ifndef _SYS_FS_H_
+#define _SYS_FS_H_ 1
+
 #define FS_BSIZE		512	/* block size */
 #define FS_ROOT_INODE		1	/* root directory in inode 1 */
 #define FS_INODES_PER_BLOCK	16	/* inodes per block */
@@ -62,30 +72,4 @@ int fs_balloc PARAMS((struct filesys*, unsigned int*));
 int fs_ibfree PARAMS((struct filesys*, unsigned int));
 int fs_dibfree PARAMS((struct filesys*, unsigned int));
 
-#if 0
-int fs_check PARAMS((struct filesys*);
-
-void fs_inode_truncate PARAMS((struct inode *inode);
-void fs_inode_print PARAMS((struct inode *inode, FILE *out);
-int fs_inode_read PARAMS((struct inode *inode, unsigned long offset,
-	unsigned char *data, unsigned long bytes);
-int fs_inode_write PARAMS((struct inode *inode, unsigned long offset,
-	unsigned char *data, unsigned long bytes);
-int fs_inode_alloc PARAMS((struct filesys*, struct inode *inode);
-int fs_inode_by_name PARAMS((struct filesys*, struct inode *inode, char *name,
-	int op, int mode);
-
-void fs_directory_scan PARAMS((struct inode *inode, char *dirname,
-	lsxfs_directory_scanner_t scanner, void *arg);
-void fs_dirent_pack PARAMS((unsigned char *data, lsxfs_dirent_t *dirent);
-void fs_dirent_unpack PARAMS((lsxfs_dirent_t *dirent, unsigned char *data);
-
-int fs_file_create PARAMS((struct filesys*, lsxfs_file_t *file, char *name, int mode);
-int fs_file_open PARAMS((struct filesys*, lsxfs_file_t *file, char *name, int wflag);
-int fs_file_read PARAMS((lsxfs_file_t *file, unsigned char *data,
-	unsigned long bytes);
-int fs_file_write PARAMS((lsxfs_file_t *file, unsigned char *data,
-	unsigned long bytes);
-int fs_file_close PARAMS((lsxfs_file_t *file);
-
-#endif
+#endif /* _SYS_FS_H_ */

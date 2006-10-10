@@ -1,16 +1,16 @@
-/ C library -- setjmp, longjmp
-
-/	longjmp(a,v)
-/ will generate a "return(v)" from
-/ the last call to
-/	setjmp(a)
-/ by restoring sp, r5, pc from `a'
-/ and doing a return.
-/
-
-.globl	_setjmp
-.globl	_longjmp
-.globl	csv, cret
+/*
+ * C library -- setjmp, longjmp
+ *
+ * longjmp(a,v) will generate a "return(v)" from the last call to
+ * setjmp(a) by restoring sp, r5, pc from `a' and doing a return.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
+	.globl	_setjmp
+	.globl	_longjmp
+	.globl	csv, cret
 
 _setjmp:
 	mov	2(sp),r0
@@ -39,4 +39,3 @@ _longjmp:
 1:
 	mov	4(r1),2(r5)
 	jmp	cret
-

@@ -1,10 +1,11 @@
 %{
 /*
  * c code tables-- compile to register
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
-#if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)optable	2.1 (2.11BSD GTE) 10/4/94";
-#endif
 
 struct table regtab[] = {
 	{106,cr106},
@@ -2080,7 +2081,7 @@ cc81:
    too complicated.  the resulting code was horrid.  this cuts the
    waste by 33%
 */
-   
+
 %a,e
 %aub,e
 	S
@@ -2253,3 +2254,4 @@ ci116:
 	F!
 	mov	(sp)+,r1
 
+/* end of table */

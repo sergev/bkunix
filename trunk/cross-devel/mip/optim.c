@@ -1,7 +1,8 @@
-#if	!defined(lint) && defined(DOSCCS)
-static char *sccsid ="@(#)optim.c	4.7 (Berkeley) 1/8/86";
-#endif
-
+/*
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 # include "pass1.h"
 
 # define SWAP(p,q) {sp=p; p=q; q=sp;}

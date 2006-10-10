@@ -1,10 +1,12 @@
-/*	config.h	4.3.2	1996/9/14	*/
-
-#ifndef _CONFIG_
-#define	_CONFIG_
 /*
  * Compiler configuration definitions.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
+#ifndef _CONFIG_
+#define	_CONFIG_
 
 /*
  * These flags control global compiler operation.
@@ -38,4 +40,5 @@
 #ifndef FLEXNAMES
 #define	NCHNAM		32		/* significant chars of identifier */
 #endif
-#endif
+
+#endif /* _CONFIG_ */

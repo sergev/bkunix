@@ -1,5 +1,8 @@
-/*	pass2.h	4.1	85/03/19	*/
-
+/*
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 #ifndef _PASS2_
 #define	_PASS2_
 

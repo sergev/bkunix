@@ -2,6 +2,10 @@
  * BK-0010 console driver
  *
  * Copyright 2006 Leonid Broukhis
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
 #include "param.h"
 #include "user.h"
@@ -43,7 +47,7 @@ static void bksend() {
  * When called with c == 0, performs a flush,
  * also flushes an \n.
  */
-static void putbuf(c) 
+static void putbuf(c)
 int c;
 {
 	register int sps;

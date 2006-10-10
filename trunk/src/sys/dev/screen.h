@@ -1,3 +1,8 @@
+/*
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 #define DISPLIST 0140000
 #define SCNCNTRL 0143740
 #define CHARMEM 0144000

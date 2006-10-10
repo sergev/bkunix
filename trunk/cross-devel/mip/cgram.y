@@ -1,12 +1,13 @@
-/*	cgram.y	4.4.1	95/01/17	*/
-
 /*
  * Grammar for the C compiler.
  *
  * This grammar requires the definitions of terminals in the file 'pcctokens'.
  * (YACC doesn't have an 'include' mechanism, unfortunately.)
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
-
 
 /* at last count, there were 7 shift/reduce, 1 reduce/reduce conflicts
 /* these involved:

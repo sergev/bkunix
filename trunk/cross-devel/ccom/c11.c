@@ -1,7 +1,10 @@
 /*
- *  C compiler
+ * C compiler
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
-
 #include "c1.h"
 
 int
@@ -1143,7 +1146,7 @@ getree()
 			}
 			tp = *--sp;
 			/* Was *sp++ = tnode(op, geti(), *--sp, tp); */
-			sp[-1] = tnode(op, geti(), sp[-1], tp); 
+			sp[-1] = tnode(op, geti(), sp[-1], tp);
 		} else
 			sp[-1] = tnode(op, geti(), sp[-1], TNULL);
 		break;

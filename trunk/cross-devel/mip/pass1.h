@@ -1,5 +1,8 @@
-/*	pass1.h	4.2	85/08/22	*/
-
+/*
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 #ifndef _PASS1_
 #define	_PASS1_
 
@@ -232,4 +235,3 @@ char	*exname(), *exdcon();
 
 #define NONAME		040000		/* marks constant w/o name field */
 #define NOOFFSET	(-10201)	/* mark an offset which is undefined */
-

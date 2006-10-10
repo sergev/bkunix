@@ -1,7 +1,8 @@
-#if	!defined(lint) && defined(DOSCCS)
-static char *sccsid ="@(#)xdefs.c	4.3 (Berkeley) 3/19/85";
-#endif
-
+/*
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 # include "pass1.h"
 
 /*	communication between lexical routines	*/

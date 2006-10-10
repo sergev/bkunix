@@ -1,14 +1,13 @@
 /*
- *		C compiler, part 2
- * 
+ * C compiler, part 2
+ *
  * (long)btodb(l) produced 'no code table error for op: >>(17) type: 6'
  * allow both long and ulong at line ~341.  1996/6/19
-*/
-
-#if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)c10.c	2.1 (2.11BSD GTE) 10/4/94";
-#endif
-
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 #include <stdlib.h>
 #include "c1.h"
 
@@ -546,7 +545,7 @@ int areg;
 	 * amplifying the move3: table.  The same case which optimizes
 	 * u_char to char moves is used to move a u_char to a register. This
 	 * is wrong, leading to sign extension.  Rather than lose the ability
-	 * to generate better code when moving a u_char to a char, a check 
+	 * to generate better code when moving a u_char to a char, a check
 	 * is made here to prevent sign extension.
 	 *
 	 * If the opcode is assign, the destination is a register and the
@@ -928,7 +927,7 @@ struct table *table;
 		return(0);
 	while(sreorder(&p->t.tr1, regtab, reg, 1))
 		;
-	if (opdope[o]&BINARY) 
+	if (opdope[o]&BINARY)
 		while(sreorder(&p->t.tr2, regtab, reg, 1))
 			;
 	r = 0;
@@ -1037,7 +1036,7 @@ struct table *table;
 }
 
 /*
- * Delay handles postfix ++ and -- 
+ * Delay handles postfix ++ and --
  * It observes that "x + y++" is better
  * treated as "x + y; y++".
  * If the operator is ++ or -- itself,

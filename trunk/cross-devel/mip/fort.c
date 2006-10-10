@@ -1,7 +1,8 @@
-#if	!defined(lint) && defined(DOSCCS)
-static char *sccsid ="@(#)fort.c	4.7.1 (2.11BSD GTE) 1/17/95";
-#endif lint
-
+/*
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 # ifndef FORT
 # define FORT
 /* this may force larger trees, etc. */
@@ -121,7 +122,7 @@ mainp2( argc, argv ) char *argv[]; {
 	files = p2init( argc, argv );
 	tinit();
 
-		
+
 	if( files ){
 		while( files < argc && argv[files][0] == '-' ) {
 			++files;
@@ -159,7 +160,7 @@ mainp2( argc, argv ) char *argv[]; {
 				}
 			else {
 				if( baseoff > maxoff ) maxoff = baseoff;
-				/* maxoff at end of ftn is max of autos and temps 
+				/* maxoff at end of ftn is max of autos and temps
 				   over all blocks in the function */
 				}
 			setregs();

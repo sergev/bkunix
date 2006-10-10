@@ -1,9 +1,10 @@
 /*
- *	 C object code improver
+ * C object code improver
  *
- *	@(#)	c20.c	2.0	(2.11BSD)	1996/6/12
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
-
 #include "c2.h"
 
 struct optab optab[] = {

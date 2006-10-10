@@ -1,3 +1,13 @@
+/*
+ * Mini-unix system calls.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
+#ifndef _UNISTD_H_
+#define _UNISTD_H_ 1
+
 #include <ansidecl.h>
 
 /*
@@ -143,3 +153,5 @@ int dup PARAMS((int));
  * Library functions:
  */
 int isatty PARAMS((int));
+
+#endif /* _UNISTD_H_ */

@@ -1,5 +1,10 @@
-/disk boot 
-
+/*
+ * Disk boot.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 rootdir = 1
 BOTSYS = 0120000
 TOPSYS = 0160000
@@ -9,7 +14,7 @@ putc = 0102234
 getc = 0101010
 diskio = 0160004
 
-..=01000
+.. = 01000
 
 init:
 	.word	0240	/ nop is the "bootable" mark
@@ -38,7 +43,7 @@ start:
 	beq	1f
 	cmp	r0,$'@
 	beq	1b
-	cmp	r0,$' 
+	cmp	r0,$'
 	beq	2b
 	cmp	r0,$'#
 	bne	3b
@@ -226,4 +231,3 @@ inode = 010000
 mode = inode
 addr = inode+8
 buf = inode+32
-

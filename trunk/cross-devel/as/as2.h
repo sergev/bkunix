@@ -1,9 +1,12 @@
 /*
-	AS - PDP/11 Assembler part 2
-
-	Header file
-*/
-
+ * AS - PDP/11 Assembler part 2
+ *
+ * Header file
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
+ */
 #define DEBUG 0
 
 /*

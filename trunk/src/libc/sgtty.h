@@ -1,6 +1,13 @@
 /*
  * Structure for stty and gtty system calls.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
+#ifndef _SGTTY_H_
+#define _SGTTY_H_ 1
+
 #include <ansidecl.h>
 
 struct sgttyb {
@@ -118,3 +125,5 @@ int gtty PARAMS((int, int*));
 #define	FIONCLEX	(('f'<<8)|2)
 #define	MXLSTN		(('x'<<8)|1)
 #define	MXNBLK		(('x'<<8)|2)
+
+#endif /* _SGTTY_H_ */

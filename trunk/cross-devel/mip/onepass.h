@@ -1,11 +1,13 @@
-/*	onepass.h	4.1	85/03/19	*/
-
-#ifndef _ONEPASS_
-#define	_ONEPASS_
 /*
  * Definitions for creating a one-pass
  * version of the compiler.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
+#ifndef _ONEPASS_
+#define	_ONEPASS_
 
 #ifdef _PASS2_
 #define crslab crs2lab
@@ -23,4 +25,5 @@
 #define NOPREF	020000		/* no preference for register assignment */
 
 #include "ndu.h"
-#endif
+
+#endif /* _ONEPASS_ */

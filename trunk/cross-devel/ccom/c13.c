@@ -1,11 +1,10 @@
 /*
  * C second pass -- tables
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
-
-#if	!defined(lint) && defined(DOSCCS)
-static	char	sccsid[] = "@(#)c13.c	2.1 (2.11BSD GTE) 10/4/94";
-#endif
-
 #include "c1.h"
 /*
  * Operator dope table-- see description in c0.
@@ -413,7 +412,7 @@ struct instab instab[] = {
  * Similar table for relationals.
  * The first string is for the positive
  * test, the second for the inverted one.
- * The '200+' entries are 
+ * The '200+' entries are
  * used in tests against 0 where a 'tst'
  * instruction is used; it clears the c-bit
  * the c-bit so ptr tests are funny.

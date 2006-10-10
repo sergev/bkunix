@@ -1,7 +1,7 @@
 
 		BKUNIX - what could have been...
 
-Starting from the mid-1980s in the USSR a home microcomputer BK-0010 
+Starting from the mid-1980s in the USSR a home microcomputer BK-0010
 was produced that used the instruction set of DEC LSI-11.
 Its first version, released in 1985, had 32 Kb of RAM, out of which
 up to 16 Kb had to be reserved for the video memory.
@@ -12,7 +12,7 @@ systems have been written for it.
 Later, a floppy controller with an extra 16 Kb of RAM became available,
 and a flurry of "operating systems" (pseudographic file managers a la
 Norton Commander), some of them supporting the MS-DOS and the RT-11 file
-systems, achieved popularity. 
+systems, achieved popularity.
 
 When an improved version (BK-0011M, featuring 128 Kb of RAM, switchable
 video buffers, a timer, and a VT-100 compatible terminal emulator)
@@ -44,11 +44,10 @@ to squeeze back the mount/umount system calls.
 
 Before we proceed with the development of a purely BK-specific kernel,
 we would like to release the code in a state when it still can work on
-an LSI-11 (e.g. in the SIMH simulator). 
+an LSI-11 (e.g. in the SIMH simulator).
 
 Leonid Broukhis, Serge Vakulenko
 
-The source files of the V6 Unix operating system
-have been released under the BSD license
-by Caldera International,Inc.: http://www.tuhs.org/Archive/Caldera-license.pdf
-
+The source files of the V6 Unix operating system have been
+released under the BSD license by Caldera International, Inc.
+See the accompanying file "Caldera-license" for details.

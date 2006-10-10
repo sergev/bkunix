@@ -11,6 +11,10 @@
  * 0200-- is right, not left-associative
  * 0400-- is leaf of tree
  * *0XX000-- XX is priority of operator
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
 int opdope[] = {
 	000000,	/* EOFC */
@@ -167,7 +171,7 @@ int opdope[] = {
  */
 char cvtab[4][4] = {
 /*		int	double		long		ptr */
-/* int */ {	0,	(FTI<<4)+ITF,	(LTI<<4)+ITL,	(ITP<<4)+ITP },	
+/* int */ {	0,	(FTI<<4)+ITF,	(LTI<<4)+ITL,	(ITP<<4)+ITP },
 /* double */ {	ITF,	0,		LTF,		XX },
 /* long */ {	ITL,	(FTL<<4)+LTF,	0,		(LTP<<4)+LTP },
 /* ptr */ {	ITP,	XX,		LTP,		PTI },

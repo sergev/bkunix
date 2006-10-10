@@ -1,6 +1,13 @@
 /*
  * Structure of a.out file.
+ *
+ * This file is part of BKUNIX project, which is distributed
+ * under the terms of the GNU General Public License (GPL).
+ * See the accompanying file "COPYING" for more details.
  */
+#ifndef _AOUT_H_
+#define _AOUT_H_ 1
+
 struct exec {
 	short		a_magic;	/* magic number */
 	unsigned short	a_text; 	/* size of text segment */
@@ -23,7 +30,8 @@ struct exec {
 
 #define	N_TXTOFF(x)	(sizeof(struct exec))
 #define	N_RELOFF(x)	(N_TXTOFF(x) + (x).a_text + (x).a_data)
-#define	N_SYMOFF(x)	(N_RELOFF(x) + (x).a_text + (x).a_data)
+#define	N_SYMOFF(x)	(N_RELOFF(x) + (((x).a_flag & A_NRELFLG) ? 0 : \
+			((x).a_text + (x).a_data)))
 
 /*
  * relocation types
@@ -60,3 +68,5 @@ struct nlist {
 #define	N_REG		024		/* register name */
 #define	N_FN		037		/* file name symbol */
 #define	N_EXT		040		/* external bit, or'ed in */
+
+#endif /* _AOUT_H_ */
