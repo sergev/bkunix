@@ -1,4 +1,0 @@
-To enable the 'TV' terminal, in addition to including the driver 'tv.c'
-(/src/lsx/bg/tv.c) in place of the old kl.c, the character set file
-(/src/lsx/tvt/cset) must be placed on the floppy disk as /etc/cset, and
-/etc/init must be replaced by the compiled version of initwvt.c
