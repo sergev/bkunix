@@ -20,6 +20,7 @@ LIBS		= $(shell sh findlib.sh $(CC) ) -lcrt
 AS		= pdp11-asm
 LD		= pdp11-ld
 SIZE		= pdp11-size -o
+FSUTIL		= u6-fsutil
 LDFLAGS		= -X
 WHERE		= LOW
 
@@ -115,13 +116,13 @@ bkboot:		bkboot.o
 		pdp11-strip $@
 
 hinstall:	clean hsx boot1 boot2hi
-		u6fs-util -b boot1 -B boot2hi -a root.dsk hsx
+		$(FSUTIL) -b boot1 -B boot2hi -a root.dsk hsx
 
 linstall:	clean lsx boot1 boot2lo
-		u6fs-util -b boot1 -B boot2lo -a root.dsk lsx
+		$(FSUTIL) -b boot1 -B boot2lo -a root.dsk lsx
 
 bkinstall:	clean bsx bkboot
-		u6fs-util -F -b bkboot -a bkroot.dsk bsx
+		$(FSUTIL) -F -b bkboot -a bkroot.dsk bsx
 
 lsx1:		$(ASOBJS) $(CSRCS)
 		cat $(CSRCS) > kernel.c

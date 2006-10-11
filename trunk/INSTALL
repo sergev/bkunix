@@ -1,0 +1,74 @@
+
+		Building BKUNIX
+
+This file describes how to build BKUNIX from the source package.
+
+1.  Install the cross-development system.
+
+    Just `cd' to the directory cross-devel/ and type
+
+	make
+	make install
+
+    The following utilities will be installed to /usr/local/bin:
+
+	pdp11-cc	- front end for Ritchie's C compiler
+	pdp11-pcc	- front end for Johnson's portable C compiler
+	pdp11-asm	- AT&T assembler
+	pdp11-ld	- linker
+	pdp11-ar	- archiver
+	pdp11-disasm	- disassembler
+	pdp11-nm	- object name list utility
+	pdp11-size	- object size utility
+	pdp11-strip	- object strip utility
+
+    Some files will be installed to /usr/local/lib:
+
+	c0		- first pass of Ritchie's C compiler
+	c1		- second pass of Ritchie's C compiler
+	ccom		- Johnson's portable C compiler
+	cpp		- C preprocessor
+	c2		- optimizer for assembler output of C compilers
+	asm2		- second pass of AT&T assembler
+	opcode.tbl	- instruction code table for AT&T assembler
+	libcrt.a	- run time library for long and unsigned arithmetic
+
+    You want to install to another directory, edit the cross-devel/Makefile
+    and set DESTDIR to the name of target directory.
+
+2.  Install the filesystem utility. Go to fsutil/ directory and type
+
+	make
+	make install
+
+    The "u6-fsutil" binary will be installed to /usr/local/bin.
+    If you want to install to another directory, edit the fsutil/Makefile
+    and set DESTDIR to the name of target directory.
+
+3.  To build a BKUNIX disk images, enter src/ directory and type
+
+	make
+
+    The kernel and utilities will be compiled and two disk images built:
+
+	root.dsk	- bootable root filesystem
+	usr.dsk		- empty filesystem to be mounted on /usr
+
+    You can explore the contents of disks by typing:
+
+	u6-fsutil -v root.dsk
+
+4.  To run the system you will need SIMH emulator "pdp11" installed
+    somewhere in the path. Enter src/ directory and type:
+
+	make run
+
+    On "rx boot:" prompt type "lsx". You will get root shell prompt "# ".
+    To exit from SIMH, type ^E then q and press Enter.
+
+For more information about BKUNIX project, visit bkunix.sourceforge.net.
+You are welcome to the world on ancient unix! :-)
+___
+Best wishes,
+BKUNIX project team,
+Leonid Broukhis, Serge Vakulenko

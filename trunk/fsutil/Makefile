@@ -1,15 +1,18 @@
 CC		= gcc -g
 CFLAGS		= -O -Wall
-OBJS		= superblock.o block.c inode.o create.o check.o file.o
-PROGS		= u6fs-util
+DESTDIR		= /usr/local
+OBJS		= fsutil.o superblock.o block.c inode.o create.o check.o file.o
+PROG		= u6-fsutil
 
 # For Mac OS X
 #LIBS		= -largp
 
-all:		$(PROGS)
+all:		$(PROG)
 
+install:	$(PROG)
+		install -s $(PROG) ${DESTDIR}/bin/$(PROG)
 clean:
-		rm -f *~ *.o *.lst *.dis $(PROGS) floppy.dsk
+		rm -f *~ *.o *.lst *.dis $(PROG)
 
-u6fs-util:	fsutil.o $(OBJS)
-		$(CC) $(LDFLAGS) -o $@ fsutil.o $(OBJS) $(LIBS)
+$(PROG):	$(OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)

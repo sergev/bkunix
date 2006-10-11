@@ -6,9 +6,9 @@ It includes:
   * mip, pcc	- Johnson's portable C compiler
   * cpp		- C preprocessor
   * c2		- optimizer for assembler output of C compilers
-  * cc		- compiler front end utilities
+  * cc		- compiler front ends "cc" and "pcc"
   * ld		- linker, archiver, disassembler, and other a.out utilities
-  * crt		- C run time library for long and unsigned arithmetic
+  * crt		- run time library for long and unsigned arithmetic
 
 This directory is part of BKUNIX project, which is distributed
 under the terms of the GNU General Public License (GPL).
