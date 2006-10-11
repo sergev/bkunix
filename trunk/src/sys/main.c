@@ -123,6 +123,9 @@ unixmain()
 	proc[0].p_stat = SRUN;
 	u.u_procp = &proc[0];
 
+#ifdef BK
+	u.u_top	= 040000;
+#endif
 	/*
 	 * set up 'known' i-nodes
 	 */

@@ -31,21 +31,26 @@ start:
 	/get command from tty (using the monitor)
 
 1:
-	clr	r1
+	mov	$1,r1
 2:
-	clr	r0
+	dec	r1
+	beq	3f
+	mov	$030,r0
+0:	jsr	pc,*$putc
+	sob	r1,0b		/ erase all input
+3:	clr	r0
 3:
 	movb	r0,(r1)+
+	cmp	$040, r1
+	beq	start		/ string too long
 4:
 	jsr	pc,*$getc
+	cmp	r0,$025		/ ^U = kill
+	beq	2b
 	jsr	pc,*$putc
 	cmp	r0,$'\n
 	beq	1f
-	cmp	r0,$'@
-	beq	1b
-	cmp	r0,$'
-	beq	2b
-	cmp	r0,$'#
+	cmp	r0,$030		/ ^X = backspace
 	bne	3b
 	dec	r1
 	bgt	4b
@@ -54,6 +59,8 @@ start:
 	/put command on stack in exec format
 
 1:
+	cmp	$1,r1
+	beq	start		/ empty string
 	mov	sp,r3
 	clrb	(r1)+
 	clrb	(r1)+
@@ -200,7 +207,7 @@ rblk:
 	jsr	pc,*$putc
 	br	1b
 1:
-	movb	*$052, r0
+	movb	*$052, r0	/ err code
 	mov	r0, r1
 	asl	r0
 	asl 	r0

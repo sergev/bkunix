@@ -31,7 +31,7 @@
 #define SYSSIZ	((TOPSYS-BOTSYS)/1024) 	/* system size in 1K bytes */
 #ifdef BK
 #define NBLKS	1600	/* 2-sided, 80 tracks, 10 sectors */
-#define USRSIZ	15	/* temporarily */
+#define USRSIZ	27	/* size for extended memory */
 #define BOTUSR	02000	/* must not be an expression */
 #else
 #define NBLKS	500	/* 256-word blocks per diskette */
@@ -39,7 +39,13 @@
 #define BOTUSR	040000	/* must not be an expression */
 #endif
 #define UCORE	(USRSIZ*1024)		/* bytes */
+#ifdef BK
+#define TOPUSR	u.u_top
+#define SMALL	(15*1024)
+#define LARGE	(27*1024)
+#else
 #define TOPUSR	(BOTUSR+USRSIZ*(unsigned)1024)
+#endif
 #define SWPSIZ	(USRSIZ*2+1)
 #ifdef BGOPTION
 #define NSWAP	(NPROC*SWPSIZ+2)

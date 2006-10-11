@@ -270,8 +270,17 @@ swap(rdflg)
 			}
 		} else
 #endif
-			p->p_size = SWPSIZ<<8;
+			/* p->p_size = SWPSIZ<<8; */
+			p->p_size = (TOPUSR-BOTUSR+USIZE)>>1;
 	}
+#ifdef BK
+	else if (TOPUSR == 070000 &&
+		 p->p_size == (SMALL + USIZE)>>1 ||
+	    TOPUSR == 040000 && p->p_size == (LARGE + USIZE)>>1) {
+		/* swapping in a process of different size */
+		ttputc(0214);
+	}
+#endif
 	swbuf.b_flags = B_BUSY | rdflg;
 	swbuf.b_dev = SWAPDEV;
 	swbuf.b_wcount = -p->p_size;
