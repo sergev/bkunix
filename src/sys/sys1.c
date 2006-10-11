@@ -119,6 +119,17 @@ exec()
 #endif
 	if(ds + SSIZE > UCORE)
 		goto bad;
+#ifdef BK
+	if (ds + SSIZE > SMALL) {
+		if (TOPUSR == 040000)
+			ttputc(0214);
+		TOPUSR = 070000;
+	} else {
+		if (TOPUSR == 070000)
+			ttputc(0214);
+		TOPUSR = 040000;
+	}
+#endif
 
 	/*
 	 * allocate and clear core

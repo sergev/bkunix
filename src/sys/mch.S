@@ -212,10 +212,12 @@ _idle:
 	tst	_stop
 	beq	1f
 	mov	$2,-(sp)
+	clr	_user
 	.globl	_signal
 	jsr	pc,_signal
-	clr	_stop
 	tst	(sp)+
+	clr	_stop
+1:
 #endif
 	rts	pc
 
@@ -305,6 +307,7 @@ _dpcmp:
 	.globl	start, _end, _edata, _unixmain
 start:
 	reset
+	clr *$0204	/ turn off the status line on top of the screen
 
 / clear bss and user block
 

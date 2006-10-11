@@ -106,7 +106,7 @@ core()
 	u.u_offset[0] = 0;
 	u.u_offset[1] = 0;
 	u.u_base = (char*) &u;
-	u.u_count = UCORE+USIZE;
+	u.u_count = TOPUSR-BOTUSR+USIZE;
 	writei(ip);
 	iput(ip);
 	u.u_segflg--;
