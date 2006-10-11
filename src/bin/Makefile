@@ -1,5 +1,5 @@
 # Base address of user programs.
-BOTUSR		= 040000
+BOTUSR		= 02000
 
 AS		= pdp11-as
 LD		= pdp11-ld

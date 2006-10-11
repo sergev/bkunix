@@ -20,12 +20,11 @@ LIBS		= $(shell sh findlib.sh $(CC) ) -lcrt
 AS		= pdp11-asm
 LD		= pdp11-ld
 SIZE		= pdp11-size -o
-FSUTIL		= u6-fsutil
+FSUTIL		= u6-fsutil -F
 LDFLAGS		= -X
-WHERE		= LOW
 
-ASRCS		= low.S mch.S
-ASOBJS		= low.o mch.o
+ASRCS		= high.S mch.S
+ASOBJS		= high.o mch.o
 CSRCS		= alloc.c bio.c \
 		  clock.c fio.c iget.c main.c nami.c rdwri.c sig.c slp.c \
 		  subr.c sys1.c sys2.c sys3.c sys4.c sysent.c trap.c
@@ -53,82 +52,31 @@ vpath %.S . boot
 # -DKL   - KL/DL-11 console
 # -DTVT  - TV terminal
 #
-CPPFLAGS	= -I. -DKERNEL -DKL -D$(WHERE) -D$(SYS)
+CPPFLAGS	= -I. -DKERNEL -DKL -DLOWSTACK=1 -DHIGH -DBK
 
-ifdef LOWSTACK
-CPPFLAGS	+= -DLOWSTACK=1
-endif
-
-CSRCS		+= dev/kl.c dev/decfd.c
-DEVOBJS		= kl.o decfd.o
-BKDEVOBJS	= bktty.o bkfd.o
-OBJS		+= $(DEVOBJS)
-HIOBJS		= high.o mch.o $(COBJS) $(DEVOBJS)
-BKOBJS		= high.o mch.o $(COBJS) $(BKDEVOBJS)
+CSRCS		+= dev/bktty.c dev/bkfd.c
+OBJS		+= bktty.o bkfd.o
 HIBASE		= 0120000
 
-all:		lsx boot1 boot2lo boot2hi #lsx1
-		@echo "Warning: For 10K LSX system, size must be less than 046000"
-		@echo "         for 8k lsx system size must be less than 036500"
-		$(SIZE) lsx #lsx1
+all:		bkunix bkboot
+		@echo "Warning: For BK-0011, size must be less than 040000"
+		$(SIZE) bkunix
 
 clean:
-		rm -f *~ dev/*~ boot/*~ *.o *.s a.out lsx lsx1 hsx bsx
-		rm -f boot1 boot2lo boot2hi bkboot lsx.dis hsx.dis
+		rm -f *~ dev/*~ boot/*~ *.o *.s a.out bkunix bkboot bkunix.dis
 
-lsx:
-		$(MAKE) WHERE=LOW SYS=DEC $(OBJS)
-		$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
-		pdp11-disasm $@ > $@.dis
-
-hsx:
-		$(MAKE) WHERE=HIGH SYS=DEC $(HIOBJS)
-		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(HIOBJS) $(LIBS)
+bkunix:		$(OBJS)
+		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) $(LIBS)
 		$(SIZE) $@
 		pdp11-nm $@ > $@.map
 		pdp11-disasm -a$(HIBASE) $@ > $@.dis
-
-bsx:
-		$(MAKE) WHERE=HIGH SYS=BK $(BKOBJS)
-		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(BKOBJS) $(LIBS)
-		$(SIZE) $@
-		pdp11-nm $@ > $@.map
-		pdp11-disasm -a$(HIBASE) $@ > $@.dis
-
-boot1:		rxboot.o
-		mv $< $@
-		pdp11-strip $@
-
-boot2hi:	boot/rxboot2.S
-		rm -f rxboot2.o
-		$(MAKE) WHERE=HIGH rxboot2.o
-		mv rxboot2.o $@
-		pdp11-strip $@
-
-boot2lo:	boot/rxboot2.S
-		rm -f rxboot2.o
-		$(MAKE) WHERE=LOW rxboot2.o
-		mv rxboot2.o $@
-		pdp11-strip $@
 
 bkboot:		bkboot.o
 		mv $< $@
 		pdp11-strip $@
 
-hinstall:	clean hsx boot1 boot2hi
-		$(FSUTIL) -b boot1 -B boot2hi -a root.dsk hsx
-
-linstall:	clean lsx boot1 boot2lo
-		$(FSUTIL) -b boot1 -B boot2lo -a root.dsk lsx
-
-bkinstall:	clean bsx bkboot
-		$(FSUTIL) -F -b bkboot -a bkroot.dsk bsx
-
-lsx1:		$(ASOBJS) $(CSRCS)
-		cat $(CSRCS) > kernel.c
-		$(CC) $(CFLAGS) $(CPPFLAGS) -c kernel.c
-		$(LD) $(LDFLAGS) -o $@ $(ASOBJS) kernel.o $(LIBS)
-		@rm -f kernel.c
+install:	bkunix bkboot
+		$(FSUTIL) -b bkboot -a root.dsk bkunix
 
 count:		$(ASRCS) $(CSRCS)
 		wc $(ASRCS) $(CSRCS)

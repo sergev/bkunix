@@ -1,7 +1,0 @@
-as as1?.s;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/as.5
-as as2?.s;reloc a.out 50000;strip a.out;mv a.out ../rfs/lib/as2.5
-as clri.s;reloc a.out 50000;strip a.out;mv a.out ../rfs/etc/clri.5
-as db?.s;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/db.5
-as mkdir.s;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/mkdir.5
-as rmdir.s;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/rmdir.5
-as strip.s;reloc a.out 50000;strip a.out;mv a.out ../rfs/bin/strip.5
