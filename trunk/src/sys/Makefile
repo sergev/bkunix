@@ -8,10 +8,10 @@
 #LIBS		=
 
 # Ritchie's compiler.
-CC		= pdp11-cc
+#CC		= pdp11-cc
 
 # Johnson's portable compiler.
-#CC		= pdp11-pcc
+CC		= pdp11-pcc
 
 CFLAGS		= -O
 LIBS		= $(shell sh findlib.sh $(CC) ) -lcrt
@@ -52,7 +52,7 @@ vpath %.S . boot
 # -DKL   - KL/DL-11 console
 # -DTVT  - TV terminal
 #
-CPPFLAGS	= -I. -DKERNEL -DKL -DLOWSTACK=1 -DHIGH -DBK
+CPPFLAGS	= -I. -DKERNEL -DKL -DHIGH -DBK
 
 CSRCS		+= dev/bktty.c dev/bkfd.c
 OBJS		+= bktty.o bkfd.o
