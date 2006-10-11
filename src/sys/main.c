@@ -86,7 +86,7 @@ ttputs (s)
  * Panic is called on unresolvable fatal errors.
  * It prints "panic: mesg", and then halts.
  */
-void panichalt(s)
+void panic(s)
 	char *s;
 {
 	ttputs("panic: ");

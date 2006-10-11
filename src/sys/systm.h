@@ -65,11 +65,9 @@ int swap();
 int newproc();
 int bad_user_address();
 extern char stop;
-void panichalt();
+void panic();
 int ttputc();
 void ttputs();
-
-#define panic(x)		panichalt(x)
 
 /*
  * structure of the system entry table (sysent.c)
