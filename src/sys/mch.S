@@ -9,10 +9,6 @@
  */
 #include "param.h"
 
-usize	= 01000
-_u	= BOTUSR - usize
-	.globl	_u
-
 	.comm	_user, 2
 
 #ifdef BGOPTION
@@ -24,7 +20,6 @@ _u	= BOTUSR - usize
 	.globl	trap
 trap:
 	mfps	-4(sp)
-#ifdef BK
 	bit	$4,*$0177716
 	beq	1f
 	.globl	_stop
@@ -33,7 +28,6 @@ trap:
 	bpl	1f
 	rti
 1:
-#endif
 	jsr	r0,call1
 	.word _trap
 	/ no return
@@ -208,7 +202,6 @@ _idle:
 	mtps	(sp)+
 	wait
 	mtps	(sp)+
-#ifdef BK
 	tst	_stop
 	beq	1f
 	mov	$2,-(sp)
@@ -218,7 +211,6 @@ _idle:
 	tst	(sp)+
 	clr	_stop
 1:
-#endif
 	rts	pc
 
 /-----------------------
@@ -302,41 +294,6 @@ _dpcmp:
 3:
 	mov	r1,r0
 	rts	pc
-
-/-----------------------
-	.globl	start, _end, _edata, _unixmain
-start:
-	reset
-	clr *$0204	/ turn off the status line on top of the screen
-
-/ clear bss and user block
-
-	mov	$_edata,r0
-1:
-	clr	(r0)+
-	cmp	r0,$ TOPSYS
-	blo	1b
-
-	mov	$_u,r0
-1:
-	clr	(r0)+
-	cmp	r0,$ BOTUSR
-	blo	1b
-/ set up stack pointer
-
-	mov	r0,sp
-
-/ and pointer to system stack
-	mov	$ TOPSYS-2,_u
-
-/ set up previous mode and call main
-/ on return, enter user mode at BOTUSR
-
-	jsr	pc,_unixmain
-	mov	$ BOTUSR+8192,sp	/ set stack at first 8kbytes of user space
-	clr	-(sp)
-	mov	$ BOTUSR,-(sp)
-	rti
 
 /-----------------------
 	.globl	_lshift

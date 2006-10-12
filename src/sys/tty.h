@@ -45,11 +45,7 @@ struct tty
 #define	TTIPRI	10
 #define	TTOPRI	20
 
-#ifdef BK
 #define	CERASE	030
-#else
-#define	CERASE	010		/* default special characters */
-#endif
 #define	CEOT	004
 #define	CKILL	025		/* ^U */
 #define	CQUIT	034		/* ^\ */
