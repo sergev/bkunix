@@ -19,6 +19,15 @@ diskio = 0160004
 init:
 	.word	0240	/ nop is the "bootable" mark
 	mov	r3, wrk
+	/ attempt booting bkunix first unless RUS is on
+	tstb	*$043
+	bne	start
+	clr	r1
+	mov	$bkunix,r0
+	mov	$4,r2
+0:	mov	(r0)+,(r1)+
+	sob	r2,0b
+	jbr	go
 start:
 	/output message to tty (using the monitor)
 	mov	$nm,r1
@@ -49,7 +58,7 @@ start:
 	beq	2b
 	jsr	pc,*$putc
 	cmp	r0,$'\n
-	beq	1f
+	beq	go
 	cmp	r0,$030		/ ^X = backspace
 	bne	3b
 	dec	r1
@@ -58,7 +67,7 @@ start:
 
 	/put command on stack in exec format
 
-1:
+go:
 	cmp	$1,r1
 	beq	start		/ empty string
 	mov	sp,r3
@@ -225,6 +234,7 @@ rblk:
 	mov	$buf, r0
 	rts	pc
 wrk:	.word	0
+bkunix: <\0bkunix\0>
 nm:
 	.byte	012
 	<bk boot:\0>
