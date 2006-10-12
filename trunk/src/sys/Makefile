@@ -36,23 +36,7 @@ OBJS		= $(ASOBJS) $(COBJS)
 vpath %.c . dev
 vpath %.S . boot
 
-# System configuration.
-# -DBGOPTION  - background processes
-# -DCLOCK     - set to be 0177546 or 0172540 for the line
-#		frequency or programmable clock, respectively.
-#
-#CPPFLAGS	+= -DCLOCK=0177546
-
-# Configuration of device drivers.
-# -DAED	 - AED 6200lp floppy
-# -DDEC  - DEC floppy
-# -DPER  - PER floppy
-# -DSYK  - Sykes floppy
-# -DRF   - RF floppy
-# -DKL   - KL/DL-11 console
-# -DTVT  - TV terminal
-#
-CPPFLAGS	= -I. -DKERNEL -DKL -DHIGH -DBK
+CPPFLAGS	= -I. -DKERNEL
 
 CSRCS		+= dev/bktty.c dev/bkfd.c
 OBJS		+= bktty.o bkfd.o

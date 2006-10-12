@@ -7,14 +7,19 @@
  */
 #include "param.h"
 
-	.globl	start		/ system start (mch.s)
 	.globl	call		/ interrupt handler (mch.s)
 	.globl	trap		/ trap handler (mch.s)
+	.globl	_edata
+	.globl	_unixmain
+
+usize	= 01000
+_u	= BOTUSR - usize
+	.globl	_u
 
 #define IM	0340		/* mask interrupts */
 
 /-----------------------
-/ Address 0: system starts here.
+/ System starts here.
 /
 init:	clr	r0
 	mov	go, (r0)+	/ restart if jumped to 0
@@ -26,63 +31,48 @@ init:	clr	r0
 	inc	r2
 	cmp	$ IM+7, r2
 	bne	1b
-/-----------------------
-#ifdef KL
-	mov	$060, r0	/ KL/DL-11 console interrupt handlers
+
+	mov	$060, r0	/ console interrupt handlers
 	mov	$klin, (r0)+
 	mov	$ IM, (r0)+
-#ifdef DEC
-	mov	$klou, (r0)+
-	mov	$ IM, (r0)+
-#endif
-#endif
 
-/-----------------------
-#ifdef CLOCK
-	mov	$0100, r0	/ clock interrupt handlers
-	mov	$kwlp, (r0)+
-	mov	$ IM, (r0)+
-	mov	$kwlp, (r0)+
-	mov	$ IM, (r0)+
-#endif
-
-/-----------------------
-#ifdef DEC
-	mov	$0264, r0	/ DEC floppy interrupt handler
-	mov	$fdintr, (r0)+
-	mov	$ IM, (r0)+
-#endif
-
-#ifdef BK
 	mov	$0160016, *$010 / EIS emulator
 	mov	$0274, r0
 	mov	$klin, (r0)+
 	mov	$ IM, (r0)+
-#endif
-go:	jmp	*$start
+go:
+	reset
+	clr	*$0204		/ turn off the status line on top of the screen
+
+/ clear bss and user block
+	mov	$_edata,r0
+1:
+	clr	(r0)+
+	cmp	r0,$ TOPSYS
+	blo	1b
+
+	mov	$_u,r0
+1:
+	clr	(r0)+
+	cmp	r0,$ BOTUSR
+	blo	1b
+
+/ set up stack pointer
+	mov	r0,sp
+
+/ and pointer to system stack
+	mov	$ TOPSYS-2,_u
+
+/ set up previous mode and call main
+/ on return, enter user mode at BOTUSR
+
+	jsr	pc,_unixmain
+	mov	$ BOTUSR+8192,sp	/ set stack at first 8kbytes of user space
+	clr	-(sp)
+	mov	$ BOTUSR,-(sp)
+	rti
 
 /-----------------------
-#ifdef KL
 	.globl	_klrint
 klin:	jsr	r0,call
 	.word	_klrint
-#ifdef DEC
-	.globl	_klxint
-klou:	jsr	r0,call
-	.word	_klxint
-#endif
-#endif
-
-/-----------------------
-#ifdef CLOCK
-	.globl	_clock
-kwlp:	jsr	r0,call
-	.word	_clock
-#endif
-
-/-----------------------
-#ifdef DEC
-	.globl	_fdintr
-fdintr:	jsr	r0,call
-	.word	_fdintr
-#endif

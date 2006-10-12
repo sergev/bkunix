@@ -29,13 +29,6 @@ clock(dev, sp, r1, nps, r0, pc, ps)
 	register struct proc *pp;
 
 	/*
-	 * restart clock
-	 */
-#ifdef CLOCK
-	*(int*) CLOCK = 0115;
-#endif
-
-	/*
 	 * lightning bolt time-out
 	 * and time of day
 	 */

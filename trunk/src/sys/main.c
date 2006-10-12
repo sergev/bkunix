@@ -49,31 +49,10 @@ int
 ttputc (c)
         int c;
 {
-#ifdef BK
-asm("mov 4(r5),r0");
-asm("mov r5,-(sp)");
-asm("jsr pc,*$0102234");
-asm("mov (sp)+,r5");
-#else
-asm("clr *$tps");
-asm("mov 4(r5),r0");
-asm("jsr pc, putc");
-asm("jbr 9f");
-asm("tps = 0177564");
-asm("tpb = 0177566");
-asm("putc: ");
-asm("tstb    tps");
-asm("jge     putc");
-asm("cmp     r0,$012");
-asm("jne     1f");
-asm("mov     $015,r0");
-asm("jsr     pc,putc");
-asm("mov     $012,r0");
-asm("1:");
-asm("mov     r0,*$tpb");
-asm("rts     pc");
-asm("9: ");
-#endif
+	asm("mov 4(r5),r0");
+	asm("mov r5,-(sp)");
+	asm("jsr pc,*$0102234");
+	asm("mov (sp)+,r5");
 }
 
 void
@@ -82,6 +61,7 @@ ttputs (s)
 {
 	while(ttputc(*s++));
 }
+
 /*
  * Panic is called on unresolvable fatal errors.
  * It prints "panic: mesg", and then halts.
@@ -92,12 +72,7 @@ void panic(s)
 	ttputs("panic: ");
 	ttputs(s);
 	ttputs("\r\n");
-#ifdef BK
 	for(;;);
-#else
-	for (;;)
-		asm("0");
-#endif
 }
 
 /*
@@ -122,16 +97,11 @@ unixmain()
 	 */
 	proc[0].p_stat = SRUN;
 	u.u_procp = &proc[0];
-
-#ifdef BK
 	u.u_top	= 040000;
-#endif
+
 	/*
 	 * set up 'known' i-nodes
 	 */
-#ifdef CLOCK
-	*(int*) CLOCK = 0115;
-#endif
 	cinit();
 	binit();
 	iinit();

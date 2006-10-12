@@ -50,9 +50,7 @@ struct user
 	int	u_tsize;		/* text size (*64) */
 	int	u_dsize;		/* data size (*64) */
 	int	u_ssize;		/* stack size (*64) */
-#ifdef BK
 	unsigned int u_top;		/* 040000 or 070000 */
-#endif
 #ifndef BGOPTION
 	int	u_sep;			/* flag for I and D separation */
 #endif
