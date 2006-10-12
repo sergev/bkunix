@@ -10,7 +10,7 @@
 char shell[] = "/bin/sh";
 char minus[] = "-";
 char ctty[] = "/dev/tty8";
-char hello[] = "\n** bkunix **\n";
+char hello[] = "\n\n** bkunix **\n";
 
 int
 main()

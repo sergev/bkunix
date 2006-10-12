@@ -14,7 +14,6 @@
  * mount user file system on /usr and enable clock, respectively
  */
 /*#define BGOPTION	1*/
-#define MOUNT_USR	0
 #define CLOCKOPT	1
 
 /*
@@ -117,7 +116,7 @@
  * configuration dependent variables
  */
 #define ROOTDEV 0
-#define SWAPDEV 1
+#define SWAPDEV 0		/* fd0 */
 #define MNTDEV  1
 
 #endif /* PARAM_H */

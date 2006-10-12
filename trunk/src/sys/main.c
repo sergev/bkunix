@@ -137,9 +137,6 @@ unixmain()
 	iinit();
 	rootdir = iget(ROOTDEV, ROOTINO);
 	u.u_cdir = iget(ROOTDEV, ROOTINO);
-#ifdef	MOUNT_USR
-	minit();	/* mount user file system */
-#endif
 
 	/*
 	 * make init process
