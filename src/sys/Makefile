@@ -76,7 +76,7 @@ bkboot:		bkboot.o
 		pdp11-strip $@
 
 install:	bkunix bkboot
-		$(FSUTIL) -b bkboot -a root.dsk bkunix
+		$(FSUTIL) -b bkboot -a root.bkd bkunix
 
 count:		$(ASRCS) $(CSRCS)
 		wc $(ASRCS) $(CSRCS)

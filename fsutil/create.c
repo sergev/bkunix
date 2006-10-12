@@ -169,7 +169,7 @@ int u6fs_create (u6fs_t *fs, const char *filename, unsigned long bytes)
 	fs->filename = filename;
 	fs->seek = 0;
 
-	fs->fd = open (fs->filename, O_CREAT | O_TRUNC | O_RDWR, 0666);
+	fs->fd = open (fs->filename, O_CREAT | O_RDWR, 0666);
 	if (fs->fd < 0)
 		return 0;
 	fs->writable = 1;
