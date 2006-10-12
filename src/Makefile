@@ -5,11 +5,11 @@ BIN		= bin/sh bin/ls bin/echo bin/cal bin/cp bin/date bin/mkdir \
 SYS		= sys/bkunix sys/bkboot
 
 DEV		= dev/tty8!c0:0 dev/fd0!b0:0 dev/fd1!b0:1
-DSK		= root.dsk
+DSK		= root.bkd
 FSUTIL		= u6-fsutil -F
 
 all:		$(DSK)
-		$(FSUTIL) -v root.dsk
+#		$(FSUTIL) -v root.bkd
 
 build:		$(SYS) $(ETC) $(BIN)
 
@@ -21,16 +21,16 @@ clean:
 		$(MAKE) -C libc clean
 		$(MAKE) -C libfs clean
 
-root.dsk:	$(SYS) $(ETC) $(BIN)
+root.bkd:	$(SYS) $(ETC) $(BIN)
 		pdp11-strip $(ETC) $(BIN)
-		$(FSUTIL) -n -s819200 -bsys/bkboot $@
+		$(FSUTIL) -n -s762368 -bsys/bkboot $@
 		cp sys/bkunix .
 		$(FSUTIL) -a $@ bkunix usr/ tmp/
 		@rm -f bkunix
 		$(FSUTIL) -a $@ etc/ $(ETC)
 		$(FSUTIL) -a $@ bin/ $(BIN)
 		$(FSUTIL) -a $@ dev/ $(DEV)
-		$(FSUTIL) -c $@
+#		$(FSUTIL) -c $@
 
 $(SYS):
 		$(MAKE) -C sys

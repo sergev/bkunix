@@ -13,7 +13,7 @@
 #define NMOUNT	2	/* look sys/param.h */
 #define ROOTDEV	0
 
-static char kernel[] = "/lsx";
+static char kernel[] = "/bkunix";
 static char mtabsym[] = "_mount";
 static int *mtabptr;
 

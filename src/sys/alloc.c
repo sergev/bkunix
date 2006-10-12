@@ -41,31 +41,6 @@ void iinit()
 }
 
 /*
- * mount user file system
- */
-void minit()
-{
-	register struct buf *bp, *cp;
-	register struct inode *ip;
-
-	bp = bread(MNTDEV, 1);
-	if(bp->b_flags&B_ERROR)
-		goto nomount;
-	u.u_dirp = "/usr";
-	u.u_segflg++;
-	cp = getblk(NODEV);
-	memcpy(cp->b_addr, bp->b_addr, 512);
-	ip = namei(0);
-	u.u_segflg--;
-	mount[1].m_inodp = ip;
-	mount[1].m_dev = MNTDEV;
-	mount[1].m_bufp = cp;
-	ip->i_flag |= IMOUNT;
-nomount:
-	brelse(bp);
-}
-
-/*
  * alloc will obtain the next available
  * free disk block from the free list of
  * the specified device.
