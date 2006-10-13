@@ -116,5 +116,6 @@ void ssig();
 void bground();
 void smount();
 void sumount();
+void fullscr();
 
 #endif /* SYSTM_H */

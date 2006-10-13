@@ -94,6 +94,7 @@ cloop:
 		c = uchar();
 	if(u.u_error)
 		goto out;
+#ifdef MNTOPTION
 	/*
 	 * Special handling for ".." allowing chdir out of mounted
 	 * file system. We know NMOUNT == 2.
@@ -105,6 +106,7 @@ cloop:
 		dp = mount[1].m_inodp;
 		dp->i_count++;
 	}
+#endif
 
 	/*
 	 * Set up to search a directory.

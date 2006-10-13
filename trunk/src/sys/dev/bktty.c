@@ -18,18 +18,24 @@
 
 /* console base address */
 #define	KLADDR	((struct klregs*) 0177660)
-#define	NKL11	1
-#define DSRDY	02
-#define	RDRENB	01
 
-struct	tty kl11[NKL11];
-static char cursoff;
+/* BIOS variables */
+#define	LIMIT	(*(int*)0164)
+#define	BASE	(*(int*)0202)
+#define	OFFSET	(*(int*)0204)
+#define	VSIZE	(*(int*)0206)
+#define	WRKSIZE	(*(int*)0210)
+#define	EXTRAM	(*(char*)042)
+#define CURSOFF	(*(char*)056)
+
+struct	tty tty;
 
 void ttstart();
 
 struct klregs {
 	int klrcsr;
 	int klrbuf;
+	int scroll;
 };
 
 static char outbuf[64];
@@ -79,16 +85,14 @@ int c;
 void
 flushtty()
 {
-	register struct tty *tp;
 	register int sps;
 
-	tp = kl11;
-	while (getc(&tp->t_canq) >= 0);
+	while (getc(&tty.t_canq) >= 0);
 	nch = 0; /* kill output queue */
-	wakeup(&tp->t_rawq);
+	wakeup(&tty.t_rawq);
 	sps = spl7();
-	while (getc(&tp->t_rawq) >= 0);
-	tp->t_delct = 0;
+	while (getc(&tty.t_rawq) >= 0);
+	tty.t_delct = 0;
 	rstps(sps);
 }
 
@@ -98,9 +102,6 @@ flushtty()
 void
 wflushtty()
 {
-	register struct tty *tp;
-
-	tp = kl11;
 	spl7();
 	putbuf(0); /* flush output queue to screen */
 	flushtty();
@@ -119,10 +120,8 @@ ttyoutput(ac)
 	int ac;
 {
 	register int c;
-	register struct tty *rtp;
 	register char *colp;
 
-	rtp = kl11;
 	c = ac&0177;
 	if (!c) return;
 	/*
@@ -131,18 +130,18 @@ ttyoutput(ac)
 	if (c=='\t') {
 		do
 			ttyoutput(' ');
-		while (rtp->t_col&07);
+		while (tty.t_col&07);
 		return;
 	}
 
 	/*
 	 * turn <nl> to <cr><lf> if desired.
 	 */
-	if(rtp->t_flags & CRMOD)
+	if(tty.t_flags & CRMOD)
 		if (c=='\n')
 			ttyoutput('\r');
 	putbuf(c);
-	colp = &rtp->t_col;
+	colp = &tty.t_col;
 	switch (c) {
 
 	/* ordinary */
@@ -175,16 +174,13 @@ ttyoutput(ac)
  * tty structure.
  */
 void
-ttyinput(ac)
-	int ac;
+ttyinput()
 {
 	register int c;
-	register struct tty *tp;
 	register int flags;
 
-	tp = kl11;
-	c = ac;
-	flags = tp->t_flags;
+	c = KLADDR->klrbuf;
+	flags = tty.t_flags;
 	c &= 0177;
 	if(flags & CRMOD) if(c == '\r')
 		c = '\n';
@@ -193,15 +189,15 @@ ttyinput(ac)
 		flushtty();
 		return;
 	}
-	if (tp->t_rawq.c_cc>=TTYHOG) {
+	if (tty.t_rawq.c_cc>=TTYHOG) {
 		flushtty();
 		return;
 	}
-	putc(c, &tp->t_rawq);
+	putc(c, &tty.t_rawq);
 	if (c=='\n' || c==004) {
-		wakeup(&tp->t_rawq);
-		if (putc(0377, &tp->t_rawq)==0)
-			tp->t_delct++;
+		wakeup(&tty.t_rawq);
+		if (putc(0377, &tty.t_rawq)==0)
+			tty.t_delct++;
 	}
 	if(flags & ECHO) {
 		ttyoutput(c == CKILL ? '\n' : c);
@@ -212,12 +208,9 @@ ttyinput(ac)
 void
 klopen()
 {
-	register struct tty *tp;
-
-	tp = &kl11[0];
-	if((tp->t_modes & TOPEN) == 0) {
-		tp->t_modes |= TOPEN;
-		tp->t_flags = ECHO|CRMOD;
+	if((tty.t_modes & TOPEN) == 0) {
+		tty.t_modes |= TOPEN;
+		tty.t_flags = ECHO|CRMOD;
 	}
 	KLADDR->klrcsr = 0;	/* enabling interrupts is inverted in BK */
 }
@@ -228,32 +221,33 @@ klclose()
 	wflushtty();
 }
 
-void
-klrint()
-{
-	register int c;
-
-	c = KLADDR->klrbuf;
-	ttyinput(c);
+void fullscr() {
+	LIMIT = 03000;
+	BASE = 040000;
+	VSIZE = 040000;
+	WRKSIZE	= 036000;
+	OFFSET = 032000;
+	EXTRAM = 0;
+	memzero(040000, 030000);
+	memzero(077000, 01000);	/* erase the horizontal bar */
+	KLADDR->scroll = 01230;
 }
 
 void
 klsgtty(f)
 	int f;
 {
-	register struct tty *tp;
 	register int *a;
 
-	tp = &kl11[0];
 	a = (int*) u.u_arg[0];
 	a += 2;
-	wflushtty(tp);
+	wflushtty();
 	if (bad_user_address (a))
 		return;
 	if(f)
-		tp->t_flags = *a;
+		tty.t_flags = *a;
 	else
-		*a = tp->t_flags;
+		*a = tty.t_flags;
 }
 
 /*
@@ -306,20 +300,18 @@ canon()
 {
 	register char *bp;
 	char *bp1;
-	register struct tty *tp;
 	register int c;
 
-	tp = kl11;
 	spl7();
-	while (tp->t_delct==0) {
-		sleep(&tp->t_rawq, TTIPRI);
+	while (tty.t_delct==0) {
+		sleep(&tty.t_rawq, TTIPRI);
 	}
 	spl0();
 loop:
 	bp = &canonb[2];
-	while ((c=getc(&tp->t_rawq)) >= 0) {
+	while ((c=getc(&tty.t_rawq)) >= 0) {
 		if (c==0377) {
-			tp->t_delct--;
+			tty.t_delct--;
 			break;
 		}
 		if (bp[-1]!='\\') {
@@ -340,7 +332,7 @@ loop:
 	bp1 = bp;
 	bp = &canonb[2];
 	while (bp<bp1)
-		putc(*bp++, &tp->t_canq);
+		putc(*bp++, &tty.t_canq);
 	return(1);
 }
 
@@ -353,21 +345,18 @@ loop:
 void
 ttread()
 {
-	register struct tty *tp;
 	register char * base;
 	register int n;
 
-	if (cursoff) {
+	if (CURSOFF) {
 		putbuf(0232);
-		cursoff=0;
 	}
 	putbuf(0);
-	tp = kl11;
-	if (tp->t_canq.c_cc || canon(tp)) {
+	if (tty.t_canq.c_cc || canon()) {
 		n = u.u_count;
 		base = u.u_base;
-		while (n && tp->t_canq.c_cc) {
-			*base++ = getc(&tp->t_canq);
+		while (n && tty.t_canq.c_cc) {
+			*base++ = getc(&tty.t_canq);
 			--n;
 		}
 		u.u_base = base;
@@ -385,9 +374,8 @@ ttwrite()
 {
 	register char *base;
 	register int n;
-	if (!cursoff) {
+	if (!CURSOFF) {
 		putbuf(0232);
-		cursoff++;
 	}
 	base = u.u_base;
 	n = u.u_count;
