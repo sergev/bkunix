@@ -42,7 +42,6 @@ init:	clr	r0
 	mov	$ IM, (r0)+
 go:
 	reset
-	clr	*$0204		/ turn off the status line on top of the screen
 
 / clear bss and user block
 	mov	$_edata,r0
@@ -73,6 +72,6 @@ go:
 	rti
 
 /-----------------------
-	.globl	_klrint
+	.globl	_ttyinput
 klin:	jsr	r0,call
-	.word	_klrint
+	.word	_ttyinput

@@ -36,8 +36,13 @@ struct sysent sysent[64] = {
 	2, stat,			/* 18 = stat */
 	2, seek,			/* 19 = seek */
 	0, getpid,			/* 20 = getpid */
+#ifdef MNTOPTION
 	3, smount,			/* 21 = mount */
 	1, sumount,			/* 22 = umount */
+#else
+	0, nosys,			/* 21 = mount */
+	0, nosys,			/* 22 = umount */
+#endif
 	0, nullsys,			/* 23 = setuid */
 	0, getuid,			/* 24 = getuid */
 	0, stime,			/* 25 = stime */

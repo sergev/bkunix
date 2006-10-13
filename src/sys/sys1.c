@@ -126,7 +126,7 @@ exec()
 		TOPUSR = 070000;
 	} else {
 		if (TOPUSR == 070000)
-			ttputc(0214);
+			fullscr();
 		TOPUSR = 040000;
 	}
 

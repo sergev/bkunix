@@ -88,6 +88,7 @@ dup()
 	fp->f_count++;
 }
 
+#ifdef MNTOPTION
 /*
  * the mount system call.
  */
@@ -199,6 +200,7 @@ getmdev()
 	iput(ip);
 	return(d);
 }
+#endif
 
 void
 stty()

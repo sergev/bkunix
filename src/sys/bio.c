@@ -273,10 +273,11 @@ swap(rdflg)
 			/* p->p_size = SWPSIZ<<8; */
 			p->p_size = (TOPUSR-BOTUSR+USIZE)>>1;
 	}
-	else if (TOPUSR == 070000 &&
-		 p->p_size == (SMALL + USIZE)>>1 ||
-	    TOPUSR == 040000 && p->p_size == (LARGE + USIZE)>>1) {
-		/* swapping in a process of different size */
+	else if (TOPUSR == 070000 && p->p_size == (SMALL + USIZE)>>1) {
+		/* swapping in a small process after a large one */
+		fullscr();
+	}else if (TOPUSR == 040000 && p->p_size == (LARGE + USIZE)>>1) {
+		/* swapping in a large process after a small one */
 		ttputc(0214);
 	}
 	swbuf.b_flags = B_BUSY | rdflg;

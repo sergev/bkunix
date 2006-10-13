@@ -15,6 +15,7 @@
  */
 /*#define BGOPTION	1*/
 /*#define CLOCKOPT	1*/
+#define MNTOPTION	1
 
 /*
  * the following 4 variables may be modified.
