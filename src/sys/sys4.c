@@ -17,16 +17,16 @@
 void
 gtime()
 {
-	u.u_ar0[R0] = time[0];
-	u.u_ar0[R1] = time[1];
+	u.u_ar0[R0] = ((int*) &time) [0];
+	u.u_ar0[R1] = ((int*) &time) [1];
 }
 
 void
 stime()
 {
-	time[0] = u.u_ar0[R0];
-	time[1] = u.u_ar0[R1];
-	wakeup(tout);
+	((int*) &time) [0] = u.u_ar0[R0];
+	((int*) &time) [1] = u.u_ar0[R1];
+	wakeup(&tout);
 }
 
 void

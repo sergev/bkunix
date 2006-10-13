@@ -14,8 +14,8 @@
 extern char	canonb[CANBSIZ];	/* buffer for erase and kill (#@) */
 extern struct inode *rootdir;		/* pointer to inode of root directory */
 extern int	lbolt;			/* time of day in 60th not in time */
-extern int	time[2];		/* time in sec from 1970 */
-extern int	tout[2];		/* time of day of next sleep */
+extern long	time;			/* time in sec from 1970 */
+extern long	tout;			/* time of day of next sleep */
 
 /*
  * Mount structure.

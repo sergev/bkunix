@@ -135,8 +135,7 @@ iupdat(p)
 		memcpy (idata, &rp->i_mode,
 			offset(inode, i_addr[8])-offset(inode, i_mode));
 		idata += 14;
-		*idata++ = time[0];
-		*idata = time[1];
+		*(long*) idata = time;
 		bwrite(bp);
 	}
 }
