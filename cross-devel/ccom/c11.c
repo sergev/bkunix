@@ -1127,7 +1127,8 @@ getree()
 
 	case RLABEL:
 		outname(s);
-		printf("%s:\n~~%s:\n", s, s+1);
+		printf("%s:\n", s);
+/*		printf("~~%s:\n", s+1);*/
 		break;
 
 	case BRANCH:
