@@ -36,8 +36,7 @@ void iinit()
 	mount[0].m_bufp = cp;
 	mount[0].m_dev = ROOTDEV;
 	fs = (struct filsys*) cp->b_addr;
-	time[0] = fs->s_time[0];
-	time[1] = fs->s_time[1];
+	time = fs->s_time;
 }
 
 /*
@@ -230,8 +229,7 @@ update()
 			if(fp->s_fmod == 0)
 				continue;
 			bp = getblk(mp->m_dev, 1);
-			fp->s_time[0] = time[0];
-			fp->s_time[1] = time[1];
+			fp->s_time = time;
 			fp->s_fmod = 0;
 			memcpy(bp->b_addr, fp, 512);
 			bwrite(bp);

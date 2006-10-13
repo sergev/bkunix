@@ -34,10 +34,9 @@ clock(dev, sp, r1, nps, r0, pc, ps)
 	 */
 	if(++lbolt >= HZ) {
 		lbolt -= HZ;
-		if(++time[1] == 0)
-			++time[0];
-		if(time[1]==tout[1] && time[0]==tout[0])
-			wakeup(tout);
+		++time;
+		if(time == tout)
+			wakeup(&tout);
 		for(pp = &proc[0]; pp < &proc[NPROC]; pp++) {
 			if(pp->p_clktim)
 				if(--pp->p_clktim == 0)

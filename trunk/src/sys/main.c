@@ -14,8 +14,8 @@
 char		canonb[CANBSIZ];	/* buffer for erase and kill (#@) */
 struct inode	*rootdir;		/* pointer to inode of root directory */
 int		lbolt;			/* time of day in 60th not in time */
-int		time[2];		/* time in sec from 1970 */
-int		tout[2];		/* time of day of next sleep */
+long		time;			/* time in sec from 1970 */
+long		tout;			/* time of day of next sleep */
 
 struct mount	mount[NMOUNT];
 int		cpid;			/* current process ID */
