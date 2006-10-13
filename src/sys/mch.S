@@ -49,14 +49,10 @@ call:
 	mov	4(sp),-(sp)
 	bic	$0177740,(sp)	/ trap type
 	cmp	10(sp),$ TOPSYS
-#if BOTSYS != 0
 	bhis	2f		/ trap from user
 	cmp	10(sp),$ BOTSYS
 	bhis	1f		/ trap from system
 2:
-#else
-	blo	1f		/ trap from system
-#endif
 	inc	_user
 	mov	2(sp),r1	/ trap from user, get user stack
 	mov	$ BOTUSR,sp
@@ -88,14 +84,10 @@ call:
 	tst	(sp)+
 	mov	(sp)+,r1	/ new user stack pointer
 	cmp	6(sp),$ TOPSYS
-#if BOTSYS != 0
 	bhis	2f		/ return from user trap
 	cmp	6(sp),$ BOTSYS
 	bhis	1f		/ return from system trap
 2:
-#else
-	blo	1f		/ return from system trap
-#endif
 	sub	$10,r1		/ begin. of system stack to be copied to user stack
 	mov	(sp)+,(r1)+	/ copy system stack to user stack
 	mov	(sp)+,(r1)+
@@ -110,6 +102,7 @@ call:
 	mov	(sp)+,r0
 	rti
 
+#if 0
 /-----------------------
 / Character list get/put
 	.globl	_getc
@@ -193,6 +186,7 @@ _putc:
 	mov	(sp)+,r2
 	mtps	(sp)+
 	rts	pc
+#endif
 
 /-----------------------
 	.globl	_idle

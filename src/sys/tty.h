@@ -17,8 +17,17 @@
 struct clist
 {
 	int	c_cc;		/* character count */
-	int	c_cf;		/* pointer to first block */
-	int	c_cl;		/* pointer to last block */
+	char	*c_cf;		/* pointer to first block */
+	char	*c_cl;		/* pointer to last block */
+};
+
+/*
+ * The actual structure of a clist block manipulated by
+ * getc and putc (mch.s)
+ */
+struct cblock {
+	struct	cblock *c_next;
+	char	c_info[6];
 };
 
 /*
@@ -38,8 +47,8 @@ struct tty
 	struct	clist t_outq;	/* output list to device */
 	char	t_delct;	/* number of delimiters in raw q */
 	char	t_col;		/* printing column of device */
-	char t_flags;		/* see below */
-	char t_modes;		/* open or not? */
+	char	t_flags;	/* see below */
+	char	t_modes;	/* open or not? */
 };
 
 #define	TTIPRI	10
