@@ -87,7 +87,7 @@ readi(aip)
 		on = u.u_offset[1] & 0777;
 		n = min(512-on, u.u_count);
 		if((ip->i_mode&IFMT) != IFBLK) {
-			dn = dpcmp(ip->i_size0&0377, ip->i_size1,
+			dn = dpcmp(ip->i_size0, ip->i_size1,
 				u.u_offset[0], u.u_offset[1]);
 			if(dn <= 0)
 				return;
@@ -149,7 +149,7 @@ writei(aip)
 		if ((u.u_offset[1]&0777)==0)
 			bwrite(bp); else
 			bdwrite(bp);
-		if(dpcmp(ip->i_size0&0377, ip->i_size1,
+		if(dpcmp(ip->i_size0, ip->i_size1,
 		  u.u_offset[0], u.u_offset[1]) < 0 &&
 		  (ip->i_mode&(IFBLK&IFCHR)) == 0) {
 			ip->i_size0 = u.u_offset[0];

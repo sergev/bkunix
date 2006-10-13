@@ -129,8 +129,6 @@ main(argc, argv)
 				}
 				if ((getuid() & 0377) == st2.st_uid)
 					b = 0200;
-				else if ((getgid() & 0377) == st2.st_gid)
-					b = 020;
 				else
 					b = 02;
 				if ((st2.st_mode & b) == 0 && isatty(0)) {

@@ -12,9 +12,7 @@ struct stat {
 	int		st_mode;
 	char		st_nlink;
 	char		st_uid;
-	char		st_gid;
-	char		st_size0;
-	unsigned	st_size;
+	long		st_size;
 	int		st_addr[8];
 	long		st_atime;
 	long		st_mtime;

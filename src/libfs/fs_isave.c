@@ -31,9 +31,7 @@ fs_isave (inode, force)
 	if (! fs_seek (inode->fs, offset))
 		return 0;
 
-	inode->size2 = inode->size >> 16;
-	inode->size10 = inode->size;
-printf ("**inode %d write\n", inode->number);
+/*printf ("**inode %d write\n", inode->number);*/
 	if (write (inode->fs->fd, (char*) inode, FS_INODE_SIZE) != FS_INODE_SIZE)
 		return 0;
 

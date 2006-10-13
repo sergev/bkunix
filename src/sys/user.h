@@ -30,9 +30,6 @@ struct user
 	char	u_segflg;		/* flag for IO; user or kernel space */
 	char	u_error;		/* return error code */
 	char	u_uid;			/* effective user id */
-	char	u_gid;			/* effective group id */
-	char	u_ruid;			/* real user id */
-	char	u_rgid;			/* real group id */
 	struct proc *u_procp;		/* pointer to proc structure */
 	char	*u_base;		/* base address for IO */
 	unsigned int u_count;		/* bytes remaining for IO */

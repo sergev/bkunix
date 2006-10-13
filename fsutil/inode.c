@@ -19,8 +19,6 @@ extern int verbose;
 int u6fs_inode_get (u6fs_t *fs, u6fs_inode_t *inode, unsigned short inum)
 {
 	unsigned long offset;
-	unsigned char size2;
-	unsigned short size10;
 	int i;
 
 	memset (inode, 0, sizeof (*inode));
@@ -43,15 +41,8 @@ int u6fs_inode_get (u6fs_t *fs, u6fs_inode_t *inode, unsigned short inum)
 		return 0;
 	if (! u6fs_read8 (fs, &inode->uid))	/* owner */
 		return 0;
-	if (! u6fs_read8 (fs, &inode->gid))	/* group of owner */
+	if (! u6fs_read32 (fs, &inode->size))	/* size */
 		return 0;
-
-	/* size */
-	if (! u6fs_read8 (fs, &size2))
-		return 0;
-	if (! u6fs_read16 (fs, &size10))
-		return 0;
-	inode->size = (unsigned long) size2 << 16 | size10;
 
 	for (i=0; i<8; ++i) {		/* device addresses constituting file */
 		if (! u6fs_read16 (fs, &inode->addr[i]))
@@ -105,7 +96,6 @@ void u6fs_inode_clear (u6fs_inode_t *inode)
 	inode->mode = 0;
 	inode->nlink = 0;
 	inode->uid = 0;
-	inode->gid = 0;
 	inode->size = 0;
 	memset (inode->addr, 0, sizeof(inode->addr));
 	inode->atime = 0;
@@ -137,13 +127,7 @@ int u6fs_inode_save (u6fs_inode_t *inode, int force)
 		return 0;
 	if (! u6fs_write8 (inode->fs, inode->uid))	/* owner */
 		return 0;
-	if (! u6fs_write8 (inode->fs, inode->gid))	/* group of owner */
-		return 0;
-
-	/* size */
-	if (! u6fs_write8 (inode->fs, inode->size >> 16))
-		return 0;
-	if (! u6fs_write16 (inode->fs, inode->size))
+	if (! u6fs_write32 (inode->fs, inode->size))	/* size */
 		return 0;
 
 	for (i=0; i<8; ++i) {		/* device addresses constituting file */
@@ -185,7 +169,6 @@ void u6fs_inode_print (u6fs_inode_t *inode, FILE *out)
 
 	fprintf (out, "      Links: %u\n", inode->nlink);
 	fprintf (out, "   Owner id: %u\n", inode->uid);
-	fprintf (out, "   Group id: %u\n", inode->gid);
 
 	fprintf (out, "     Blocks:");
 	for (i=0; i < 8; ++i) {
@@ -577,7 +560,6 @@ create_file:
 	inode->mode |= INODE_MODE_ALLOC;
 	inode->nlink = 1;
 	inode->uid = 0;
-	inode->gid = 0;
 	if (! u6fs_inode_save (inode, 0)) {
 		fprintf (stderr, "%s: cannot save file inode\n", name);
 		return 0;

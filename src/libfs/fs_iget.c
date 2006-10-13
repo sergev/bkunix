@@ -37,8 +37,5 @@ fs_iget (fs, inode, inum)
 	if (read (fs->fd, (char*) inode, FS_INODE_SIZE) != FS_INODE_SIZE)
 		return 0;
 
-	inode->size = inode->size2;
-	inode->size <<= 16;
-	inode->size |= inode->size10;
 	return 1;
 }
