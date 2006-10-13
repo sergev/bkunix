@@ -113,7 +113,7 @@ cloop:
 	 */
 	u.u_offset = 0;
 	eo = 0;
-	u.u_count = dp->i_size / (DIRSIZ+2);
+	u.u_count = dp->i_size >> 4;
 	bp = NULL;
 eloop:
 	/*

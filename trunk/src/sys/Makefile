@@ -27,10 +27,10 @@ ASRCS		= high.S mch.S
 ASOBJS		= high.o mch.o
 CSRCS		= alloc.c bio.c \
 		  clock.c fio.c iget.c main.c nami.c rdwri.c sig.c slp.c \
-		  subr.c sys1.c sys2.c sys3.c sys4.c sysent.c trap.c
+		  subr.c sys1.c sys2.c sys3.c sys4.c sysent.c trap.c tty.c
 COBJS		= alloc.o bio.o \
 		  clock.o fio.o iget.o main.o nami.o rdwri.o sig.o slp.o \
-		  subr.o sys1.o sys2.o sys3.o sys4.o sysent.o trap.o
+		  subr.o sys1.o sys2.o sys3.o sys4.o sysent.o trap.o tty.o
 OBJS		= $(ASOBJS) $(COBJS)
 
 vpath %.c . dev
@@ -81,7 +81,6 @@ depend:
 
 ### DO NOT DELETE THIS LINE
 high.o: high.S param.h
-low.o: low.S param.h
 mch.o: mch.S param.h
 alloc.o: alloc.c param.h systm.h filsys.h buf.h inode.h user.h
 bio.o: bio.c param.h user.h buf.h systm.h proc.h
@@ -100,6 +99,7 @@ sys3.o: sys3.c param.h systm.h reg.h buf.h filsys.h user.h inode.h file.h
 sys4.o: sys4.c param.h user.h reg.h inode.h systm.h proc.h
 sysent.o: sysent.c param.h systm.h
 trap.o: trap.c param.h systm.h user.h proc.h reg.h
+tty.o: tty.c param.h tty.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
 # see make depend above

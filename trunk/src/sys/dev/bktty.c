@@ -251,45 +251,6 @@ klsgtty(f)
 }
 
 /*
- * general TTY subroutines
- */
-
-/*
- * The actual structure of a clist block manipulated by
- * getc and putc (mch.s)
- */
-struct cblock {
-	struct cblock *c_next;
-	char info[6];
-};
-
-/*
- *  The character lists-- space for 6*NCLIST characters if lucky,
- * or 6 less otherwise: getc/putc needs the structs to be 8-aligned;
- * cinit() takes care of that.
- */
-struct cblock cfree[NCLIST];
-
-/* List head for unused character blocks. */
-struct cblock *cfreelist;
-
-/*
- * Initialize clist by freeing all character blocks, then count
- * number of character devices. (Once-only routine)
- */
-void
-cinit()
-{
-	register struct cblock *cp;
-	cp = cfree;
-	cp = (struct cblock*) (((int)cp+7)&~7);
-	for (; cp <= &cfree[NCLIST-1]; cp++) {
-		cp->c_next = cfreelist;
-		cfreelist = cp;
-	}
-}
-
-/*
  * transfer raw input list to canonical list,
  * doing erase-kill processing and handling escapes.
  * It waits until a full line has been typed in cooked mode,
