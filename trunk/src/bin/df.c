@@ -87,8 +87,8 @@ prdir(dev, ino)
 	register struct dirent *d;
 
 	if (dev == 0) {
-		if (ino == 1) {
-			printf("/");
+		if (ino <= 1) {
+			printf(ino==1 ? "/" : "--");
 			return;
 		}
 		/* Scan root to find a possible mount point. */
@@ -123,6 +123,13 @@ dfree(fs_dev, on_dev, on_ino)
 	}
 	sync();
 	bread(fd, 1, &sblock);
+	if (sblock.fsize < 6 || sblock.isize < 1 ||
+	    sblock.isize > 4096 || sblock.isize > sblock.fsize / 4 ||
+	    sblock.nfree > sblock.fsize) {
+		printf("df: `%s': bad filesystem\n", file);
+		close(fd);
+		return;
+	}
 	nfree = 0;
 	while (alloc(fd))
 		nfree++;
@@ -179,20 +186,20 @@ main(argc, argv)
 			printf("df: `%s': no such file\n", arg);
 			continue;
 		}
-		if (S_ISBLK(st.st_mode)) {
-			dfree(st.st_addr[0], 0, 0);
-next:			continue;
-		}
+		if (S_ISBLK(st.st_mode))
+			st.st_dev = st.st_addr[0];
 		resetmtab(mt);
-		while (readmtab(mt, &fs_dev, &fs_ronly,
-		    &on_dev, &on_ino) >= 0) {
-			if (fs_dev == st.st_dev) {
-				dfree(fs_dev, on_dev, on_ino);
-				goto next;
+		do {
+			if (readmtab(mt, &fs_dev, &fs_ronly, &on_dev,
+			    &on_ino) < 0) {
+				fs_dev = st.st_dev;
+				on_dev = 0;
+				on_ino = 0;
+				break;
 			}
-		}
-		/* Cannot happen. */
-		printf("df: `%s': not in mount table?\n", arg);
+		} while (fs_dev != st.st_dev);
+
+		dfree(fs_dev, on_dev, on_ino);
 	}
 	if (n == 0) {
 		while (readmtab(mt, &fs_dev, &fs_ronly,

@@ -4,7 +4,7 @@ BIN		= bin/sh bin/ls bin/echo bin/cal bin/cp bin/date bin/mkdir \
 		  bin/cat bin/ln bin/wc bin/pwd bin/df bin/mount bin/umount
 SYS		= sys/bkunix sys/bkboot
 
-DEV		= dev/tty8!c0:0 dev/fd0!b0:0 dev/fd1!b0:1
+DEV		= dev/tty0!c0:0 dev/fd0!b0:0 dev/fd1!b0:1
 DSK		= root.bkd
 FSUTIL		= u6-fsutil -F
 

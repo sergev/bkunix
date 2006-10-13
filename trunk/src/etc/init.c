@@ -9,8 +9,8 @@
 
 char shell[] = "/bin/sh";
 char minus[] = "-";
-char ctty[] = "/dev/tty8";
-char hello[] = "\n\n** bkunix **\n";
+char ctty[] = "/dev/tty0";
+char hello[] = "\n** bkunix **\n";
 
 int
 main()

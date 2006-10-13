@@ -232,11 +232,10 @@ nblock(size)
 	if (size & 0777)
 		n++;
 	if (n > 8)
-		n += (n+255)/256;
-	return(n);
+		n += (n + 255) / 256;
+	return n;
 }
 
-int	m0[] = { 3, S_IFDIR, 'd', S_IFBLK, 'b', S_IFCHR, 'c', '-'};
 int	m1[] = { 1, 0400, 'r', '-' };
 int	m2[] = { 1, 0200, 'w', '-' };
 int	m3[] = { 2, S_ISUID, 's', 0100, 'x', '-' };
@@ -247,7 +246,7 @@ int	m7[] = { 1, 4, 'r', '-' };
 int	m8[] = { 1, 2, 'w', '-' };
 int	m9[] = { 2, S_ISVTX, 't', 1, 'x', '-' };
 
-int	*m[] = { m0, m1, m2, m3, m4, m5, m6, m7, m8, m9};
+int	*m[] = { m1, m2, m3, m4, m5, m6, m7, m8, m9, 0 };
 
 void
 pmode(flags)
@@ -256,8 +255,15 @@ pmode(flags)
 	register int n, *ap, **mp;
 	char c;
 
-	for (mp = &m[0]; mp < &m[10];) {
-		ap = *mp++;
+	c = '-';
+	switch (flags & S_IFMT) {
+	case S_IFDIR: c = 'd'; break;
+	case S_IFCHR: c = 'c'; break;
+	case S_IFBLK: c = 'b'; break;
+	}
+	write (1, &c, 1);
+	for (mp = &m[0]; *mp; mp++) {
+		ap = *mp;
 		n = *ap++;
 		while (--n >= 0 && (flags & *ap++) == 0)
 			ap++;
