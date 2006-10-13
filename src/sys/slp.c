@@ -65,7 +65,7 @@ sleep(chan, pri)
 #ifndef BGOPTION
 		idle();
 #endif
-	rstps(s);
+	splx(s);
 	return;
 
 	/*
@@ -184,11 +184,11 @@ swtch(aa)
 	s = spl7();
 	if(swflg) {
 		swwait = 1;
-		rstps(s);
+		splx(s);
 		return;
 	}
 	swflg = 1;
-	rstps(s);
+	splx(s);
 	a = aa;
 loop:	p = &proc[cpid];
 	if(p->p_stat == SSLEEP) {
@@ -217,11 +217,11 @@ loop:	p = &proc[cpid];
 	s = spl7();
 	if(swwait) {
 		swwait = 0;
-		rstps(s);
+		splx(s);
 		goto loop;
 	}
 	swflg = 0;
 	swwait = 0;
-	rstps(s);
+	splx(s);
 }
 #endif

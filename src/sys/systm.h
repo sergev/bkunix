@@ -51,7 +51,7 @@ void suword();
 void savu();
 void retu();
 void idle();
-void rstps();
+void splx();
 void update();
 int lshift();
 int spl0();

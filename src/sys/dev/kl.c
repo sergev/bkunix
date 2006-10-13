@@ -48,7 +48,7 @@ flushtty()
 	sps = spl7();
 	while (getc(&tp->t_rawq) >= 0);
 	tp->t_delct = 0;
-	rstps(sps);
+	splx(sps);
 }
 
 /*

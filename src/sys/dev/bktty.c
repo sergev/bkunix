@@ -76,7 +76,7 @@ int c;
 		}
 		nch = 0;
 	}
-	rstps(sps);
+	splx(sps);
 }
 
 /*
@@ -93,7 +93,7 @@ flushtty()
 	sps = spl7();
 	while (getc(&tty.t_rawq) >= 0);
 	tty.t_delct = 0;
-	rstps(sps);
+	splx(sps);
 }
 
 /*

@@ -256,8 +256,8 @@ _spl7:
 	rts	pc
 
 /-----------------------
-	.globl _rstps
-_rstps:
+	.globl _splx
+_splx:
 	mtps	2(sp)
 	rts	pc
 
