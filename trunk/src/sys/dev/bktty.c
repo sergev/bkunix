@@ -360,7 +360,7 @@ ttread()
 			--n;
 		}
 		u.u_base = base;
-		dpadd(u.u_offset, u.u_count-n);
+		u.u_offset += u.u_count - n;
 		u.u_count = n;
 	}
 }
@@ -379,7 +379,7 @@ ttwrite()
 	}
 	base = u.u_base;
 	n = u.u_count;
-	dpadd(u.u_offset, n);
+	u.u_offset += n;
 	while (n--) {
 		ttyoutput(*base++);
 	}

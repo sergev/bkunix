@@ -93,8 +93,7 @@ exec()
 	 */
 	u.u_base = (char*) &u.u_arg[0];
 	u.u_count = 8;
-	u.u_offset[1] = 0;
-	u.u_offset[0] = 0;
+	u.u_offset = 0;
 	u.u_segflg++;
 	readi(ip);
 	u.u_segflg--;
@@ -141,7 +140,7 @@ exec()
 	 * read in data segment
 	 */
 	u.u_base = (char*) BOTUSR;
-	u.u_offset[1] = 020;
+	u.u_offset = 020;
 	u.u_count = u.u_arg[2];
 	readi(ip);
 

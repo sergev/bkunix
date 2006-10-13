@@ -47,7 +47,7 @@ all:		bkunix bkboot
 		$(SIZE) bkunix
 
 clean:
-		rm -f *~ dev/*~ boot/*~ *.o *.s a.out bkunix bkboot bkunix.dis
+		rm -f *~ dev/*~ boot/*~ *.o *.s a.out bkunix bkboot bkunix.dis bkunix.map
 
 bkunix:		$(OBJS)
 		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) $(LIBS)

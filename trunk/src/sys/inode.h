@@ -25,8 +25,7 @@ struct	inode
 	int	i_mode;
 	char	i_nlink;	/* directory entries */
 	char	i_uid;		/* owner */
-	unsigned int i_size0;	/* most significant of size */
-	unsigned int i_size1;	/* least sig */
+	long	i_size;	/* most significant of size */
 	int	i_addr[8];	/* device addresses constituting file */
 };
 extern struct inode inode[NINODE];

@@ -177,8 +177,7 @@ itrunc(ip)
 		*bnop = 0;
 	}
 	rp->i_mode &= ~(ILARG|ICONT);
-	rp->i_size0 = 0;
-	rp->i_size1 = 0;
+	rp->i_size = 0;
 	rp->i_flag |= IUPD;
 }
 
