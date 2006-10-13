@@ -53,7 +53,6 @@ typedef struct {
 
 	unsigned char	nlink;		/* directory entries */
 	unsigned char	uid;		/* owner */
-	unsigned char	gid;		/* group of owner */
 	unsigned long	size;		/* size */
 	unsigned short	addr [8];	/* device addresses constituting file */
 	unsigned long	atime;		/* last access time */

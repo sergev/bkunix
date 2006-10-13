@@ -198,7 +198,6 @@ maknode(mode)
 	ip->i_mode = mode | IALLOC;
 	ip->i_nlink = 1;
 	ip->i_uid = u.u_uid;
-	ip->i_gid = u.u_gid;
 	wdir(ip);
 	return(ip);
 }

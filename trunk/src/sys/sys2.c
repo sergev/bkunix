@@ -206,7 +206,7 @@ seek()
 		break;
 
 	default:
-		n[0] += fp->f_inode->i_size0&0377;
+		n[0] += fp->f_inode->i_size0;
 		dpadd(n, fp->f_inode->i_size1);
 
 	case 0:

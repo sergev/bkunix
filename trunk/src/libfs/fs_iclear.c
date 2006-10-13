@@ -18,7 +18,6 @@ fs_iclear (inode)
 	inode->mode = 0;
 	inode->nlink = 0;
 	inode->uid = 0;
-	inode->gid = 0;
 	inode->size = 0;
 	memset (inode->addr, 0, sizeof(inode->addr));
 	inode->atime = 0;

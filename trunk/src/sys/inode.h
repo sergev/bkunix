@@ -25,8 +25,7 @@ struct	inode
 	int	i_mode;
 	char	i_nlink;	/* directory entries */
 	char	i_uid;		/* owner */
-	char	i_gid;		/* group of owner */
-	char	i_size0;	/* most significant of size */
+	unsigned int i_size0;	/* most significant of size */
 	unsigned int i_size1;	/* least sig */
 	int	i_addr[8];	/* device addresses constituting file */
 };

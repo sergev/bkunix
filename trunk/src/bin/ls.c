@@ -25,12 +25,11 @@ struct lbuf {
 	int	lflags;
 	char	lnl;
 	char	luid;
-	char	lgid;
 	long	lsize;
 	long	lmtime;
 };
 
-int	aflg, dflg, lflg, sflg, tflg, uflg, iflg, fflg, gflg, Iflg;
+int	aflg, dflg, lflg, sflg, tflg, uflg, iflg, fflg, Iflg;
 int	fout;
 int	filsys;
 int	rflg = 1;
@@ -104,10 +103,6 @@ main(argc, argv)
 			dflg++;
 			continue;
 
-		case 'g':
-			gflg++;
-			continue;
-
 		case 'l':
 			lflg++;
 			statreq++;
@@ -148,7 +143,7 @@ out:
 		statreq = 0;
 	}
 	if(lflg) {
-		uidfil = open(gflg ? "/etc/group" : "/etc/passwd", 0);
+		uidfil = open("/etc/passwd", 0);
 	}
 	if (argc==0) {
 		argc++;
@@ -202,8 +197,6 @@ pentry(ap)
 		pmode(p->lflags);
 		printf("%2d ", p->lnl);
 		t = p->luid;
-		if(gflg)
-			t = p->lgid;
 		t &= 0377;
 		printf("%-6d", t);
 		if (S_ISBLK(p->lflags) || S_ISCHR(p->lflags))
@@ -358,9 +351,6 @@ gstat(file, argfl)
 		if (stat(file, &statb) < 0) {
 			printf("%s not found\n", file);
 			statb.st_ino = -1;
-#ifdef __pdp11__
-			statb.st_size0 = 0;
-#endif
 			statb.st_size = 0;
 			statb.st_mode = 0;
 			if (argfl) {
@@ -372,7 +362,6 @@ gstat(file, argfl)
 		statb.st_mode &= ~ S_ISARG;
 		rep->lflags = statb.st_mode;
 		rep->luid = statb.st_uid;
-		rep->lgid = statb.st_gid;
 		rep->lnl = statb.st_nlink;
 		if ((S_ISBLK(rep->lflags) || S_ISCHR(rep->lflags)) && lflg)
 #ifdef __pdp11__
@@ -381,13 +370,7 @@ gstat(file, argfl)
 			rep->lsize = statb.st_size;
 #endif
 		else {
-#ifdef __pdp11__
-			rep->lsize = (unsigned char) statb.st_size0;
-			rep->lsize <<= 16;
-			rep->lsize |= statb.st_size;
-#else
 			rep->lsize = statb.st_size;
-#endif
 			tblocks += nblock(rep->lsize);
 		}
 		if (uflg) {

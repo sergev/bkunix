@@ -38,16 +38,13 @@ struct inode {
 	unsigned short	mode;		/* file type and access mode */
 	unsigned char	nlink;		/* directory entries */
 	unsigned char	uid;		/* owner */
-	unsigned char	gid;		/* owner */
-	unsigned char	size2;		/* size msb */
-	unsigned short	size10;		/* size lsw */
+	unsigned long	size;		/* size */
 	unsigned short	addr [8];	/* device addresses constituting file */
 	unsigned long	atime;		/* last access time */
 	unsigned long	mtime;		/* last modification time */
 
 	struct filesys	*fs;
 	unsigned short	number;
-	unsigned long	size;		/* size */
 	int		dirty;		/* save needed */
 };
 #define FS_INODE_SIZE	32		/* inode size */
