@@ -167,8 +167,7 @@ falloc()
 		if (fp->f_count==0) {
 			u.u_ofile[i] = fp;
 			fp->f_count++;
-			fp->f_offset[0] = 0;
-			fp->f_offset[1] = 0;
+			fp->f_offset = 0;
 			return(fp);
 		}
 	u.u_error = ENFILE;

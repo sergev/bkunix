@@ -61,7 +61,7 @@ unlink()
 	ip = iget(pp->i_dev, u.u_dent.u_ino);
 	if(ip == NULL)
 		goto out;
-	u.u_offset[1] -= DIRSIZ+2;
+	u.u_offset -= DIRSIZ+2;
 	u.u_base = (char*) &u.u_dent;
 	u.u_count = DIRSIZ+2;
 	u.u_dent.u_ino = 0;

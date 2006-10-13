@@ -46,14 +46,13 @@ rdwr(mode)
 		u.u_error = EFAULT;
 		return;
 	}
-	u.u_offset[1] = fp->f_offset[1];
-	u.u_offset[0] = fp->f_offset[0];
+	u.u_offset = fp->f_offset;
 	if(mode==FREAD)
 		readi(fp->f_inode);
 	else
 		writei(fp->f_inode);
-	dpadd(fp->f_offset, u.u_arg[1]-u.u_count);
-	u.u_ar0[R0] = u.u_arg[1]-u.u_count;
+	fp->f_offset += u.u_arg[1] - u.u_count;
+	u.u_ar0[R0] = u.u_arg[1] - u.u_count;
 }
 
 /*
@@ -178,7 +177,7 @@ close()
 void
 seek()
 {
-	int n[2];
+	long n;
 	register struct file *fp;
 	register int t;
 
@@ -186,35 +185,27 @@ seek()
 	if(fp == NULL)
 		return;
 	t = u.u_arg[1];
-	if(t > 2) {
-		n[1] = u.u_arg[0]<<9;
-		n[0] = u.u_arg[0]>>7;
-		if(t == 3)
-			n[0] &= 0777;
-	} else {
-		n[1] = u.u_arg[0];
-		n[0] = 0;
-		if(t!=0 && n[1]<0)
-			n[0] = -1;
-	}
+	n = u.u_arg[0];
+	if (t > 2)
+		n <<= 9;
+	if (t == 0 || t == 3)
+		n &= 0x1ffffff;
+
 	switch(t) {
 
 	case 1:
 	case 4:
-		n[0] += fp->f_offset[0];
-		dpadd(n, fp->f_offset[1]);
+		n += fp->f_offset;
 		break;
 
 	default:
-		n[0] += fp->f_inode->i_size0;
-		dpadd(n, fp->f_inode->i_size1);
+		n += fp->f_inode->i_size;
 
 	case 0:
 	case 3:
 		;
 	}
-	fp->f_offset[1] = n[1];
-	fp->f_offset[0] = n[0];
+	fp->f_offset = n;
 }
 
 /*

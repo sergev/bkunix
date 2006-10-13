@@ -18,7 +18,7 @@ struct	file
 	char		f_flag;
 	char		f_count;	/* reference count */
 	struct inode	*f_inode;	/* pointer to inode structure */
-	unsigned int	f_offset[2];	/* read/write character pointer */
+	long		f_offset;	/* read/write character pointer */
 };
 extern struct file file[NFILE];
 

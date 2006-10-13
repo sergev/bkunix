@@ -52,7 +52,7 @@ iomove(kdata, an, flag)
 	else
 		memcpy (u.u_base, kdata, n);
 	u.u_base += n;
-	dpadd(u.u_offset, n);
+	u.u_offset += n;
 	u.u_count -= n;
 }
 
@@ -83,16 +83,16 @@ readi(aip)
 	}
 
 	do {
-		lbn = bn = lshift(u.u_offset, -9);
-		on = u.u_offset[1] & 0777;
+		lbn = bn = u.u_offset >> 9;
+		on = (int) u.u_offset & 0777;
 		n = min(512-on, u.u_count);
-		if((ip->i_mode&IFMT) != IFBLK) {
-			dn = dpcmp(ip->i_size0, ip->i_size1,
-				u.u_offset[0], u.u_offset[1]);
-			if(dn <= 0)
+		if ((ip->i_mode & IFMT) != IFBLK) {
+			if (ip->i_size <= u.u_offset)
 				return;
-			n = min(n, dn);
-			if ((bn = bmap(ip, lbn)) == 0)
+			if (ip->i_size < u.u_offset + n)
+				n = ip->i_size - u.u_offset;
+			bn = bmap(ip, lbn);
+			if (bn == 0)
 				return;
 			dn = ip->i_dev;
 		} else {
@@ -131,8 +131,8 @@ writei(aip)
 		return;
 
 	do {
-		bn = lshift(u.u_offset, -9);
-		on = u.u_offset[1] & 0777;
+		bn = u.u_offset >> 9;
+		on = (int) u.u_offset & 0777;
 		n = min(512-on, u.u_count);
 		if((ip->i_mode&IFMT) != IFBLK) {
 			if ((bn = bmap(ip, bn)) == 0)
@@ -146,15 +146,13 @@ writei(aip)
 		iomove(bp->b_addr + on, n, B_WRITE);
 		if(u.u_error != 0)
 			brelse(bp); else
-		if ((u.u_offset[1]&0777)==0)
-			bwrite(bp); else
+		if (((int) u.u_offset & 0777) == 0)
+			bwrite(bp);
+		else
 			bdwrite(bp);
-		if(dpcmp(ip->i_size0, ip->i_size1,
-		  u.u_offset[0], u.u_offset[1]) < 0 &&
-		  (ip->i_mode&(IFBLK&IFCHR)) == 0) {
-			ip->i_size0 = u.u_offset[0];
-			ip->i_size1 = u.u_offset[1];
-		}
+		if (ip->i_size < u.u_offset &&
+		  (ip->i_mode & (IFBLK & IFCHR)) == 0)
+			ip->i_size = u.u_offset;
 		ip->i_flag |= IUPD;
 	} while(u.u_error==0 && u.u_count!=0);
 }

@@ -33,7 +33,7 @@ struct user
 	struct proc *u_procp;		/* pointer to proc structure */
 	char	*u_base;		/* base address for IO */
 	unsigned int u_count;		/* bytes remaining for IO */
-	unsigned int u_offset[2];	/* offset in file for IO */
+	long	u_offset;		/* offset in file for IO */
 	struct inode *u_cdir;		/* pointer to inode of current directory */
 	char	u_dbuf[DIRSIZ];		/* current pathname component */
 	char	*u_dirp;		/* current pointer to inode */

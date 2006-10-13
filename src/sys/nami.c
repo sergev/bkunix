@@ -111,10 +111,9 @@ cloop:
 	/*
 	 * Set up to search a directory.
 	 */
-	u.u_offset[1] = 0;
-	u.u_offset[0] = 0;
+	u.u_offset = 0;
 	eo = 0;
-	u.u_count = dp->i_size1 / (DIRSIZ+2);
+	u.u_count = dp->i_size / (DIRSIZ+2);
 	bp = NULL;
 eloop:
 	/*
@@ -130,7 +129,7 @@ eloop:
 				goto out;
 			u.u_pdir = dp;
 			if(eo)
-				u.u_offset[1] = eo-DIRSIZ-2;
+				u.u_offset = eo-DIRSIZ-2;
 			else
 				dp->i_flag |= IUPD;
 			return(NULL);
@@ -144,11 +143,11 @@ eloop:
 	 * read the next directory block.
 	 * Release previous if it exists.
 	 */
-	if((u.u_offset[1]&0777) == 0) {
+	if(((int) u.u_offset & 0777) == 0) {
 		if(bp != NULL)
 			brelse(bp);
 		bp = bread(dp->i_dev,
-			bmap(dp, u.u_offset[1] / 512));
+			bmap(dp, (int) (u.u_offset >> 9)));
 	}
 
 	/*
@@ -158,12 +157,12 @@ eloop:
 	 * and the current component.
 	 * If they do not match, go back to eloop.
 	 */
-	memcpy(&u.u_dent, bp->b_addr+(u.u_offset[1]&0777), DIRSIZ+2);
-	u.u_offset[1] += DIRSIZ+2;
+	memcpy(&u.u_dent, bp->b_addr + ((int) u.u_offset & 0777), DIRSIZ+2);
+	u.u_offset += DIRSIZ+2;
 	u.u_count--;
 	if(u.u_dent.u_ino == 0) {
 		if(eo == 0)
-			eo = u.u_offset[1];
+			eo = u.u_offset;
 		goto eloop;
 	}
 	for(cp = &u.u_dbuf[0]; cp < &u.u_dbuf[DIRSIZ]; cp++)
