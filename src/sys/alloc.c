@@ -37,7 +37,9 @@ void iinit()
 	mount[0].m_dev = ROOTDEV;
 	fs = (struct filsys*) cp->b_addr;
 	time = fs->s_time;
+#ifdef CLOCKOPT
 	clkinit();
+#endif
 }
 
 /*

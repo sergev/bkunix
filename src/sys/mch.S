@@ -122,6 +122,23 @@ _idle:
 	tst	(sp)+
 	clr	_stop
 1:
+#ifdef CLOCKOPT
+	.data
+	.globl	_keypress
+_keypress:
+	.word 0
+	.text
+	/ handle autorepeat
+	mov	_keypress, r0
+	beq	2f	/ not active
+	bit	$0100, *$0177716
+	bne	1f	/ key not pressed, deactivate
+	sub	*$0177710,r0
+	bmi	2f	/ not yet
+	jsr	pc,_ttyinput
+2:	rts	pc
+1:	clr	_keypress
+#endif
 	rts	pc
 
 /-----------------------

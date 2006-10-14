@@ -33,6 +33,10 @@ extern int	user;
 extern int	swflg, swwait;
 #endif
 
+#ifdef CLOCKOPT
+extern int keypress;
+#endif
+
 void *memcpy();
 void *memset();
 void memzero();
