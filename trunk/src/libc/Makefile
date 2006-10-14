@@ -1,10 +1,6 @@
 #
 # Compile standard C library.
 #
-# System calls alarm() and pause() are not supported.
-# It seems that nobody uses them. The sources are lost.
-# The only way to restore them is extracting from old libc.a
-# and disassembling.
 #
 DESTDIR		= /usr/local/lib/pdp11
 CC		= pdp11-pcc
@@ -28,7 +24,7 @@ SRCS		= crt0.S nullsys.S nosys.S \
 		  strncat.c strncmp.c strncpy.c strrchr.c \
 		  memccpy.c memchr.c memcmp.c memcpy.c memset.c qsort.c \
 		  opendir.c closedir.c readdir.c isatty.c mkstemp.c \
-		  readmtab.c mount.S umount.S
+		  readmtab.c mount.S umount.S sleep.S alarm.S
 
 OBJS		= nullsys.o nosys.o cerror.o exit.o fork.o read.o write.o \
 		  open.o creat.o close.o wait.o link.o unlink.o \
@@ -40,7 +36,7 @@ OBJS		= nullsys.o nosys.o cerror.o exit.o fork.o read.o write.o \
 		  strncat.o strncmp.o strncpy.o strrchr.o \
 		  memccpy.o memchr.o memcmp.o memcpy.o memset.o qsort.o \
 		  opendir.o closedir.o readdir.o isatty.o mkstemp.o \
-		  readmtab.o mount.o umount.o
+		  readmtab.o mount.o umount.o sleep.o alarm.o
 
 all:		crt0.o libc.a
 
@@ -75,6 +71,7 @@ depend:
 		mv Makefile~ Makefile
 
 ### DO NOT DELETE THIS LINE
+alarm.o: alarm.S syscall.h
 cerror.o: cerror.S
 chdir.o: chdir.S syscall.h
 chmod.o: chmod.S syscall.h
@@ -92,7 +89,7 @@ getuid.o: getuid.S syscall.h
 gtty.o: gtty.S syscall.h
 link.o: link.S syscall.h
 mknod.o: mknod.S syscall.h
-mount.o: mount.S
+mount.o: mount.S syscall.h
 nosys.o: nosys.S
 nullsys.o: nullsys.S
 open.o: open.S syscall.h
@@ -101,12 +98,13 @@ sbrk.o: sbrk.S syscall.h
 seek.o: seek.S syscall.h
 setjmp.o: setjmp.S
 signal.o: signal.S syscall.h
+sleep.o: sleep.S syscall.h
 stat.o: stat.S syscall.h
 stime.o: stime.S syscall.h
 stty.o: stty.S syscall.h
 sync.o: sync.S syscall.h
 time.o: time.S syscall.h
-umount.o: umount.S
+umount.o: umount.S syscall.h
 unlink.o: unlink.S syscall.h
 wait.o: wait.S syscall.h
 write.o: write.S syscall.h

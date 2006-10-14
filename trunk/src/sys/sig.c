@@ -76,6 +76,7 @@ issig()
 	return(0);
 }
 
+#ifdef COREOPT
 /*
  * Create a core image on the file "core"
  * If you are looking for protection glitches,
@@ -111,6 +112,7 @@ core()
 	u.u_segflg--;
 	return(u.u_error==0);
 }
+#endif
 
 /*
  * Perform the action specified by
@@ -155,8 +157,10 @@ psig()
 	case SIGSEG:
 	case SIGSYS:
 		u.u_arg[0] = n;
+#ifdef COREOPT
 		if(core())
 			n += 0200;
+#endif
 	}
 	u.u_arg[0] = (u.u_ar0[R0]<<8) | n;
 	pexit();

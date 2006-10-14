@@ -108,12 +108,15 @@ _idle:
 	mfps	-(sp)
 	clr	-(sp)
 	mtps	(sp)+
-	wait
+	clr	_user
+	/ external interrupts are caught here
 	mtps	(sp)+
+#ifdef CLOCKOPT
+	jsr	pc,_uptime
+#endif
 	tst	_stop
 	beq	1f
 	mov	$2,-(sp)
-	clr	_user
 	.globl	_signal
 	jsr	pc,_signal
 	tst	(sp)+

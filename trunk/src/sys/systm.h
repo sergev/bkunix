@@ -13,9 +13,7 @@
  */
 extern char	canonb[CANBSIZ];	/* buffer for erase and kill (#@) */
 extern struct inode *rootdir;		/* pointer to inode of root directory */
-extern int	lbolt;			/* time of day in 60th not in time */
 extern long	time;			/* time in sec from 1970 */
-extern long	tout;			/* time of day of next sleep */
 
 /*
  * Mount structure.
@@ -114,5 +112,6 @@ void bground();
 void smount();
 void sumount();
 void fullscr();
+void clkinit();
 
 #endif /* SYSTM_H */

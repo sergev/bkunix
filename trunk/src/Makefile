@@ -21,7 +21,7 @@ clean:
 		$(MAKE) -C libc clean
 		$(MAKE) -C libfs clean
 
-root.bkd:	$(SYS) $(ETC) $(BIN)
+root.bkd:	remake
 		pdp11-strip $(ETC) $(BIN)
 		dd bs=512 count=1600 < /dev/zero > $@
 		$(FSUTIL) -n -s762368 -bsys/bkboot $@
@@ -31,6 +31,12 @@ root.bkd:	$(SYS) $(ETC) $(BIN)
 		$(FSUTIL) -a $@ etc/ $(ETC)
 		$(FSUTIL) -a $@ bin/ $(BIN)
 		$(FSUTIL) -a $@ dev/ $(DEV)
+
+remake:
+		$(MAKE) -C sys
+		$(MAKE) -C bin
+		$(MAKE) -C etc
+	
 #		$(FSUTIL) -c $@
 
 $(SYS):
