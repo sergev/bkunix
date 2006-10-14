@@ -14,8 +14,9 @@
  * mount user file system on /usr and enable clock, respectively
  */
 /*#define BGOPTION	1*/
-/*#define CLOCKOPT	1*/
+#define CLOCKOPT	1
 #define MNTOPTION	1
+/*define COREOPT	1*/
 
 /*
  * the following 4 variables may be modified.

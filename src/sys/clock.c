@@ -17,36 +17,90 @@
  * Functions:
  *	reprime clock
  *	maintain date
- *	tout wakeup (sys sleep)
- *	lightning bolt wakeup (every 4 sec)
  *	alarm clock signals
  */
 #ifdef CLOCKOPT
-void
-clock(dev, sp, r1, nps, r0, pc, ps)
-	char *pc;
+static unsigned rem, last;
+
+struct timer {
+	int initval;
+	int curval;
+	int flags;
+};
+
+#define TIMER ((struct timer *)0177706)
+
+void clkinit()
+{
+	/* reprime if accidentally stopped */
+	TIMER->flags = 0162;
+	rem = 0;
+	last = TIMER->curval;
+}
+
+/* incr cannot be greater than 178 (65535*128/46875) */
+void clock(incr)
+	register unsigned incr;
 {
 	register struct proc *pp;
 
-	/*
-	 * lightning bolt time-out
-	 * and time of day
-	 */
-	if(++lbolt >= HZ) {
-		lbolt -= HZ;
-		++time;
-		if(time == tout)
-			wakeup(&tout);
-		for(pp = &proc[0]; pp < &proc[NPROC]; pp++) {
-			if(pp->p_clktim)
-				if(--pp->p_clktim == 0)
-					psignal(pp, SIGCLK);
-		}
-		if(user) {
-			u.u_ar0 = &r0;
-			if(issig())
-				psig();
+	time += incr;
+	for(pp = &proc[0]; pp < &proc[NPROC]; pp++) {
+		if(pp->p_clktim) {
+			if(pp->p_clktim <= incr) {
+				pp->p_clktim = 0;
+				psignal(pp, SIGCLK);
+			} else {
+				pp->p_clktim -= incr;
+			}
 		}
 	}
 }
+
+#define DENOM (unsigned)46875
+
+void uptime()
+{
+	register unsigned quot = 0, tmp = 0;
+	register unsigned cur = TIMER->curval;
+	register int power;
+
+	if (cur == last)
+		return;
+	
+	/* the hardware register keeps decrementing */
+	cur = last-cur;
+	last -= cur;
+
+/* computing (128*cur + rem) / DENOM, calling clock with quotient
+ * and updating rem.
+ */
+	tmp = rem;
+       	tmp >>= 7;	/* PCC goofs here, remove next stmt when fixed */
+	tmp &= 511;
+	if (cur >= DENOM - tmp) {
+		/* Normalize to proper fraction */
+		cur -= DENOM - tmp;
+       		quot = 128;
+		rem &= 127;
+	} else cur += tmp;
+	rem <<= 9;	/* bring MSB of rem to bit 15 for easier testing */
+	power = 64;
+	do {
+		tmp = (int) rem < 0;
+		if (cur >= (DENOM - tmp + 1)>>1) {
+			/* the fraction is >= 0.5, next bit of quot is 1 */
+			cur = (cur<<1) + tmp - DENOM;
+			quot += power;
+		} else {
+			/* next bit of quot is 0 */
+			cur = (cur<<1) + tmp;
+		}
+		rem <<= 1;
+	} while (power >>= 1);
+	rem = cur;
+	if (quot)
+		clock(quot);
+}
+
 #endif

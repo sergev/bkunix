@@ -26,7 +26,7 @@ stime()
 {
 	((int*) &time) [0] = u.u_ar0[R0];
 	((int*) &time) [1] = u.u_ar0[R1];
-	wakeup(&tout);
+	clkinit();
 }
 
 void

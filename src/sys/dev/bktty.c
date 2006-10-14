@@ -26,9 +26,9 @@
 #define	VSIZE	(*(int*)0206)
 #define	WRKSIZE	(*(int*)0210)
 #define	EXTRAM	(*(char*)042)
-#define CURSOFF	(*(char*)056)
 
 struct	tty tty;
+static char cursoff;
 
 void ttstart();
 
@@ -54,7 +54,7 @@ static void bksend() {
  * also flushes an \n.
  */
 static void putbuf(c)
-int c;
+register int c;
 {
 	register int sps;
 	sps = spl7();
@@ -309,8 +309,9 @@ ttread()
 	register char * base;
 	register int n;
 
-	if (CURSOFF) {
+	if (cursoff) {
 		putbuf(0232);
+		cursoff = 0;
 	}
 	putbuf(0);
 	if (tty.t_canq.c_cc || canon()) {
@@ -335,8 +336,9 @@ ttwrite()
 {
 	register char *base;
 	register int n;
-	if (!CURSOFF) {
+	if (!cursoff) {
 		putbuf(0232);
+		cursoff++;
 	}
 	base = u.u_base;
 	n = u.u_count;
