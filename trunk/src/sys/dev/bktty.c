@@ -184,12 +184,16 @@ ttyinput()
 	c &= 0177;
 	if(flags & CRMOD) if(c == '\r')
 		c = '\n';
-	if (c==CQUIT || c==CINTR) {
-		signal(c==CINTR? SIGINT:SIGQIT);
-		flushtty();
-		return;
+	if (c==CQUIT) {
+		signal(SIGQIT);
+		goto flush;
+	}
+ 	if (c==CINTR) {
+		signal(SIGINT);
+		goto flush;
 	}
 	if (tty.t_rawq.c_cc>=TTYHOG) {
+	flush:
 		flushtty();
 		return;
 	}
@@ -203,6 +207,16 @@ ttyinput()
 		ttyoutput(c == CKILL ? '\n' : c);
 		putbuf(0); /* flush */
 	}
+#ifdef CLOCKOPT
+	/* Set up time for autorepeat */
+	c = *(int*)0177710;
+	if (keypress) /* continuing repeat */
+		c -= 20; /* about 1/18 sec */
+	else	/* initial repeat */
+		c -= 120; /* about 1/3 sec */
+	if (!c) c--; /* avoid zero */
+	keypress = c;
+#endif
 }
 
 void
