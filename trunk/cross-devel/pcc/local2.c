@@ -937,15 +937,14 @@ optim2( p ) register NODE *p; {
 		break;
 
 	case UNARY MUL:
-		/* optimize a->b[c]: convert *(r1+r2+n) into *(n+r1+r2) */
+		/* optimize a->b[c] */
 		if( p->in.left->in.op != PLUS ) break;
 		r = p->in.left->in.left;
 		if( r->in.op != PLUS ) break;
-		if( p->in.left->in.right->in.op != REG ||
-		    r->in.left->in.op != REG ||
+		if( p->in.left->in.right->in.op == ICON ||
 		    r->in.right->in.op != ICON ) break;
 
-		/* convert *(r1+r2+n) into *(n+r1+r2) */
+		/* convert *(x+n+y) into *(x+y+n) */
 		r = r->in.right;
 		p->in.left->in.left->in.right = p->in.left->in.right;
 		p->in.left->in.right = r;
