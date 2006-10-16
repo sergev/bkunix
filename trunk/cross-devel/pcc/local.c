@@ -179,8 +179,15 @@ clocal(p) NODE *p; {
 		p->in.op = FREE;
 		return( buildtree( o==PMCONV?MUL:DIV, p->in.left, p->in.right ) );
 
-	case PLUS:
 	case MINUS:
+		/* result of pointer subtraction is unsigned */
+		if( ( ISPTR( p->in.left->in.type ) ||
+		    ISPTR( p->in.right->in.type ) ) &&
+		    p->in.type == INT) {
+			p->in.type = UNSIGNED;
+			}
+		/* fall through */
+	case PLUS:
 	case LS:
 	case MUL:
 		/* optimize address calculations with long indexes */

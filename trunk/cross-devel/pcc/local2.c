@@ -175,9 +175,7 @@ zzzcode( p, c ) NODE *p; {
 					}
 				if( s >= 16 ) printf( "	clr	r%d\n", r );
 				else {
-					m = 0100000;
-					m >>= s;  /* sign extends... */
-					m <<= 1;
+					m = -1 << (16 - s);
 					printf( "	bic	$%d,r%d\n", m, r );
 					}
 				return;
@@ -938,6 +936,20 @@ optim2( p ) register NODE *p; {
 			}
 		break;
 
+	case UNARY MUL:
+		/* optimize a->b[c]: convert *(r1+r2+n) into *(n+r1+r2) */
+		if( p->in.left->in.op != PLUS ) break;
+		r = p->in.left->in.left;
+		if( r->in.op != PLUS ) break;
+		if( p->in.left->in.right->in.op != REG ||
+		    r->in.left->in.op != REG ||
+		    r->in.right->in.op != ICON ) break;
+
+		/* convert *(r1+r2+n) into *(n+r1+r2) */
+		r = r->in.right;
+		p->in.left->in.left->in.right = p->in.left->in.right;
+		p->in.left->in.right = r;
+		break;
 		}
 	}
 
