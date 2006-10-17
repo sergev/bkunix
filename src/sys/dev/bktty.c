@@ -178,8 +178,12 @@ ttyinput()
 {
 	register int c;
 	register int flags;
-
+	static int last;
 	c = KLADDR->klrbuf;
+	if (c != last) { 
+		keypress = 0;
+		last = c;
+	}
 	flags = tty.t_flags;
 	c &= 0177;
 	if(flags & CRMOD) if(c == '\r')
@@ -211,9 +215,9 @@ ttyinput()
 	/* Set up time for autorepeat */
 	c = *(int*)0177710;
 	if (keypress) /* continuing repeat */
-		c -= 20; /* about 1/18 sec */
+		c -= 18; /* about 1/20 sec */
 	else	/* initial repeat */
-		c -= 120; /* about 1/3 sec */
+		c -= 180; /* about 1/2 sec */
 	if (!c) c--; /* avoid zero */
 	keypress = c;
 #endif
