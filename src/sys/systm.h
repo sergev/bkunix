@@ -111,6 +111,7 @@ void gtty();
 void sync();
 void kill();
 void dup();
+void dup2();
 void ssig();
 void bground();
 void smount();

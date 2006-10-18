@@ -21,3 +21,12 @@ _dup:
 1:
 	mov	(sp)+,r5
 	rts	pc
+	.globl	_dup2
+_dup2:
+	mov	r5,-(sp)
+	mov	sp,r5
+	mov	4(r5),r0
+	mov	6(r5),r1
+	sys	SYS_dup2
+	bcc	1b
+	jmp	cerror

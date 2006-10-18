@@ -88,10 +88,5 @@ struct sysent sysent[64] = {
 	0, nosys,			/* 60 = x */
 	0, nosys,			/* 61 = x */
 	0, nosys,			/* 62 = x */
-#ifdef BGOPTION
-	0, bground,			/* 63 = bground */
-#endif
-#ifndef BGOPTION
-	0, nosys,			/* 63 = x */
-#endif
+	0, dup2,			/* 63 = dup2 (as in Linux) */
 };

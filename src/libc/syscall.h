@@ -39,5 +39,6 @@
 #define SYS_sync	36	/* Force a write of modified buffers out to disk */
 #define SYS_dup		41	/* Duplicate an existing file descriptor */
 #define SYS_signal	48	/* Set signal handler */
+#define SYS_dup2	63	/* Duplicate to a given descriptor */
 
 #endif /* _SYSCALL_H_ */
