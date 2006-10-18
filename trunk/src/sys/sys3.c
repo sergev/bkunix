@@ -88,6 +88,25 @@ dup()
 	fp->f_count++;
 }
 
+/*
+ * the dup2 system call.
+ */
+void
+dup2()
+{
+	register int i = u.u_ar0[R0];
+	register int j = u.u_ar0[R1];
+	register struct file *fp;
+
+	if ( (fp = getf(j)) != NULL)
+		closef(fp);
+	if ( (fp = getf(i)) == NULL || (unsigned) j >= NOFILE)
+		return;
+	u.u_ar0[R0] = j;
+	u.u_ofile[j] = fp;
+	fp->f_count++;
+}
+
 #ifdef MNTOPTION
 /*
  * the mount system call.
