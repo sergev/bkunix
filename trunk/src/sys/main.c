@@ -69,7 +69,7 @@ void panic(s)
 {
 	ttputs("panic: ");
 	ttputs(s);
-	ttputs("\r\n");
+	ttputc('\n');
 	for(;;);
 }
 

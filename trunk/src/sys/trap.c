@@ -73,9 +73,9 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 	default:
 		panic("unknown trap");
 
-	case 0+USER: /* bus error */
-		i = stop ? SIGINT : SIGBUS;
-		stop = 0;
+	case 0+USER: /* bus error or STOP key pressed */
+		if (stop) goto out;
+		i = SIGBUS;
 		break;
 
 	/*
@@ -139,13 +139,12 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 	}
 	psignal(u.u_procp, i);
 out:
-	if(issig())
-		psig();
-	else if (stop) {
+	if (stop) {
 		stop = 0;
 		psignal(u.u_procp, SIGINT);
-		psig();
 	}
+	if(issig())
+		psig();
 }
 
 /*
