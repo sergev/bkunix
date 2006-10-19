@@ -21,7 +21,7 @@ CC		= pdp11-pcc
 #CC		= pdp11-cc
 
 PROGS		= sync echo cal ls sh cp date mkdir mv rm rmdir stty \
-		  od ed cat ln wc pwd df mount umount
+		  od ed cat ln wc pwd df mount umount clock
 
 all:		$(PROGS)
 		$(SIZE) $(PROGS)

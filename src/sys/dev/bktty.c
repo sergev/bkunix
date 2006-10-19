@@ -116,13 +116,11 @@ wflushtty()
  * The arguments are the character and the tty structure.
  */
 void
-ttyoutput(ac)
-	int ac;
-{
+ttyoutput(c)
 	register int c;
+{
 	register char *colp;
 
-	c = ac&0177;
 	if (!c) return;
 	/*
 	 * Turn tabs to spaces as required
@@ -352,7 +350,7 @@ ttread()
 void
 ttwrite()
 {
-	register char *base;
+	register unsigned char *base;
 	register int n;
 	if (!cursoff) {
 		putbuf(0232);
