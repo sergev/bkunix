@@ -24,18 +24,18 @@ go:
 1:
 	jsr	pc,getw
 	bvs	1f
-	add	$14,symsiz		/ count symbols
+	add	$014,symsiz		/ count symbols
 	jsr	pc,getw
 	jsr	pc,getw
 	jsr	pc,getw
 	jsr	pc,getw
 	mov	r4,r0
-	bic	$!37,r0
+	bic	$!037,r0
 	cmp	r0,$2			/text
 	blo	2f
 	cmp	r0,$3			/data
 	bhi	2f
-	add	$31,r4			/mark "estimated"
+	add	$031,r4			/mark "estimated"
 	mov	r4,(r1)+
 	jsr	pc,getw
 	mov	r4,(r1)+
@@ -57,7 +57,7 @@ go:
 1:
 	jsr	pc,getw
 	bvs	1f
-	add	$31,r4			/ "estimated"
+	add	$031,r4			/ "estimated"
 	mov	r4,(r1)+
 	jsr	pc,getw
 	mov	r4,(r1)+
@@ -65,7 +65,7 @@ go:
 	br	1b
 1:
 	mov	r1,endtable
-	mov	$100000,(r1)+
+	mov	$0100000,(r1)+
 
 / set up input text file; initialize f-b table
 
@@ -75,7 +75,7 @@ go:
 	jsr	pc,assem
 
 / prepare for pass 2
-	cmp	outmod,$777
+	cmp	outmod,$0777
 	beq	1f
 	jmp	aexit
 1:
@@ -107,14 +107,14 @@ go:
 	mov	r3,bssbase	/ txtsiz+datsiz
 	mov	r3,savdot+4
 	asl	r3
-	add	$20,r3
-	mov	r3,symseek	/ 2*txtsiz+2*datsiz+20
+	add	$020,r3
+	mov	r3,symseek	/ 2*txtsiz+2*datsiz+020
 	sub	r2,r3
 	mov	r3,drelseek	/ 2*txtsiz+datsiz
 	sub	r1,r3
-	mov	r3,trelseek	/ txtsiz+datsiz+20
+	mov	r3,trelseek	/ txtsiz+datsiz+020
 	sub	r2,r3
-	mov	r3,datseek	/ txtsiz+20
+	mov	r3,datseek	/ txtsiz+020
 	mov	$usymtab,r1
 1:
 	jsr	pc,doreloc
@@ -125,7 +125,7 @@ go:
 	jsr	r5,oset; txtp
 	mov	trelseek,r0
 	jsr	r5,oset; relp
-	mov	$8.,r2
+	mov	$8,r2
 	mov	$txtmagic,r1
 1:
 	mov	(r1)+,r0
@@ -184,13 +184,13 @@ aexit:
 	sys	unlink; 0:..
 	mov	a.tmp3,0f
 	sys	unlink; 0:..
-	sys	chmod; a.out; outmod: 777
+	sys	chmod; a.out; outmod: 0777
 	clr	r0
 	tst	errflg
 	beq	1f
 	inc	r0
 1:
-	cmp	$777,outmod
+	cmp	$0777,outmod
 	beq	1f
 	inc	r0
 1:
@@ -215,7 +215,7 @@ doreloc:
 	bne	1f
 	bisb	defund,(r1)
 1:
-	bic	$!37,r0
+	bic	$!037,r0
 	cmp	r0,$5
 	bhis	1f
 	cmp	r0,$3
@@ -230,10 +230,10 @@ doreloc:
 
 setbrk:
 	mov	r1,-(sp)
-	add	$20,r1
+	add	$020,r1
 	cmp	r1,0f
 	blo	1f
-	add	$512.,0f
+	add	$512,0f
 	sys	indir; 9f
 	.data
 9:	sys	break; 0: end
@@ -246,7 +246,7 @@ setup:
 	mov	$curfb,r4
 1:
 	clr	(r4)+
-	cmp	r4,$curfb+40.
+	cmp	r4,$curfb+40
 	blo	1b
 	mov	txtfil,fin
 	clr	ibufc
@@ -254,7 +254,7 @@ setup:
 1:
 	jsr	pc,fbadv
 	tstb	(r4)+
-	cmp	r4,$10.
+	cmp	r4,$10
 	blt	1b
 	rts	pc
 

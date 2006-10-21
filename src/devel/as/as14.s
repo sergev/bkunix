@@ -9,7 +9,7 @@ rname:
 	mov	r2,-(sp)
 	mov	r3,-(sp)
 	mov	$8,r5
-	mov	$symbol+8.,r2
+	mov	$symbol+8,r2
 	clr	-(r2)
 	clr	-(r2)
 	clr	-(r2)
@@ -66,10 +66,10 @@ rname:
 4:
 	mov	$symbol,r2
 	mov	r4,-(sp)
-	add	$20,r4
+	add	$020,r4
 	cmp	r4,0f
 	blos	4f
-	add	$512.,0f
+	add	$512,0f
 	sys	indir; 9f
 	.data
 9:	sys	break; 0:end
@@ -94,14 +94,14 @@ rname:
 	clr	r2
 	div	$3,r2
 	mov	r2,r4
-	add	$4000,r4		/ user symbol
+	add	$04000,r4		/ user symbol
 	br	2f
 1:
 	sub	$symtab,r3
 	clr	r2
 	div	$3,r2
 	mov	r2,r4
-	add	$1000,r4		/ builtin symbol
+	add	$01000,r4		/ builtin symbol
 2:
 	jsr	pc,putw
 	mov	(sp)+,r4
@@ -116,15 +116,20 @@ number:
 	mov	r3,-(sp)
 	mov	r5,-(sp)
 	clr	r1
-	clr	r5
+	mov	$10,r5
 1:
 	jsr	pc,rch
 	jsr	r5,betwen; '0; '9
 		br 1f
+	tst	r1
+	bne	0f
+	cmp	r0,$'0
+	bne	0f
+	mov	$8,r5
+	0240
+0:
 	sub	$'0,r0
-	mpy	$10.,r5
-	add	r0,r5
-	als	$3,r1
+	mpy	r5,r1
 	add	r0,r1
 	br	1b
 1:
@@ -132,10 +137,6 @@ number:
 	beq	1f
 	cmp	r0,$'f
 	beq	1f
-	cmp	r0,$'.
-	bne	2f
-	mov	r5,r1
-	clr	r0
 2:
 	movb	r0,ch
 	mov	r1,r0
@@ -145,12 +146,12 @@ number:
 	rts	pc
 1:
 	mov	r0,r3
-	mov	r5,r0
+	mov	r1,r0
 	jsr	pc,fbcheck
-	add	$141,r0
+	add	$0141,r0
 	cmp	r3,$'b
 	beq	1f
-	add	$10.,r0
+	add	$10,r0
 1:
 	mov	r0,r4
 	mov	(sp)+,r5
@@ -169,13 +170,13 @@ rch:
 	blt	2f
 	movb	*inbfp,r0
 	inc	inbfp
-	bic	$!177,r0
+	bic	$!0177,r0
 	beq	1b
 	rts	pc
 2:
 	movb	fin,r0
 	beq	3f
-	sys	read; inbuf;512.
+	sys	read; inbuf;512
 	bcs	2f
 	tst	r0
 	beq	2f

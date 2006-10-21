@@ -10,13 +10,13 @@ assem:
 		br ealoop
 	tst	ifflg
 	beq	3f
-	cmp	r4,$200
+	cmp	r4,$0200
 	blos	assem
-	cmpb	(r4),$21	/if
+	cmpb	(r4),$021	/if
 	bne	2f
 	inc	ifflg
 2:
-	cmpb	(r4),$22   /endif
+	cmpb	(r4),$022   /endif
 	bne	assem
 	dec	ifflg
 	br	assem
@@ -33,14 +33,14 @@ assem:
 	br	ealoop
 1:
 	mov	(sp)+,r4
-	cmp	r4,$200
+	cmp	r4,$0200
 	bhis	1f
 	cmp	r4,$1		/ digit
 	beq	3f
 	jsr	r5,error; 'x
 	br	assem
 1:
-	bitb	$37,(r4)
+	bitb	$037,(r4)
 	beq	1f
 	jsr	r5,error; 'm
 1:
@@ -63,19 +63,19 @@ assem:
 	jsr	pc,readop
 	jsr	pc,expres
 	mov	(sp)+,r1
-	cmp	r1,$200
+	cmp	r1,$0200
 	bhis	1f
 	jsr	r5,error; 'x
 	br	ealoop
 1:
 	cmp	r1,$dotrel
 	bne	2f
-	bic	$40,r3
+	bic	$040,r3
 	cmp	r3,dotrel
 	bne	1f
 2:
-	bicb	$37,(r1)
-	bic	$!37,r3
+	bicb	$037,(r1)
+	bic	$!037,r3
 	bne	2f
 	clr	r2
 2:
@@ -111,7 +111,7 @@ assem1:
 	jmp	assem
 
 fbcheck:
-	cmp	r0,$9.
+	cmp	r0,$9
 	bhi	1f
 	rts	pc
 1:

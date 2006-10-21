@@ -10,7 +10,7 @@ indir	= 0
 go:
 	jsr	pc,assem
 	movb	pof,r0
-	sys	write; outbuf; 512.
+	sys	write; outbuf; 512
 	movb	pof,r0
 	sys	close
 	movb	fbfil,r0
@@ -94,14 +94,14 @@ fcreat:
 	mov	r4,0f
 	sys	indir; 9f
 	.data
-9:	sys	creat; 0:..; 444
+9:	sys	creat; 0:..; 0444
 	.text
 	bes	2f
 	mov	(sp)+,r4
 	rts	r5
 2:
-	incb	9.(r4)
-	cmpb	9.(r4),$'z
+	incb	9(r4)
+	cmpb	9(r4),$'z
 	blos	1b
 	mov	r4,r0
 	jsr	r5,filerr; "?\n

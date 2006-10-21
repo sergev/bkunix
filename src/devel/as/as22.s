@@ -16,22 +16,22 @@ outw:
 	rol	r3
 	adc	(sp)
 	asr	r3		/ get relative pc bit
-	cmp	r3,$40
+	cmp	r3,$040
 	bne	2f
 / external references
-	mov	$666,outmod		/ make nonexecutable
+	mov	$0666,outmod		/ make nonexecutable
 	mov	xsymbol,r3
 	sub	$usymtab,r3
 	asl	r3
 	bis	$4,r3		/ external relocation
 	br	3f
 2:
-	bic	$40,r3		/ clear any ext bits
+	bic	$040,r3		/ clear any ext bits
 	cmp	r3,$5
 	blo	4f
-	cmp	r3,$33		/ est. text, data
+	cmp	r3,$033		/ est. text, data
 	beq	6f
-	cmp	r3,$34
+	cmp	r3,$034
 	bne	7f
 6:
 	jsr	r5,error; 'r
@@ -102,7 +102,7 @@ outb:
 
 error:
 	mov	pc,errflg
-	mov	$666,outmod		/ make nonexecutable
+	mov	$0666,outmod		/ make nonexecutable
 	mov	r3,-(sp)
 	mov	r2,-(sp)
 	mov	r1,-(sp)
@@ -123,7 +123,7 @@ error:
 	mov	$4,r1
 2:
 	clr	r2
-	dvd	$10.,r2
+	dvd	$10,r2
 	add	$'0,r3
 	movb	r3,-(r0)
 	mov	r2,r3
