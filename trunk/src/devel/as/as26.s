@@ -6,7 +6,7 @@
 
 opline:
 	mov	r4,r0
-	jsr	r5,betwen; 0; 177
+	jsr	r5,betwen; 0; 0177
 		br 2f
 	cmp	r4,$5
 	beq	opeof
@@ -21,13 +21,13 @@ xpr:
 	rts	pc
 2:
 	movb	(r4),r0
-	cmp	r0,$24		/reg
+	cmp	r0,$024		/reg
 	beq	xpr
-	cmp	r0,$33		/est text
+	cmp	r0,$033		/est text
 	beq	xpr
-	cmp	r0,$34		/ est data
+	cmp	r0,$034		/ est data
 	beq	xpr
-	jsr	r5,betwen; 5; 36
+	jsr	r5,betwen; 5; 036
 		br xpr
 	mov	2(r4),-(sp)
 	mov	r0,-(sp)
@@ -37,7 +37,7 @@ xpr:
 	mov	$adrbuf,r5
 	clr	swapf
 	mov	$-1,rlimit
-	jmp	*1f-10.(r0)
+	jmp	*1f-10(r0)
 
 1:
 	opl5
@@ -69,7 +69,7 @@ xpr:
 
 opeof:
 	mov	$1,line
-	mov	$20,-(sp)
+	mov	$020,-(sp)
 	mov	$argb,r1
 1:
 	jsr	pc,getw
@@ -88,14 +88,14 @@ opeof:
 
 opl30:	/ mpy, dvd etc
 	inc	swapf
-	mov	$1000,rlimit
+	mov	$01000,rlimit
 	br	opl13
 
 opl14:		/ flop freg,fsrc
 	inc	swapf
 
 opl5:		/ flop src,freg
-	mov	$400,rlimit
+	mov	$0400,rlimit
 
 /double
 opl13:
@@ -139,14 +139,14 @@ opl15:		/ single operand
 	br	op2b
 
 opl12:		/ movf
-	mov	$400,rlimit
+	mov	$0400,rlimit
 	jsr	pc,addres
 	cmp	r2,$4		/ see if source is fregister
 	blo	1f
 	inc	swapf
 	br	op2a
 1:
-	mov	$174000,(sp)
+	mov	$0174000,(sp)
 	br	op2a
 
 / jbr
@@ -176,13 +176,13 @@ opl36:
 	mov	r3,-(sp)
 	cmp	r0,$br
 	beq	2f
-	mov	$402,r2
+	mov	$0402,r2
 	xor	r0,r2		/ flip cond, add ".+6"
 	mov	$1,r3
 	jsr	pc,outw
 2:
 	mov	$1,r3
-	mov	$jmp+37,r2
+	mov	$jmp+037,r2
 	jsr	pc,outw
 	mov	(sp)+,r3
 	mov	(sp)+,r2
@@ -204,7 +204,7 @@ opl31:	/ sob
 	sub	dot,r2
 	neg	r2
 	mov	r2,r0
-	jsr	r5,betwen; -2; 175
+	jsr	r5,betwen; -2; 0175
 		br 2f
 	add	$4,r2
 	br	1f
@@ -217,7 +217,7 @@ opl6:
 dobranch:
 	sub	dot,r2
 	mov	r2,r0
-	jsr	r5,betwen; -254.; 256.
+	jsr	r5,betwen; -254; 256
 		br 2f
 1:
 	bit	$1,r2
@@ -226,7 +226,7 @@ dobranch:
 	bne	2f
 	asr	r2
 	dec	r2
-	bic	$177400,r2
+	bic	$0177400,r2
 3:
 	bis	(sp)+,r2
 	clr	r3
@@ -252,7 +252,7 @@ opl10:
 / sys, emt etc
 opl11:
 	jsr	pc,expres
-	cmp	r2,$256.
+	cmp	r2,$256
 	bhis	0f
 	cmp	r3,$1
 	ble	1f
@@ -281,7 +281,7 @@ opl17:
 	mov	$1,r3
 	mov	r4,r2
 	bmi	2f
-	bic	$!377,r2
+	bic	$!0377,r2
 	jsr	pc,outb
 	br	opl17
 2:
@@ -313,9 +313,9 @@ oplret:
 
 /.globl
 opl23:
-	cmp	r4,$200
+	cmp	r4,$0200
 	blo	1f
-	bisb	$40,(r4)
+	bisb	$040,(r4)
 	jsr	pc,readop
 	cmp	r4,$',
 	bne	1f
@@ -340,7 +340,7 @@ opl27:
 	jsr	r5,flush; txtp
 	jsr	r5,flush; relp
 	mov	(sp),r2
-	add	$txtseek-[2*25],r2
+	add	$txtseek-[2*025],r2
 	mov	r2,tseekp
 	mov	(r2),r0
 	jsr	r5,oset; txtp
@@ -350,24 +350,24 @@ opl27:
 	jsr	r5,oset; relp
 1:
 	mov	(sp)+,r0
-	mov	savdot-[2*25](r0),dot
+	mov	savdot-[2*025](r0),dot
 	asr	r0
-	sub	$25-2,r0
+	sub	$025-2,r0
 	mov	r0,dot-2	/ new . relocation
 	tst	(sp)+
 	rts	pc
 
 opl32:
-	cmp	r4,$200
+	cmp	r4,$0200
 	blo	1f
 	mov	r4,-(sp)
 	jsr	pc,readop
 	jsr	pc,readop
 	jsr	pc,expres
 	mov	(sp)+,r0
-	bit	$37,(r0)
+	bit	$037,(r0)
 	bne	1f
-	bis	$40,(r0)
+	bis	$040,(r0)
 	mov	r2,2(r0)
 1:
 	tst	(sp)+
@@ -396,21 +396,21 @@ getx:
 	jsr	pc,expres
 	jsr	pc,checkreg
 	jsr	pc,checkrp
-	bis	$60,r2
+	bis	$060,r2
 	bis	(sp)+,r2
 	rts	pc
 
 2:
-	cmp	r3,$24
+	cmp	r3,$024
 	bne	1f
 	jsr	pc,checkreg
 	bis	(sp)+,r2
 	rts	pc
 1:
 	mov	r3,-(sp)
-	bic	$40,r3
+	bic	$040,r3
 	mov	(sp)+,r3
-	bis	$100000,r3
+	bis	$0100000,r3
 	sub	dot,r2
 	sub	$4,r2
 	cmp	r5,$adrbuf
@@ -420,7 +420,7 @@ getx:
 	mov	r2,(r5)+		/ index
 	mov	r3,(r5)+		/ index reloc.
 	mov	xsymbol,(r5)+		/ index global
-	mov	$67,r2			/ address mode
+	mov	$067,r2			/ address mode
 	bis	(sp)+,r2
 	rts	pc
 
@@ -433,17 +433,17 @@ alp:
 	beq	1f
 	tst	(sp)+
 	beq	2f
-	bis	$70,r2
+	bis	$070,r2
 	clr	(r5)+
 	clr	(r5)+
 	mov	xsymbol,(r5)+
 	rts	pc
 2:
-	bis	$10,r2
+	bis	$010,r2
 	rts	pc
 1:
 	jsr	pc,readop
-	bis	$20,r2
+	bis	$020,r2
 	bis	(sp)+,r2
 	rts	pc
 
@@ -460,7 +460,7 @@ amin:
 	jsr	pc,checkrp
 	jsr	pc,checkreg
 	bis	(sp)+,r2
-	bis	$40,r2
+	bis	$040,r2
 	rts	pc
 
 adoll:
@@ -470,7 +470,7 @@ adoll:
 	mov	r3,(r5)+
 	mov	xsymbol,(r5)+
 	mov	(sp)+,r2
-	bis	$27,r2
+	bis	$027,r2
 	rts	pc
 
 astar:
@@ -478,7 +478,7 @@ astar:
 	beq	1f
 	jsr	r5,error; '*
 1:
-	mov	$10,(sp)
+	mov	$010,(sp)
 	jsr	pc,readop
 	jmp	4b
 
@@ -527,7 +527,7 @@ setbr:
 	ble	1f
 	sub	brdelt,r0
 1:
-	jsr	r5,betwen; -254.; 256.
+	jsr	r5,betwen; -254; 256
 		br 1f
 	br	2f
 1:

@@ -117,7 +117,7 @@ string:
 	tst	r1
 	bne	1f
 	mov	r0,r4
-	bis	$400,r4
+	bis	$0400,r4
 	jsr	pc,putw
 	inc	 numval
 	br	1b

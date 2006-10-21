@@ -47,7 +47,7 @@ char *argv[];
 			goto usage;
 		dotdot = (dotdot<<3) + c;
 	}
-	dotdot =* sign;
+	dotdot *= sign;
 	if ((fin = open(argv[1], 0)) < 0) {
 		write(1, "File not readable\n", 18);
 		return;
@@ -70,9 +70,9 @@ char *argv[];
 	t4 = tbuf[4];
 	txtloc = 020;
 	if (argc>3 && argv[3][1]=='o') {
-		dotdot =+ 020;
+		dotdot += 020;
 		tbuf[0] = 0405;	/* old magic */
-		tbuf[1] =+ tbuf[2];
+		tbuf[1] += tbuf[2];
 		tbuf[2] = 0;
 		tbuf[4] = tbuf[3];
 		tbuf[3] = 0;
@@ -93,13 +93,13 @@ char *argv[];
 		switch (*relp & 017) {
 
 		case 01:	/* pc ref to abs */
-			*txtp =- dotdot;
+			*txtp -= dotdot;
 			break;
 
 		case 02:	/* ref to text */
 		case 04:		/* ref to data */
 		case 06:		/* ref to bss */
-			*txtp =+ dotdot;
+			*txtp += dotdot;
 
 		}
 		advance();
@@ -114,13 +114,13 @@ char *argv[];
 	seek(fout, relloc&~0777, 0);
 	txtw = read(fin, tbuf, 512);
 	txtp = &tbuf[(relloc&0777) >> 1] + 4;
-	while((txtsiz =- 6) > 0) {
+	while((txtsiz -= 6) > 0) {
 		switch(*txtp & 77) {
 
 		case 2:
 		case 3:
 		case 4:
-			*(txtp + 1) =+ dotdot;
+			*(txtp + 1) += dotdot;
 		}
 		adv6();
 	}
@@ -133,14 +133,14 @@ advance()
 {
 	
 	relp++;
-	relloc =+ 2;
+	relloc += 2;
 	if (relp == &rbuf[256]) {
 		seek(fin, relloc, 0);
 		read(fin, &rbuf[0], 512);
 		relp = &rbuf[0];
 	}
 	txtp++;
-	txtloc =+ 2;
+	txtloc += 2;
 	if (txtp >= &tbuf[256]) {
 		write(fout, &tbuf[0], txtw);
 		seek(fin, txtloc, 0);
@@ -150,11 +150,11 @@ advance()
 }
 adv6()
 {
-	txtp =+ 6;
+	txtp += 6;
 	if(txtp >= &tbuf[256]) {
 		write(fout, tbuf, txtw);
 		txtw = read(fin, tbuf, 512);
-		txtp =- 256;
+		txtp -= 256;
 	}
 }
 

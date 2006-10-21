@@ -40,7 +40,7 @@ eal1:
 	jmp	ealoop
 1:
 	mov	(sp)+,r4
-	cmp	r4,$200
+	cmp	r4,$0200
 	bhis	1f
 	cmp	r4,$2
 	beq	3f
@@ -50,16 +50,16 @@ eal1:
 	tstb	passno
 	bne	2f
 	movb	(r4),r0
-	bic	$!37,r0
+	bic	$!037,r0
 	beq	5f
-	cmp	r0,$33
+	cmp	r0,$033
 	blt	6f
-	cmp	r0,$34
+	cmp	r0,$034
 	ble	5f
 6:
 	jsr	r5,error; 'm
 5:
-	bic	$37,(r4)
+	bic	$037,(r4)
 	bis	dotrel,(r4)
 	mov	2(r4),brdelt
 	sub	dot,brdelt
@@ -86,7 +86,7 @@ eal1:
 	mov	(sp)+,r1
 	cmp	r1,$symtab	/test for dot
 	bne	1f
-	bic	$40,r3
+	bic	$040,r3
 	cmp	r3,dotrel	/ can't change relocation
 	bne	2f
 	cmp	r3,$4		/ bss
@@ -111,12 +111,12 @@ eal1:
 	jsr	r5,error; '.
 	br	ealoop
 1:
-	cmp	r3,$40
+	cmp	r3,$040
 	bne	1f
 	jsr	r5,error; 'r
 1:
-	bic	$37,(r1)
-	bic	$!37,r3
+	bic	$037,(r1)
+	bic	$!037,r3
 	bne	1f
 	clr	r2
 1:

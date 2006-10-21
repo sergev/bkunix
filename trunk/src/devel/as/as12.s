@@ -25,7 +25,7 @@ error:
 	mov	$4,r1
 2:
 	clr	r2
-	dvd	$10.,r2
+	dvd	$10,r2
 	add	$'0,r3
 	movb	r3,-(r0)
 	mov	r2,r3
@@ -61,11 +61,11 @@ putw:
 1:
 	mov	r4,*obufp
 	add	$2,obufp
-	cmp	obufp,$outbuf+512.
+	cmp	obufp,$outbuf+512
 	blo	2f
 	mov	$outbuf,obufp
 	movb	pof,r0
-	sys	write; outbuf; 512.
+	sys	write; outbuf; 512
 2:
 	rts	pc
 

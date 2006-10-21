@@ -6,7 +6,7 @@
 
 opline:
 	mov	r4,r0
-	jsr	r5,betwen; 0; 200
+	jsr	r5,betwen; 0; 0200
 		br	1f
 	cmp	r0,$'<
 	bne	xpr
@@ -17,15 +17,15 @@ xpr:
 	rts	pc
 1:
 	movb	(r4),r0
-	cmp	r0,$24
+	cmp	r0,$024
 	beq	xpr
-	jsr	r5,betwen; 5; 36
+	jsr	r5,betwen; 5; 036
 		br xpr
 	mov	r0,-(sp)
 	jsr	pc,readop
 	mov	(sp)+,r0
 	asl	r0
-	jmp	*1f-12(r0)
+	jmp	*1f-012(r0)
 
 1:
 	opl13	/ map fop freg,fdst to double
@@ -69,7 +69,7 @@ opl36:
 	bne	1f
 	sub	dot,r2
 	bge	1f
-	cmp	r2,$-376
+	cmp	r2,$-0376
 	blt	1f
 	mov	$2,(sp)
 1:
@@ -146,9 +146,9 @@ opl22:	/endif
 
 /.globl
 opl23:
-	cmp	r4,$200
+	cmp	r4,$0200
 	blo	1f
-	bisb	$40,(r4)
+	bisb	$040,(r4)
 	jsr	pc,readop
 	cmp	r4,$',
 	bne	1f
@@ -163,17 +163,17 @@ opl27:
 	mov	dotrel,r1
 	asl	r1
 	mov	dot,savdot-4(r1)
-	mov	savdot-[2*25](r0),dot
+	mov	savdot-[2*025](r0),dot
 	asr	r0
-	sub	$25-2,r0
+	sub	$025-2,r0
 	mov	r0,dotrel
 	rts	pc
 
 / .common
 opl32:
-	cmp	r4,$200
+	cmp	r4,$0200
 	blo	1f
-	bis	$40,(r4)
+	bis	$040,(r4)
 	jsr	pc,readop
 	cmp	r4,$',
 	bne	1f
@@ -205,7 +205,7 @@ getx:
 	clr	r0
 	rts	pc
 2:
-	cmp	r3,$24		/ register type
+	cmp	r3,$024		/ register type
 	bne	1f
 	jsr	pc,checkreg
 	clr	r0

@@ -8,12 +8,12 @@ oset:
 	mov	r2,-(sp)
 	mov	(r5)+,r1
 	mov	r0,r2
-	bic	$!777,r0
+	bic	$!0777,r0
 	add	r1,r0
 	add	$6,r0
 	mov	r0,(r1)+	/ next slot
 	mov	r1,r0
-	add	$1004,r0
+	add	$01004,r0
 	mov	r0,(r1)+	/ buf max
 	mov	r2,(r1)+	/ seek addr
 	mov	(sp)+,r2
@@ -52,11 +52,11 @@ flush1:
 	.data
 9:	sys	seek; 0:..; 0
 	.text
-	bic	$!777,r1
+	bic	$!0777,r1
 	add	r2,r1		/ write address
 	mov	r1,0f
 	mov	r2,r0
-	bis	$777,-(r2)
+	bis	$0777,-(r2)
 	inc	(r2)		/ new seek addr
 	cmp	-(r2),-(r2)
 	sub	(r2),r1
@@ -77,14 +77,14 @@ readop:
 	rts	pc
 1:
 	jsr	pc,getw1
-	cmp	r4,$200
+	cmp	r4,$0200
 	blo	1f
-	cmp	r4,$4000
+	cmp	r4,$04000
 	blo	2f
-	add	$usymtab-4000,r4
+	add	$usymtab-04000,r4
 	rts	pc
 2:
-	add	$symtab-1000,r4
+	add	$symtab-01000,r4
 1:
 	rts	pc
 
@@ -97,7 +97,7 @@ getw1:
 	dec	ibufc
 	bgt	1f
 	movb	fin,r0
-	sys	read; inbuf; 512.
+	sys	read; inbuf; 512
 	bes	3f
 	asr	r0
 	mov	r0,ibufc
