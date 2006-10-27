@@ -13,20 +13,20 @@
 
 #include "c0h.c"
 
-int	isn	1;
-int	stflg	1;
-int	peeksym	-1;
-int	line	1;
-int	debug	0;
-int	dimp	0;
-struct	tname	funcblk { NAME, 0, 0, REG, 0, 0 };
-int	*treespace { osspace };
+int	isn = 1;
+int	stflg = 	1;
+int	peeksym = 	-1;
+int	line = 	1;
+int	debug = 	0;
+int	dimp = 	0;
+struct	tname	funcblk  = { NAME, 0, 0, REG, 0, 0 };
+int	*treespace  = { osspace };
 
 struct kwtab {
 	char	*kwname;
 	int	kwval;
 } kwtab[]
-{
+ = {
 	"int",		INT,
 	"char",		CHAR,
 	"float",	FLOAT,
@@ -84,7 +84,7 @@ char *argv[];
 	for (ip=kwtab; (sp = ip->kwname); ip++) {
 		i = 0;
 		while (*sp)
-			i =+ *sp++;
+			i += *sp++;
 		hshtab[i%hshsiz].hflag = FKEYW;
 	}
 	while(!eof) {
@@ -116,7 +116,7 @@ lookup()
 	if (*sp=='.')
 		sp++;
 	while (sp<symbuf+ncps)
-		ihash =+ *sp++;
+		ihash += *sp++;
 	rp = &hshtab[ihash%hshsiz];
 	if (rp->hflag&FKEYW)
 		if (findkw())
@@ -138,8 +138,8 @@ lookup()
 	rp->hclass = 0;
 	rp->htype = 0;
 	rp->hoffset = 0;
-	rp->dimp = 0;
-	rp->hflag =| xdflg;
+	rp->hdimp = 0;
+	rp->hflag |= xdflg;
 	sp = symbuf;
 	for (np=rp->name; sp<symbuf+ncps;)
 		*np++ = *sp++;
@@ -222,27 +222,16 @@ loop:
 		eof++;
 		return(0);
 
-	case PLUS:
-		return(subseq(c,PLUS,INCBEF));
+        case PLUS:
+                return(subseq(c,PLUS,INCBEF));
 
-	case MINUS:
-		return(subseq(c,subseq('>',MINUS,ARROW),DECBEF));
+        case MINUS:
+                if (subseq(c, 0, 1))
+                        return(DECBEF);
+                return(subseq('>', MINUS, ARROW));
 
-	case ASSIGN:
-		if (subseq(' ',0,1)) return(ASSIGN);
-		c = symbol();
-		if (c>=PLUS && c<=EXOR) {
-			if (spnextchar() != ' '
-			 && (c==MINUS || c==AND || c==TIMES)) {
-				error("Warning: assignment operator assumed");
-				nerror--;
-			}
-			return(c+ASPLUS-PLUS);
-		}
-		if (c==ASSIGN)
-			return(EQUAL);
-		peeksym = c;
-		return(ASSIGN);
+        case ASSIGN:
+                return(subseq(c, ASSIGN, EQUAL));
 
 	case LESS:
 		if (subseq(c,0,1)) return(LSHIFT);
@@ -437,8 +426,8 @@ loop:
 			n = 0;
 			c = 0;
 			while (++c<=3 && '0'<=a && a<='7') {
-				n =<< 3;
-				n =+ a-'0';
+				n <<= 3;
+				n += a-'0';
 				a = getchar();
 			}
 			mpeek = a;
@@ -531,7 +520,7 @@ tand:
 	case INCBEF:
 	case DECBEF:
 		if (andflg)
-			o =+ 2;
+			o += 2;
 		goto oponst;
 
 	case COMPL:
@@ -549,7 +538,7 @@ tand:
 			}
 			if (peeksym==SFCON) {
 				fcval = - fcval;
-				cval =^ 0100000;
+				cval ^= 0100000;
 				goto advanc;
 			}
 			o = NEG;
@@ -591,6 +580,13 @@ tand:
 		mosflg++;
 		break;
 
+        case ASSIGN:
+                if (andflg==0 && PLUS<= *op && *op<=EXOR) {
+                        o = *op-- + ASPLUS - PLUS;
+                        pp--;
+                        goto oponst;
+                }
+                break;
 	}
 	/* binaries */
 	if (!andflg)

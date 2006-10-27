@@ -168,7 +168,7 @@ build(op) {
 	} else
 		cvn = cvtab[lintyp(t1)][lintyp(t2)];
 	leftc = (cvn>>4)&017;
-	cvn =& 017;
+	cvn &= 017;
 	t = leftc? t2:t1;
 	if (dope&ASSGOP) {
 		t = t1;
@@ -181,7 +181,7 @@ build(op) {
 		cvn = 0;
 	else if (dope&RELAT) {
 		if (op>=LESSEQ && (t1>=PTR || t2>=PTR))
-			op =+ LESSEQP-LESSEQ;
+			op += LESSEQP-LESSEQ;
 		if (cvn==PTI)
 			cvn = 0;
 	}
@@ -409,7 +409,7 @@ gblock(n)
 	register int *p;
 
 	p = space;
-	if ((space =+ n) >= &osspace[OSSIZ]) {
+	if ((space += n) >= &osspace[OSSIZ]) {
 		error("Expression overflow");
 		exit(1);
 	}
@@ -449,35 +449,35 @@ struct tnode *ap1, *ap2;
 	switch (op) {
 
 	case PLUS:
-		v1 =+ v2;
+		v1 += v2;
 		break;
 
 	case MINUS:
-		v1 =- v2;
+		v1 -= v2;
 		break;
 
 	case TIMES:
-		v1 =* v2;
+		v1 *= v2;
 		break;
 
 	case DIVIDE:
-		v1 =/ v2;
+		v1 /= v2;
 		break;
 
 	case MOD:
-		v1 =% v2;
+		v1 %= v2;
 		break;
 
 	case AND:
-		v1 =& v2;
+		v1 &= v2;
 		break;
 
 	case OR:
-		v1 =| v2;
+		v1 |= v2;
 		break;
 
 	case EXOR:
-		v1 =^ v2;
+		v1 ^= v2;
 		break;
 
 	case NEG:
@@ -489,11 +489,11 @@ struct tnode *ap1, *ap2;
 		break;
 
 	case LSHIFT:
-		v1 =<< v2;
+		v1 <<= v2;
 		break;
 
 	case RSHIFT:
-		v1 =>> v2;
+		v1 >>= v2;
 		break;
 
 	default:

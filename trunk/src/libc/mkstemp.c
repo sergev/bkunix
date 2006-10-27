@@ -48,23 +48,15 @@ mkstemp (template)
 	value += getpid () + now[0] + now[1];
 
 	for (count = 0; count < 100; ++count) {
-		int v = value & 077777;
+		register int v = value & 077777;
 		int fd;
 
 		/* Fill in the random bits.  */
-		XXXXXX[0] = v % 26 + 'a';
-		v /= 26;
-		XXXXXX[1] = v % 26 + 'a';
-		v /= 26;
-		XXXXXX[2] = v % 26 + 'a';
-
-		v = (value += 7777) & 077777;
-		XXXXXX[3] = v % 26 + 'a';
-		v /= 26;
-		XXXXXX[4] = v % 26 + 'a';
-		v /= 26;
-		XXXXXX[5] = v % 26 + 'a';
-
+		XXXXXX[0] = (v & 31) + 'A';
+		v >>= 5;
+		XXXXXX[1] = (v & 31) + 'A';
+		v >>= 5;
+		XXXXXX[2] = (v & 31) + 'A';
 		fd = creat (template, 0600);
 		if (fd >= 0) {
 			/* The file does not exist.  */

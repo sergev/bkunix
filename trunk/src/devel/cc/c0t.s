@@ -1,6 +1,6 @@
 / assure fake printf (no floating)
 
-.globl	fltused; fltused = 0
+.globl	fltused;
 
 / convert stream to number; result is type.
 / value in cval or fcval
@@ -17,7 +17,7 @@ fpp = 0
 
 _getnum:
 	.if	fpp
-	movif	$10.,fr3
+	movif	$10,fr3
 	clrf	fr0
 	.endif
 	clr	nfract
@@ -53,7 +53,7 @@ _getnum:
 	clr	_cval
 	mov	pc,decpt
 	clr	_cval
-	mov	$10.,base
+	mov	$10,base
 	jsr	pc,_getchar
 	cmp	r0,$'+
 	beq	2f
@@ -77,14 +77,14 @@ _getnum:
 	mov	r0,_peekc
 	tst	totdig
 	bne	1f
-	mov	$39.,r0		/ "." operator
+	mov	$39,r0		/ "." operator
 9:
 	mov	(sp)+,r2
 	rts	pc
 1:
 	tst	decpt
 	bne	1f
-	mov	$21.,r0		/ fixed constant
+	mov	$21,r0		/ fixed constant
 	br	9b
 1:
 	.if	fpp
@@ -114,18 +114,18 @@ _getnum:
 	bne	1f
 	tst	(r0)+
 	bne	1f
-	mov	$24.,r0
+	mov	$24,r0
 	mov	_fcval,_cval
 	br	9b
 1:
-	mov	$23.,r0
+	mov	$23,r0
 	br	9b
 	.endif
 	.if	1-fpp
 	mov	$fperr,-(sp)
 	jsr	pc,_error
 	tst	(sp)+
-	mov	$21.,r0
+	mov	$21,r0
 	br	9b
 fperr:	<No floating point!\0>; .even
 	.endif
@@ -139,7 +139,7 @@ getdig:
 	jsr	pc,_getchar
 2:
 	sub	$'0,r0
-	cmp	r0,$9.
+	cmp	r0,$9
 	bhi	1f
 	inc	totdig
 	mov	_cval,r1
@@ -153,6 +153,7 @@ getdig:
 	rts	r5
 
 .bss
+fltused:
 base:	.=.+2
 nfract:	.=.+2
 decpt:	.=.+2

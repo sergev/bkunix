@@ -250,16 +250,16 @@ alloc(an)
 
 	n = an;
 	n++;
-	n =& ~01;
+	n &= ~01;
 	if (lasta+n >= lastr) {
 		if (sbrk(2000) == -1) {
 			write(2, "Optimizer: out of space\n", 14);
 			exit(1);
 		}
-		lastr =+ 2000;
+		lastr += 2000;
 	}
 	p = lasta;
-	lasta =+ n;
+	lasta += n;
 	return(p);
 }
 
@@ -416,9 +416,9 @@ struct node *p;
 		r1 = -1;
 	r = findrand(regs[RT1], flt);
 	if (r1 >= NREG)
-		r1 =- NREG;
+		r1 -= NREG;
 	if (r >= NREG)
-		r =- NREG;
+		r -= NREG;
 	if (r>=0 || r1>=0) {
 		p2 = regs[RT1];
 		for (p1 = rt1; *p1++ = *p2++;);
@@ -553,14 +553,14 @@ char *acp1, *acp2;
 		return(0);
 	n1 = 0;
 	while (*cp2 >= '0' && *cp2 <= '7') {
-		n1 =<< 3;
-		n1 =+ *cp2++ - '0';
+		n1 <<= 3;
+		n1 += *cp2++ - '0';
 	}
 	n2 = n1;
 	n1 = 0;
 	while (*cp1 >= '0' && *cp1 <= '7') {
-		n1 =<< 3;
-		n1 =+ *cp1++ - '0';
+		n1 <<= 3;
+		n1 += *cp1++ - '0';
 	}
 	if (*cp1=='+')
 		cp1++;

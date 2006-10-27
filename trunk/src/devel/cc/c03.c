@@ -177,7 +177,7 @@ declare(askw, tkw, offset, elsize)
 
 	skw = askw;
 	do {
-		offset =+ decl1(skw, tkw, offset, elsize);
+		offset += decl1(skw, tkw, offset, elsize);
 	} while ((o=symbol()) == COMMA);
 	if (o==SEMI || o==RPARN && skw==ARG1)
 		return(offset);
@@ -205,7 +205,7 @@ decl1(askw, tkw, offset, elsize)
 		peeksym = -1;
 		t1 = conexp();
 		elsize = align(tkw, offset, t1);
-		bitoffs =+ t1;
+		bitoffs += t1;
 		return(elsize);
 	}
 	if ((t1=getype()) < 0)
@@ -213,8 +213,8 @@ decl1(askw, tkw, offset, elsize)
 	type = 0;
 	do
 		type = type<<TYLEN | (t1 & XTYPE);
-	while (((t1=>>TYLEN) & XTYPE)!=0);
-	type =| tkw;
+	while (((t1>>=TYLEN) & XTYPE)!=0);
+	type |= tkw;
 	dsym = defsym;
 	if (!(dsym->hclass==0
 	   || (skw==ARG && dsym->hclass==ARG1)
@@ -248,18 +248,18 @@ decl1(askw, tkw, offset, elsize)
 			elsize = 0;
 			peeksym = -1;
 			t1 = conexp();
-			dsym->hflag =| FFIELD;
+			dsym->hflag |= FFIELD;
 		}
 		a = align(type, offset, t1);
-		elsize =+ a;
-		offset =+ a;
+		elsize += a;
+		offset += a;
 		if (t1) {
 			if (chkoff && (dsym->bitoffs!=bitoffs
 		 	 || dsym->flen!=t1))
 				redec();
 			dsym->bitoffs = bitoffs;
 			dsym->flen = t1;
-			bitoffs =+ t1;
+			bitoffs += t1;
 		}
 		if (chkoff && dsym->hoffset != offset)
 			redec();
@@ -271,7 +271,7 @@ decl1(askw, tkw, offset, elsize)
 		dsym->hclass = EXTERN;
 	}
 	if (dsym->hclass==AUTO) {
-		autolen =+ rlength(dsym);
+		autolen += rlength(dsym);
 		dsym->hoffset = -autolen;
 	} else if (dsym->hclass==STATIC) {
 		dsym->hoffset = isn;
@@ -332,7 +332,7 @@ getype()
 				peeksym = o;
 				cval = conexp();
 				for (o=ds->ssp&0377; o<dimp; o++)
-					dimtab[o] =* cval;
+					dimtab[o] *= cval;
 				dimtab[dimp++] = cval;
 				if ((o=symbol())!=RBRACK)
 					goto syntax;
@@ -363,7 +363,7 @@ align(type, offset, aflen)
 	t = type;
 	ftl = "Field too long";
 	if (flen==0 && bitoffs) {
-		a =+ (bitoffs-1) / NBPC;
+		a += (bitoffs-1) / NBPC;
 		bitoffs = 0;
 	}
 	while ((t&XTYPE)==ARRAY)
@@ -379,14 +379,14 @@ align(type, offset, aflen)
 				error(ftl);
 			if (flen+bitoffs > NBPW) {
 				bitoffs = 0;
-				a =+ NCPW;
+				a += NCPW;
 			}
 		} else if (type==CHAR) {
 			if (flen > NBPC)
 				error(ftl);
 			if (flen+bitoffs > NCPW) {
 				bitoffs = 0;
-				a =+ 1;
+				a += 1;
 			}
 		} else
 			error("Bad type for field");

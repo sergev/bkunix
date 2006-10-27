@@ -1,12 +1,3 @@
-/*
- * PDP-11 disassembler.	Op table taken from GNU binutils.
- *
- * Copyright (C) 2006 Serge Vakulenko <vak@cronyx.ru>
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -473,7 +464,7 @@ praddr (address, rel)
 	if (address < 20 && sign_extend(address) > -20)
 		printf ("%d", address);
 	else
-		printf ("%#o", address);
+		printf ("%#o", address&0xffff);
 
 	sym = findsym (address);
 	printf (" <%.8s", sym->n_name);
@@ -491,7 +482,7 @@ praddr (address, rel)
 	if (offset < 8)
 		printf ("%d>", offset);
 	else
-		printf ("%#o>", offset);
+		printf ("%#o>", offset&0xffff);
 }
 
 /*

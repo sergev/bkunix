@@ -46,7 +46,7 @@ void rname(c)
 	}
 	else {
 		probe = hv % HSHSIZ;
-		next = hv / HSHSIZ;
+		next = (hv / HSHSIZ) + 1;
 		while(1) {
 			if((probe -= next) < 0)
 				probe += HSHSIZ;
@@ -181,7 +181,7 @@ void hash_enter(p)
 
 	hv = hash(p->name);
 	probe = hv % HSHSIZ;
-	next = hv / HSHSIZ;
+	next = (hv / HSHSIZ) + 1;
 	while(TRUE) {
 		if((probe -= next) < 0)
 			probe += HSHSIZ;

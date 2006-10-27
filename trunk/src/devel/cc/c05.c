@@ -13,7 +13,7 @@
  * 0400-- is leaf of tree
  * *0XX000-- XX is priority of operator
  */
-int opdope[] {
+int opdope[] = {
 	000000,	/* EOF */
 	000000,	/* ; */
 	000000,	/* { */
@@ -145,7 +145,7 @@ int opdope[] {
  * For = however the left operand can't be converted
  * and the specified conversion is applied to the rhs.
  */
-char cvtab[4][4] {
+char cvtab[4][4] = {
 /*		int	double		long		ptr */
 /* int */	0,	(FTI<<4)+ITF,	(LTI<<4)+ITL,	(ITP<<4)+ITP,	
 /* double */	ITF,	0,		LTF,		XX,
@@ -156,7 +156,7 @@ char cvtab[4][4] {
 /*
  * character type table
  */
-char ctab[] {
+char ctab[] = {
 	EOF,	INSERT,	UNKN,	UNKN,	UNKN,	UNKN,	UNKN,	UNKN,
 	UNKN,	SPACE,	NEWLN,	UNKN,	UNKN,	UNKN,	UNKN,	UNKN,
 	UNKN,	UNKN,	UNKN,	UNKN,	UNKN,	UNKN,	UNKN,	UNKN,

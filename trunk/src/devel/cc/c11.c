@@ -56,7 +56,7 @@ loop:
 	case NAME:
 		i = p->offset;
 		if (flag==2)
-			i =+ 2;
+			i += 2;
 		if (i) {
 			psoct(i);
 			if (p->class!=OFFS)
@@ -198,7 +198,7 @@ struct tnode *ap;
 		return(at>CHAR && at<PTR);
 	if (st==1)		/* word */
 		return(at>INT && at<PTR);
-	st =- 2;
+	st -= 2;
 	if ((at&(~(TYPE+XTYPE))) != 0)
 		at = 020;
 	if ((at&(~TYPE)) != 0)
@@ -305,7 +305,7 @@ arlength(t)
  * Strings for switch code.
  */
 
-char	dirsw[] {"\
+char	dirsw[] = {"\
 cmp	r0,$%o\n\
 jhi	L%d\n\
 asl	r0\n\
@@ -314,7 +314,7 @@ jmp	*L%d(r0)\n\
 L%d:\
 " };
 
-char	simpsw[] {"\
+char	simpsw[] = {"\
 mov	$L%d,r1\n\
 mov	r0,L%d\n\
 L%d:cmp	r0,(r1)+\n\
@@ -324,7 +324,7 @@ jmp	*L%d-L%d(r1)\n\
 L%d:\
 "};
 
-char	hashsw[] {"\
+char	hashsw[] = {"\
 mov	r0,r1\n\
 clr	r0\n\
 div	$%o,r0\n\
@@ -478,7 +478,7 @@ struct tnode *atree;
 
 	tree = atree;
 	if (d = ispow2(tree)) {
-		for (i=0; (d=>>1)!=0; i++);
+		for (i=0; (d>>=1)!=0; i++);
 		tree->tr2->value = i;
 		d = tree->op;
 		tree->op = d==TIMES? LSHIFT:
@@ -553,7 +553,7 @@ struct tnode *atree;
 	else {
 		l1 = tree->tr2->op;
 	 	if ((l1==CON || l1==SFCON) && tree->tr2->value==0)
-			op =+ 200;		/* special for ptr tests */
+			op += 200;		/* special for ptr tests */
 		else
 			op = maprel[op-EQUAL];
 	}
@@ -645,7 +645,7 @@ getree()
 			error("Intermediate file error");
 			exit(1);
 		}
-		switch(op =& 0377) {
+		switch(op &= 0377) {
 
 	case EOF:
 		return;

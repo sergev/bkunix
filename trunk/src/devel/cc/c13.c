@@ -1,4 +1,4 @@
-int opdope[] {
+int opdope[] = {
 	000000,	/* EOF */
 	000000,	/* ; */
 	000000,	/* { */
@@ -112,7 +112,7 @@ int opdope[] {
 	000000	/* force r0 */
 };
 
-char	*opntab[] {
+char	*opntab[] = {
 	0,
 	0,
 	0,

@@ -5,7 +5,7 @@
 
 #include "c2h.c"
 
-struct optab optab[] {
+struct optab optab[] = {
 	"jbr",	JBR,
 	"jeq",	CBR | JEQ<<8,
 	"jne",	CBR | JNE<<8,
@@ -59,8 +59,8 @@ struct optab optab[] {
 	".end",	END,
 	0,	0};
 
-char	revbr[] { JNE, JEQ, JGT, JLT, JGE, JLE, JHIS, JLOS, JHI, JLO };
-int	isn	20000;
+char	revbr[] = { JNE, JEQ, JGT, JLT, JGE, JLE, JHIS, JLOS, JHI, JLO };
+int	isn	= 20000;
 
 main(argc, argv)
 char **argv;
@@ -139,7 +139,7 @@ char **argv;
 		printf("%d sob's added\n", nsob);
 		printf("%d redundant tst's\n", nrtst);
 		printf("%d literals eliminated\n", nlit);
-		printf("%dK core\n", ((lastr+01777)>>10)&077);
+		printf("%dK core\n", (((int)lastr+01777)>>10)&077);
 		flush();
 	}
 	exit(0);
