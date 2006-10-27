@@ -51,6 +51,7 @@ void opline()
 	case TYPEOPDO:
 	case TYPEOPMOVF:
 	case TYPEOPFF:
+	case TYPEOPFD:
 	case TYPEOPMUL:
 		address();
 		if(tok.i != ',') {

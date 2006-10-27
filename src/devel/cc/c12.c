@@ -79,7 +79,7 @@ struct tnode *atree;
 
 	/*
 	 * PDP-11 special:
-	 * generate new =&~ operator out of =&
+	 * generate new &~= operator out of &=
 	 * by complementing the RHS.
 	 */
 	case ASSAND:
@@ -107,7 +107,7 @@ struct tnode *atree;
 			tree->op = PLUS;
 			if (t->type==DOUBLE)
 				/* PDP-11 FP representation */
-				t->value =^ 0100000;
+				t->value ^= 0100000;
 			else
 				t->value = -t->value;
 			goto acomm;
@@ -123,8 +123,8 @@ struct tnode *atree;
 
 		case MOD:
 		case ASMOD:
-			d1 =+ 2;
-			d2 =+ 2;
+			d1 += 2;
+			d2 += 2;
 		}
 		if (tree->type==LONG)
 			return(hardlongs(tree));
@@ -144,7 +144,7 @@ struct tnode *atree;
 			goto constant;
 		if (tree->tr2->op==CON && tree->tr2->value==1)
 			goto constant;
-		op =+ (LSHIFT-RSHIFT);
+		op += (LSHIFT-RSHIFT);
 		tree->op = op;
 		tree->tr2 = block(1, NEG, tree->type, 0, tree->tr2);
 		goto again;
@@ -224,7 +224,7 @@ struct tnode *atree;
 		}
 		if (subtre->op==PLUS && p->op==NAME && p->class==REG) {
 			if (subtre->tr2->op==CON) {
-				p->offset =+ subtre->tr2->value;
+				p->offset += subtre->tr2->value;
 				p->class = OFFS;
 				p->type = tree->type;
 				p->regno = p->nloc;
@@ -232,7 +232,7 @@ struct tnode *atree;
 			}
 			if (subtre->tr2->op==AMPER) {
 				subtre = subtre->tr2->tr1;
-				subtre->class =+ XOFFS-EXTERN;
+				subtre->class += XOFFS-EXTERN;
 				subtre->regno = p->nloc;
 				subtre->type = tree->type;
 				return(subtre);
@@ -325,7 +325,7 @@ acommute(atree)
 		/* subsume constant in "&x+c" */
 		if (op==PLUS && t2[0]->op==CON && t2[-1]->op==AMPER) {
 			t2--;
-			t2[0]->tr1->offset =+ t2[1]->value;
+			t2[0]->tr1->offset += t2[1]->value;
 			acl.nextl--;
 		}
 	} else if (op==TIMES || op==AND) {
@@ -428,7 +428,7 @@ struct acl *list;
 	t->type = (*p1)->type;
 	t->tr1 = (*p1);
 	t->tr2 = (*p2)->tr1;
-	(*p1)->tr2->value =/ (*p2)->tr2->value;
+	(*p1)->tr2->value /= (*p2)->tr2->value;
 	(*p2)->tr1 = t;
 	t = optim(*p2);
 	if (p1 < p2) {
@@ -462,23 +462,23 @@ int *vp;
 	switch (op) {
 
 	case PLUS:
-		*vp =+ v;
+		*vp += v;
 		return;
 
 	case TIMES:
-		*vp =* v;
+		*vp *= v;
 		return;
 
 	case AND:
-		*vp =& v;
+		*vp &= v;
 		return;
 
 	case OR:
-		*vp =| v;
+		*vp |= v;
 		return;
 
 	case EXOR:
-		*vp =^ v;
+		*vp ^= v;
 		return;
 
 	case DIVIDE:
@@ -487,21 +487,21 @@ int *vp;
 			error("Divide check");
 		else
 			if (op==DIVIDE)
-				*vp =/ v;
+				*vp /= v;
 			else
-				*vp =% v;
+				*vp %= v;
 		return;
 
 	case RSHIFT:
-		*vp =>> v;
+		*vp >>= v;
 		return;
 
 	case LSHIFT:
-		*vp =<< v;
+		*vp <<= v;
 		return;
 
 	case NAND:
-		*vp =& ~ v;
+		*vp &= ~ v;
 		return;
 	}
 	error("C error: const");
@@ -534,7 +534,7 @@ struct acl *alist;
 		  && tree->tr1->op==PLUS && tree->tr1->tr2->op==CON) {
 			d = tree->tr2->value;
 			if (tree->op==TIMES)
-				tree->tr2->value =* tree->tr1->tr2->value;
+				tree->tr2->value *= tree->tr1->tr2->value;
 			else
 				tree->tr2->value = tree->tr1->tr2->value << d;
 			tree->tr1->tr2->value = d;
@@ -607,13 +607,13 @@ struct tnode *at;
 	case TIMES:
 	case DIVIDE:
 	case MOD:
-		t->op =+ LTIMES-TIMES;
+		t->op += LTIMES-TIMES;
 		break;
 
 	case ASTIMES:
 	case ASDIV:
 	case ASMOD:
-		t->op =+ LASTIMES-ASTIMES;
+		t->op += LASTIMES-ASTIMES;
 		t->tr1 = block(1, AMPER, LONG+PTR, 0, t->tr1);
 		break;
 

@@ -76,35 +76,6 @@ fdstart()
 	bp->b_flags != B_ERROR;
 }
 
-#if 0
-fdintr()
-{
-	register struct buf *bp;
-
-	fdint++ ;
-	if( fdtab.d_active == 0 )
-		return;
-
-	bp = fdtab.d_actf;
-
-	if( RFADR->rfcs < 0 ) {
-		if( ++fdtab.d_errcnt <= 10 ) {
-			fdstart();
-			return;
-		}
-		bp->b_flags |= B_ERROR;
-	}
-
-	fdtab.d_errcnt = 0;
-	fdtab.d_actf = bp->b_link;
-	bp->b_flags |= B_DONE;
-#ifdef BGOPTION
-	wakeup(bp);
-#endif
-	fdstart();
-}
-#endif
-
 void fdinit() {
 	register char *r4, *r3;
 	r3 = ioarea;

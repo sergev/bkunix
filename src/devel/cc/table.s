@@ -6,50 +6,50 @@
 
 .data
 _regtab=.
-	106.;	cr106
-	30.;	cr70
-	31.;	cr70
-	32.;	cr32
-	33.;	cr32
-	37.;	cr37
-	38.;	cr37
-	98.;	cr100
-	99.;	cr100
-	80.;	cr80
-	40.;	cr40
-	41.;	cr40	/ - like +
-	42.;	cr42
-	43.;	cr43
-	44.;	cr43
-	45.;	cr45
-	46.;	cr40
-	55.; 	cr40
-	48.;	cr40
-	49.;	cr49
-	70.;	cr70
-	71.;	cr70
-	72.;	cr72
-	73.;	cr73
-	74.;	cr74
-	75.;	cr75
-	76.;	cr72
-	78.;	cr70
-	85.;	cr70
-	79.;	cr79
-	102.;	cr102
-	51.;	cr51
-	52.;	cr52
-	56.;	cr56
-	57.;	cr57
-	58.;	cr58
-	59.;	cr59
-	91.;	cr91
-	82.;	cr82
-	83.;	cr82
-	84.;	cr82
-	86.;	cr86
-	87.;	cr86
-	88.;	cr86
+	106;	cr106
+	30;	cr70
+	31;	cr70
+	32;	cr32
+	33;	cr32
+	37;	cr37
+	38;	cr37
+	98;	cr100
+	99;	cr100
+	80;	cr80
+	40;	cr40
+	41;	cr40	/ - like +
+	42;	cr42
+	43;	cr43
+	44;	cr43
+	45;	cr45
+	46;	cr40
+	55; 	cr40
+	48;	cr40
+	49;	cr49
+	70;	cr70
+	71;	cr70
+	72;	cr72
+	73;	cr73
+	74;	cr74
+	75;	cr75
+	76;	cr72
+	78;	cr70
+	85;	cr70
+	79;	cr79
+	102;	cr102
+	51;	cr51
+	52;	cr52
+	56;	cr56
+	57;	cr57
+	58;	cr58
+	59;	cr59
+	91;	cr91
+	82;	cr82
+	83;	cr82
+	84;	cr82
+	86;	cr86
+	87;	cr86
+	88;	cr86
 	0
 .text
 
@@ -691,7 +691,7 @@ cr82:
 	SS
 	FS
 	jsr	pc,I
-	add	$10,sp
+	add	$010,sp
 
 / =*, =/, =rem for longs
 / Operands of the form &x op y, so stack space is known.
@@ -711,18 +711,18 @@ cr86:
 
 .data
 _efftab=.
-	30.;	ci70
-	31.;	ci70
-	32.;	ci70
-	33.;	ci70
-	80.;	ci80
-	70.;	ci70
-	71.;	ci70	/ - like +
-	78.;	ci78
-	85.;	ci78
-	75.;	ci75
-	76.;	ci76
-	92.;	ci92
+	30;	ci70
+	31;	ci70
+	32;	ci70
+	33;	ci70
+	80;	ci80
+	70;	ci70
+	71;	ci70	/ - like +
+	78;	ci78
+	85;	ci78
+	75;	ci75
+	76;	ci76
+	92;	ci92
 	0
 .text
 
@@ -1070,34 +1070,34 @@ ci92:
 
 .data
 _cctab=.
-	106.;	cc60
-	28.;	rest
-	55.;	rest
-	34.;	rest
-	35.;	rest
-	36.;	rest
-	37.;	rest
-	40.;	rest
-	41.;	rest
-	42.;	rest
-	43.;	rest
-	45.;	rest
-	46.;	rest
-	81.;	cc81	/ & as in "if ((a&b)==0)"
-	48.;	rest
-	60.;	cc60
-	61.;	cc60
-	62.;	cc60
-	63.;	cc60
-	64.;	cc60
-	65.;	cc60
-	66.;	cc60
-	67.;	cc60
-	68.;	cc60
-	69.;	cc60
-	72.;	rest
-	73.;	rest
-	79.;	rest
+	106;	cc60
+	28;	rest
+	55;	rest
+	34;	rest
+	35;	rest
+	36;	rest
+	37;	rest
+	40;	rest
+	41;	rest
+	42;	rest
+	43;	rest
+	45;	rest
+	46;	rest
+	81;	cc81	/ & as in "if ((a&b)==0)"
+	48;	rest
+	60;	cc60
+	61;	cc60
+	62;	cc60
+	63;	cc60
+	64;	cc60
+	65;	cc60
+	66;	cc60
+	67;	cc60
+	68;	cc60
+	69;	cc60
+	72;	rest
+	73;	rest
+	79;	rest
 	0
 .text
 
@@ -1191,13 +1191,13 @@ rest:
 
 .data
 _sptab=.
-	106.;	cs106
-	40.;	cs40
-	41.;	cs40
-	55.;	cs40
-	48.;	cs40
-	58.;	cs58
-	56.;	cs56
+	106;	cs106
+	40;	cs40
+	41;	cs40
+	55;	cs40
+	48;	cs40
+	58;	cs58
+	56;	cs56
 	0
 .text
 

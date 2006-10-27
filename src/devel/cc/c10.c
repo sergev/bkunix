@@ -8,23 +8,23 @@
 
 #include "c1h.c"
 
-char	maprel[] {	EQUAL, NEQUAL, GREATEQ, GREAT, LESSEQ,
+char	maprel[] = {	EQUAL, NEQUAL, GREATEQ, GREAT, LESSEQ,
 			LESS, GREATQP, GREATP, LESSEQP, LESSP
 };
 
-char	notrel[] {	NEQUAL, EQUAL, GREAT, GREATEQ, LESS,
+char	notrel[] = {	NEQUAL, EQUAL, GREAT, GREATEQ, LESS,
 			LESSEQ, GREATP, GREATQP, LESSP, LESSEQP
 };
 
-struct tconst czero { CON, INT, 0, 0};
-struct tconst cone  { CON, INT, 0, 1};
-struct tconst fczero { SFCON, DOUBLE, 0, 0 };
+struct tconst czero = { CON, INT, 0, 0};
+struct tconst cone  = { CON, INT, 0, 1};
+struct tconst fczero = { SFCON, DOUBLE, 0, 0 };
 
 struct	table	*cregtab;
 
-int	nreg	3;
-int	isn	10000;
-int	namsiz	8;
+int	nreg	= 3;
+int	isn	= 10000;
+int	namsiz	= 8;
 
 main(argc, argv)
 char *argv[];
@@ -177,7 +177,7 @@ struct table *atable;
 		recurf++;
 		reg = ~reg;
 		if (reg>=020) {
-			reg =- 020;
+			reg -= 020;
 			recurf++;
 		}
 	}
@@ -257,11 +257,11 @@ struct table *atable;
 		tree = tree->tr2;
 		if(tree->op) {
 			while (tree->op==COMMA) {
-				r =+ comarg(tree->tr2, &modf);
+				r += comarg(tree->tr2, &modf);
 				tree = tree->tr1;
 				nargs++;
 			}
-			r =+ comarg(tree, &modf);
+			r += comarg(tree, &modf);
 			nargs++;
 		}
 		tree = atree;
@@ -270,7 +270,7 @@ struct table *atable;
 			tree->op = CALL1;
 		cexpr(tree, regtab, reg);
 		popstk(r);
-		nstack =- nargs;
+		nstack -= nargs;
 		if (table==efftab || table==regtab)
 			return(0);
 		r = 0;
@@ -314,7 +314,7 @@ struct table *atable;
 	}
 	/*
 	 * Basically, try to reorder the computation
-	 * so  reg = x+y  is done as  reg = x; reg =+ y
+	 * so  reg = x+y  is done as  reg = x; reg += y
 	 */
 	if (recurf==0 && reorder(&atree, table, reg)) {
 		if (table==cctab && atree->op==NAME)
@@ -424,7 +424,7 @@ struct table *table;
 	if ((tree->op==PLUS||tree->op==ASPLUS) &&
 	    (p1=tree->tr2)->op == CON && p1->value == -1) {
 		p1->value = 1;
-		tree->op =+ (MINUS-PLUS);
+		tree->op += (MINUS-PLUS);
 	}
 	if (table==cregtab)
 		table = regtab;
@@ -452,7 +452,7 @@ loop:
 	 * The 0200 bit asks for a tab.
 	 */
 	if ((c = *string++) & 0200) {
-		c =& 0177;
+		c &= 0177;
 		putchar('\t');
 	}
 	switch (c) {
@@ -547,7 +547,7 @@ loop:
 		c = *string++ - 'A';
 		if (*string=='!') {
 			string++;
-			c =| 020;	/* force right register */
+			c |= 020;	/* force right register */
 		}
 		if ((c&02)!=0)
 			ctable = sptab;
@@ -726,7 +726,7 @@ struct table *table;
  * tree is modified so the name of the register
  * replaces the assignment.
  * Moreover, expressions like "reg = x+y" are best done as
- * "reg = x; reg =+ y" (so long as "reg" and "y" are not the same!).
+ * "reg = x; reg += y" (so long as "reg" and "y" are not the same!).
  */
 sreorder(treep, table, reg)
 struct tnode **treep;
@@ -799,7 +799,7 @@ struct table *table;
 		case INCBEF:
 		OK:
 			if (table==cctab||table==cregtab)
-				reg =+ 020;
+				reg += 020;
 			rcexpr(optim(p), efftab, ~reg);
 			*treep = p1;
 			return(1);

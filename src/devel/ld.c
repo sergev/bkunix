@@ -3,7 +3,7 @@
  *  link editor
  */
 
-#define TOPSYS	040000
+#define BOTUSR	02000
 
 #define	SIGINT	2
 #define	ARCMAGIC 0177545
@@ -100,7 +100,7 @@ struct	symbol	*p_etext;
 struct	symbol	*p_edata;
 struct	symbol	*p_end;
 
-int	aflag;		/* relocate to absolute 0, otherwise to TOPSYS */
+int	aflag;		/* relocate to absolute 0, otherwise to BOTUSR */
 int	xflag;		/* discard local symbols */
 int	Xflag;		/* discard locals starting with 'L' */
 int	rflag;		/* preserve relocation bits, don't define common */
@@ -388,10 +388,10 @@ middle()
 	corigin = dorigin + dsize;
 	borigin = corigin + csize;
 	if(!aflag) {
-		torigin += TOPSYS;
-		dorigin += TOPSYS;
-		corigin += TOPSYS;
-		borigin += TOPSYS;
+		torigin += BOTUSR;
+		dorigin += BOTUSR;
+		corigin += BOTUSR;
+		borigin += BOTUSR;
 	}
 	nund = 0;
 	for (sp=symtab; sp<symp; sp++) switch (sp->stype) {

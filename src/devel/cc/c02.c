@@ -31,7 +31,7 @@ extdef()
 		if ((ds=defsym)==0)
 			return;
 		funcsym = ds;
-		ds->hflag =| FNDEL;
+		ds->hflag |= FNDEL;
 		outcode("BS", SYMDEF, ds->name);
 		xdflg = 0;
 		if ((ds->type&XTYPE)==FUNC) {
@@ -102,14 +102,18 @@ struct hshtab *ds;
 	 * This is a kludge.
 	 */
 	if (basetype==STRUCT) {
-		nel =* realwidth/2;
+		nel *= realwidth/2;
 		width = 2;
 	}
 	if ((peeksym=symbol())==COMMA || peeksym==SEMI) {
 		outcode("BSN",CSPACE,ds->name,(nel*width+ALIGN)&~ALIGN);
 		return;
-	}
-	ninit = 0;
+	} 
+	if (peeksym!=ASSIGN) {
+		error("Declaration syntax");
+        }
+	
+	peeksym = ninit = 0;
 	outcode("BBS", DATA, NLABEL, ds->name);
 	if ((o=symbol())==LBRACE) {
 		do
@@ -130,7 +134,7 @@ struct hshtab *ds;
 		if (o = 2*ninit % realwidth)
 			outcode("BN", SSPACE, realwidth-o);
 		ninit = (2*ninit+realwidth-2) / realwidth;
-		nel =/ realwidth/2;
+		nel /= realwidth/2;
 	}
 	/*
 	 * If there are too few initializers, allocate
@@ -195,7 +199,7 @@ struct hshtab *ds;
 		}
 		if (s->op==FCON || s->op==SFCON) {
 			if (type==STRUCT) {
-				ninit =+ 3;
+				ninit += 3;
 				goto prflt;
 			}
 			goto bad;
@@ -573,10 +577,10 @@ blkhed()
 		cs->hoffset = pl;
 		cs->hclass = AUTO;
 		if ((cs->htype&XTYPE) == ARRAY) {
-			cs->htype =- (ARRAY-PTR);	/* set ptr */
+			cs->htype -= (ARRAY-PTR);	/* set ptr */
 			cs->ssp++;		/* pop dims */
 		}
-		pl =+ rlength(cs);
+		pl += rlength(cs);
 	}
 	for (cs=hshtab; cs<hshtab+hshsiz; cs++) {
 		if (cs->name[0] == '\0')
@@ -610,12 +614,12 @@ blkend() {
 		if (cs->name[0]) {
 			if (cs->hclass==0 && (cs->hflag&FNUND)==0) {
 				error("%.8s undefined", cs->name);
-				cs->hflag =| FNUND;
+				cs->hflag |= FNUND;
 			}
 			if((cs->hflag&FNDEL)==0) {
 				cs->name[0] = '\0';
 				hshused--;
-				cs->hflag =& ~(FNUND|FFIELD);
+				cs->hflag &= ~(FNUND|FFIELD);
 			}
 		}
 	}

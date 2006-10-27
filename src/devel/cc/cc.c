@@ -9,7 +9,7 @@ char *tmp3;
 char *tmp4;
 char *tmp5;
 char ts[1000];
-char *tsp ts;
+char *tsp = ts;
 char *av[50];
 char *clist[50];
 char *llist[50];
@@ -43,10 +43,10 @@ struct symtab *unxloc;
 int	trulvl;
 int	flslvl;
 char *stringbuf;
-char *pass0 "/lib/c0";
-char *pass1 "/lib/c1";
-char *pass2 "/lib/c2";
-char *pref "/lib/crt0.o";
+char *pass0 = "/lib/c0";
+char *pass1 = "/lib/c1";
+char *pass2 = "/lib/c2";
+char *pref = "/lib/crt0.o";
 
 main(argc, argv)
 char *argv[]; {
@@ -480,7 +480,7 @@ loop:
 	return(c);
 }
 char pushbuff[300];
-char *pushp pushbuff;
+char *pushp = pushbuff;
 ungetc(c)
 	{
 	*++pushp = c;
@@ -514,8 +514,8 @@ char *namep;
 	np = namep;
 	around = i = 0;
 	while (c = *np++)
-		i =+ c;
-	i =% symsiz;
+		i += c;
+	i %= symsiz;
 	sp = &symtab[i];
 	while (sp->name[0]) {
 		snp = sp;
@@ -599,7 +599,7 @@ char as[];
 			c = 0;
 		else
 			c++;
-	s =- 3;
+	s -= 3;
 	if (c<=14 && c>2 && *s++=='.')
 		return(*s);
 	return(0);
