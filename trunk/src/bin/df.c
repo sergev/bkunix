@@ -16,16 +16,17 @@
 int iflag;
 int timesthrough;
 struct filesys sblock;
+struct stat root;
 int buf[256];
 
 void
-bread(fd, bno, buf)
-	char *buf;
+bread(fd, bno, data)
+	char *data;
 {
 	int n;
 
 	seek(fd, bno, 3);
-	n = read(fd, buf, 512);
+	n = read(fd, data, 512);
 	if (n != 512) {
 		printf("df: block %d: read error\n", bno);
 		exit(1);
@@ -86,7 +87,7 @@ prdir(dev, ino)
 	DIR *dir;
 	register struct dirent *d;
 
-	if (dev == 0) {
+	if (dev == root.st_dev) {
 		if (ino <= 1) {
 			printf(ino==1 ? "/" : "--");
 			return;
@@ -122,7 +123,8 @@ dfree(fs_dev, on_dev, on_ino)
 		return;
 	}
 	sync();
-	bread(fd, 1, &sblock);
+	bread(fd, 1, buf);
+	memcpy (&sblock, buf, sizeof(sblock));
 	if (sblock.fsize < 6 || sblock.isize < 1 ||
 	    sblock.isize > 4096 || sblock.isize > sblock.fsize / 4 ||
 	    sblock.nfree > sblock.fsize) {
@@ -167,6 +169,7 @@ main(argc, argv)
 	struct stat st;
 	int n, mt, fs_dev, fs_ronly, on_dev, on_ino;
 
+	stat ("/", &root);
 	mt = openmtab();
 	if (! mt) {
 		printf("df: cannot open mount table\n");

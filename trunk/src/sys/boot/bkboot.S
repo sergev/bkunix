@@ -220,15 +220,17 @@ rblk:
 1:
 	movb	*$052, r0	/ err code
 	mov	r0, r1
-	asl	r0
-	asl 	r0
-	asl	r0
+	asr	r0
+	asr 	r0
+	asr	r0
 	bic	$!1, r0
-        jsr     pc,*$putc
+	bis	$060, r0
+	jsr     pc,*$putc
 	mov	r1, r0
 	bic	$!7, r0
+	bis	$060, r0
 	jsr	pc,*$putc
-        jbr     start
+	jbr     start
 2:	mov	(sp)+,r2
 	mov	(sp)+,r3
 	mov	(sp)+,r4
