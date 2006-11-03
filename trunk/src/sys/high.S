@@ -18,11 +18,14 @@ _u	= BOTUSR - usize
 
 #define IM	0340		/* mask interrupts */
 
+	.globl	_bootdev
 /-----------------------
 / System starts here.
 /
-init:	clr	r0
-	mov	go, (r0)+	/ restart if jumped to 0
+init:
+	mov	r0,*$_bootdev
+	clr	r0
+	mov	$0137, (r0)+	/ restart if jumped to 0
 	mov	$init, (r0)+
 	mov	$trap, r1
 	mov	$ IM, r2
@@ -40,7 +43,6 @@ init:	clr	r0
 	mov	$0274, r0
 	mov	$klin, (r0)+
 	mov	$ IM, (r0)+
-go:
 	reset
 
 / clear bss and user block

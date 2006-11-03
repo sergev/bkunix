@@ -99,8 +99,7 @@
 /*
  * configuration dependent variables
  */
-#define ROOTDEV 0
-#define SWAPDEV 0		/* fd0 */
-#define MNTDEV  1
+#define ROOTDEV bootdev
+#define SWAPDEV bootdev
 
 #endif /* PARAM_H */
