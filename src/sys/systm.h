@@ -29,6 +29,7 @@ struct	mount
 extern struct mount mount[NMOUNT];
 extern int	cpid;		/* current process ID */
 extern int	user;
+extern int	bootdev;
 #ifdef BGOPTION
 extern int	swflg, swwait;
 #endif

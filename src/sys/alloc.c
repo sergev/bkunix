@@ -12,6 +12,8 @@
 #include "inode.h"
 #include "user.h"
 
+int bootdev = ~0;	/* must not be in .bss */
+
 /*
  * iinit is called once (from main)
  * very early in initialization.

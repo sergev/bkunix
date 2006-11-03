@@ -144,6 +144,8 @@ go:
 		br	1f
 	br	2b
 1:
+	mov	wrk,r3
+	movb	034(r3), r0	/ boot dev num
 	jsr	pc,*$ BOTSYS
 
 geti:
