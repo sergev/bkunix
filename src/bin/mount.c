@@ -9,6 +9,9 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <mtab.h>
+#include <sys/stat.h>
+
+struct stat root;
 
 void
 prdir(dev, ino)
@@ -16,7 +19,7 @@ prdir(dev, ino)
 	DIR *dir;
 	register struct dirent *d;
 
-	if (dev == 0) {
+	if (dev == root.st_dev) {
 		if (ino == 1) {
 			printf("/");
 			return;
@@ -61,6 +64,7 @@ main(argc, argv)
 {
 	register int ro;
 
+	stat ("/", &root);
 	if (argc == 1) {
 		printmtab();
 		return 0;

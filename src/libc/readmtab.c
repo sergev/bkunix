@@ -11,11 +11,12 @@
 #include <a.out.h>
 
 #define NMOUNT	2	/* look sys/param.h */
-#define ROOTDEV	0
 
 static char kernel[] = "/bkunix";
 static char mtabsym[] = "_mount";
+static char bdevsym[] = "_bootdev";
 static int *mtabptr;
+static int rootdev;
 
 static void
 outerr(s)
@@ -55,6 +56,10 @@ openmtab()
 		if (read(fd, (char*) &sym, sizeof(sym)) != sizeof(sym)) {
 			outerr("error reading symbol table\n");
 			goto error;
+		}
+		if (strncmp (sym.n_name, bdevsym, sizeof(sym.n_name)) == 0) {
+			rootdev = *(int*) sym.n_value;
+			continue;
 		}
 		if (strncmp (sym.n_name, mtabsym, sizeof(sym.n_name)) == 0) {
 			close(fd);
@@ -96,8 +101,8 @@ readmtab(mt, fs_dev, fs_ronly, on_dev, on_ino)
 
 		fs = (int*) bufp[3];			/* b_addr */
 		*fs_ronly = fs[205] >> 8;		/* s_ronly */
-		if (*fs_dev == ROOTDEV) {
-			*on_dev = ROOTDEV;
+		if (*fs_dev == rootdev) {
+			*on_dev = rootdev;
 			*on_ino = 1;
 		} else {
 			*on_dev = inodp[1];		/* i_dev */
