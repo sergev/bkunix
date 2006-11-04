@@ -25,7 +25,7 @@ error:
 	mov	$4,r1
 2:
 	clr	r2
-	dvd	$10,r2
+	div	$10,r2
 	add	$'0,r3
 	movb	r3,-(r0)
 	mov	r2,r3

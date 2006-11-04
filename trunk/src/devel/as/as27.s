@@ -142,7 +142,7 @@ exrsh:
 	ror	r2
 exlsh:
 	jsr	r5,combin; relte2
-	als	r1,r2
+	ash	r1,r2
 	br	eoprnd
 
 exmod:
@@ -150,7 +150,7 @@ exmod:
 	mov	r3,r0
 	mov	r2,r3
 	clr	r2
-	dvd	r1,r2
+	div	r1,r2
 	mov	r3,r2
 	mov	r0,r3
 	br	eoprnd
@@ -178,7 +178,7 @@ exor:
 
 exmul:
 	jsr	r5,combin; relte2
-	mpy	r2,r1
+	mul	r2,r1
 	mov	r1,r2
 	br	eoprnd
 
@@ -187,7 +187,7 @@ exdiv:
 	mov	r3,r0
 	mov	r2,r3
 	clr	r2
-	dvd	r1,r2
+	div	r1,r2
 	mov	r0,r3
 	br	eoprnd
 
@@ -234,7 +234,7 @@ combin1:
 	clr	maxtyp
 	jsr	pc,maprel
 	mov	r0,r1
-	mpy	$6,r1
+	mul	$6,r1
 	mov	r3,r0
 	jsr	pc,maprel
 	add	(r5)+,r0
