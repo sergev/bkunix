@@ -17,6 +17,7 @@ diskio = 0160004
 .. = 01000
 
 init:
+wrk:
 	.word	0240	/ nop is the "bootable" mark
 	mov	r3, wrk
 	/ attempt booting bkunix first unless RUS is on
@@ -237,16 +238,14 @@ rblk:
 	mov	(sp)+,r5
 	mov	$buf, r0
 	rts	pc
-wrk:	.word	0
 bkunix: <\0bkunix\0>
 nm:
 	.byte	012
-	<bk boot:\0>
+	<boot:\0>
 err:	<err >
 	.even
 
 in:	rootdir
-end:
 
 inode = 010000
 mode = inode
