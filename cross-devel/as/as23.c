@@ -95,7 +95,7 @@ void doequal(t)
 	v.type.u &= 037;
 	if(v.type.u == TYPEUNDEF)
 		v.val.u = 0;
-	t->v->type.u = v.type.u;
+	t->v->type.u |= v.type.u;
 	t->v->val.u = v.val.u;
 }
 

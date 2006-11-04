@@ -126,10 +126,9 @@ number:
 	cmp	r0,$'0
 	bne	0f
 	mov	$8,r5
-	0240
 0:
 	sub	$'0,r0
-	mpy	r5,r1
+	mul	r5,r1
 	add	r0,r1
 	br	1b
 1:

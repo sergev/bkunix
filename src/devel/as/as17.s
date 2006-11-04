@@ -134,7 +134,7 @@ exrsh:
 	ror	r2
 exlsh:
 	jsr	r5,combin; 0
-	als	r1,r2
+	ash	r1,r2
 	br	eoprnd
 
 exmod:
@@ -142,7 +142,7 @@ exmod:
 	mov	r1,-(sp)
 	mov	r2,r1
 	clr	r0
-	dvd	(sp)+,r0
+	div	(sp)+,r0
 	mov	r1,r2
 	br	eoprnd
 
@@ -169,7 +169,7 @@ exor:
 
 exmul:
 	jsr	r5,combin; 0
-	mpy	r2,r1
+	mul	r2,r1
 	mov	r1,r2
 	br	eoprnd
 
@@ -178,7 +178,7 @@ exdiv:
 	mov	r1,-(sp)
 	mov	r2,r1
 	clr	r0
-	dvd	(sp)+,r0
+	div	(sp)+,r0
 	mov	r0,r2
 	br	eoprnd
 
