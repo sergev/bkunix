@@ -39,7 +39,7 @@ init:
 	mov	$klin, (r0)+
 	mov	$ IM, (r0)+
 
-	mov	$0160016, *$010 / EIS emulator
+/	mov	$0160016, *$010 / EIS emulator
 	mov	$0274, r0
 	mov	$klin, (r0)+
 	mov	$ IM, (r0)+
