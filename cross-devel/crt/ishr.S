@@ -13,5 +13,12 @@
  */
 	.globl	ishr
 ishr:
-	/ TODO
-	rts	pc
+	bic	$!017,(sp)
+	beq	9f
+1:
+	asr	r0		/ right shift
+
+	dec	(sp)
+	bgt	1b
+9:
+	rts	pc		/ exit
