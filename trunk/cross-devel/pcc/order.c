@@ -395,7 +395,14 @@ rallo( p, down ) register NODE *p; {
 		p->in.right->in.rall = (fregs==3) ? R2|MUSTDO : R3|MUSTDO ;
 		mkrall( p->in.right, R2|MUSTDO );
 		return;
-
+#ifndef EIS
+	case ASG LS:
+	case ASG RS:
+		/* lhs in r0, nothing else matters */
+		rallo( p->in.left, R0|MUSTDO );
+		rallo( p->in.right, NOPREF );
+		return;
+#endif
 	case CALL:
 	case STASG:
 	case EQ:

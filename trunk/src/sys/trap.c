@@ -73,6 +73,9 @@ trap(dev, sp, r1, nps, r0, pc, ps)
 	default:
 		panic("unknown trap");
 
+	case 1: /* illegal instruction in kernel mode */
+		panic("EIS cmd");
+
 	case 0+USER: /* bus error or STOP key pressed */
 		if (stop) goto out;
 		i = SIGBUS;

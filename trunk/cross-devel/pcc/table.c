@@ -127,6 +127,7 @@ ASSIGN, INAREG|FOREFF,
 		0,	RRIGHT,
 		"	bic	$M,AL\n",
 
+#ifdef EIS
 ASSIGN, INTAREG|INAREG|FOREFF,
 	SFLD,	TANY,
 	STAREG,	TANY,
@@ -138,6 +139,7 @@ ASSIGN, INAREG|FOREFF,
 	AWD,	TANY,
 		NAREG,	RRIGHT,
 		"\tmov\tAR,A1\n\tash\t$H,A1\n\tbic\t$!M,A1\n\tbic\t$M,AL\n\tbis\tA1,AL\n",
+#endif /* EIS */
 
 ASSIGN,	FOREFF,
 	AWD,	TFLOAT,
@@ -393,6 +395,7 @@ AND,	FORCC,
 		0,	RESCC,
 		"	bit	AL,$Z~\n",
 
+#ifdef EIS
 ASG MUL,	INAREG,
 	STAREG,	TINT|TUNSIGNED|TPOINT,
 	AWD,	TINT|TUNSIGNED|TPOINT,
@@ -410,6 +413,25 @@ ASG MOD,	INAREG,
 	AWD,	TINT|TUNSIGNED|TPOINT,
 		NAREG,	RLEFT,
 		"ZV	div	AR,r0\n",  /* since lhs must be in r1 */
+#else
+ASG MUL,	INAREG,
+	STAREG,	TINT|TUNSIGNED|TPOINT,
+	AWD,	TINT|TUNSIGNED|TPOINT,
+		NAREG,	RLEFT,
+		"	mov	AR,r0\n	jsr	pc,imul\n", /* since lhs must be in r1 */
+
+ASG DIV,	INAREG,
+	STAREG,	TINT|TUNSIGNED|TPOINT,
+	AWD,	TINT|TUNSIGNED|TPOINT,
+		NAREG,	RLEFT,
+		"	mov	AR,r0\n	jsr	pc,idiv\n",  /* since lhs must be in r1 */
+
+ASG MOD,	INAREG,
+	STAREG,	TINT|TUNSIGNED|TPOINT,
+	AWD,	TINT|TUNSIGNED|TPOINT,
+		NAREG,	RLEFT,
+		"	mov	AR,r0\n	jsr	pc,imod\n",  /* since lhs must be in r1 */
+#endif /* EIS */
 
 ASG PLUS,	INAREG|FORCC,
 	AWD,	TINT|TUNSIGNED|TPOINT|TCHAR|TUCHAR,
@@ -460,6 +482,7 @@ ASG OPSHFT, 	INAREG,
 		0,	RLEFT,
 		"	OI	AL\nZH",
 
+#ifdef EIS
 ASG LS, 	INAREG,
 	SAREG,	TINT|TUNSIGNED|TPOINT,
 	AWD,	TINT|TUNSIGNED|TPOINT,
@@ -495,6 +518,31 @@ ASG RS, 	INAREG,
 	AWD,	TINT|TUNSIGNED|TPOINT,
 		NTEMP,	RLEFT,
 		"	mov	AR,A1\n	neg	A1\n	ash	A1,AL\nZH",
+#else
+ASG LS, 	INAREG,
+	SAREG,	TINT|TUNSIGNED|TPOINT,
+	SCON,	TINT|TUNSIGNED|TPOINT,
+		0,	RLEFT,
+		"	mov	$CR,(sp)\n	jsr	pc,ishl\n",
+
+ASG LS, 	INAREG,
+	SAREG,	TINT|TUNSIGNED|TPOINT,
+	AWD,	TINT|TUNSIGNED|TPOINT,
+		0,	RLEFT,
+		"	mov	AR,(sp)\n	jsr	pc,ishl\n",
+
+ASG RS, 	INAREG,
+	SAREG,	TINT|TUNSIGNED|TPOINT,
+	SCON,	TINT|TUNSIGNED|TPOINT,
+		0,	RLEFT,
+		"	mov	$CR,(sp)\n	jsr	pc,ishr\n",
+
+ASG RS, 	INAREG,
+	SAREG,	TINT|TUNSIGNED|TPOINT,
+	AWD,	TINT|TUNSIGNED|TPOINT,
+		0,	RLEFT,
+		"	mov	AR,(sp)\n	jsr	pc,ishr\n",
+#endif /* EIS */
 
 ASG OR, 	INAREG|FORCC,
 	AWD,	TCHAR|TUCHAR,
@@ -590,7 +638,7 @@ ASG ER,	INAREG|INTAREG,
 	AWD,	TINT|TUNSIGNED|TPOINT,
 		0,	RLEFT,
 		"\tmov\tAL,-(sp)\n\tmov\tAR,AL\n\txor\tAL,(sp)\n\tmov\t(sp)+,AL\n",
-
+#ifdef EIS
 ASG LS, 	INAREG,
 	SAREG,	TLONG|TULONG,
 	AWD,	TINT|TUNSIGNED|TPOINT,
@@ -620,6 +668,31 @@ ASG RS, 	INAREG,
 	AWD,	TINT|TUNSIGNED|TPOINT,
 		NTEMP,	RLEFT,
 		"	mov	AR,A1\n	neg	A1\n	ashc	A1,AL\nZH",
+#else
+ASG LS, 	INAREG,
+	SAREG,	TLONG|TULONG,
+	SCON,	TANY,
+		0,	RLEFT,
+		"	mov	$CR,(sp)\n	jsr	pc,lshl\n",
+
+ASG LS, 	INAREG,
+	SAREG,	TLONG|TULONG,
+	AWD,	TINT|TUNSIGNED|TPOINT,
+		0,	RLEFT,
+		"	mov	AR,(sp)\n	jsr	pc,lshl\n",
+
+ASG RS, 	INAREG,
+	SAREG,	TLONG|TULONG,
+	SCON,	TANY,
+		0,	RLEFT,
+		"	mov	$CR,(sp)\n	jsr	pc,lshr\n",
+
+ASG RS, 	INAREG,
+	SAREG,	TLONG|TULONG,
+	AWD,	TINT|TUNSIGNED|TPOINT,
+		0,	RLEFT,
+		"	mov	AR,(sp)\n	jsr	pc,lshr\n",
+#endif /* EIS */
 
 ASG OPFLOAT,	INBREG|INTBREG,
 	STBREG,	TDOUBLE,

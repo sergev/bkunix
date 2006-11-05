@@ -4,6 +4,7 @@
 # Makefile for PCC
 #
 #	FIXSTRUCT	no trickery (just output structure)
+#       EIS		use mul, div, ash, ashc instructions
 #
 # Some symbols are specific to certain compilers:
 #	ONEPASS		compile pass 1 and pass 2 together

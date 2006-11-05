@@ -67,7 +67,7 @@ void uptime()
 
 	if (cur == last)
 		return;
-	
+
 	/* the hardware register keeps decrementing */
 	cur = last-cur;
 	last -= cur;
@@ -75,8 +75,8 @@ void uptime()
 /* computing (128*cur + rem) / DENOM, calling clock with quotient
  * and updating rem.
  */
-	tmp = rem;
-       	tmp >>= 7;	/* PCC goofs here, remove next stmt when fixed */
+	tmp = rem >> 7;
+       	/*tmp >>= 7;*/	/* PCC goofs here, remove next stmt when fixed */
 	tmp &= 511;
 	if (cur >= DENOM - tmp) {
 		/* Normalize to proper fraction */

@@ -11,9 +11,11 @@ CFLAGS		= -O
 CPPFLAGS	=
 
 SRCS		= aldiv.S almul.S alrem.S csv.S ldiv.S lmul.S lrem.S udiv.S \
-		  uldiv.S ulrem.S ulsh.S
+		  uldiv.S ulrem.S ulsh.S imul.S idiv.S imod.S \
+		  lshr.S lshl.S ishr.S ishl.S
 OBJS		= aldiv.o csv.o almul.o alrem.o ldiv.o lmul.o lrem.o udiv.o \
-		  uldiv.o ulrem.o ulsh.o
+		  uldiv.o ulrem.o ulsh.o imul.o	idiv.o imod.o \
+		  lshr.o lshl.o ishr.o ishl.o
 
 all:		libcrt.a
 
