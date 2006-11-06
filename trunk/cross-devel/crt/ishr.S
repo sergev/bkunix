@@ -3,7 +3,7 @@
  * Calls to ishr are generated automatically by the C compiler.
  *
  * 	mov	value, r0
- * 	mov	count, (sp)
+ * 	mov	count, -(sp)
  *	jsr	pc, ishr
  * 	mov	r0, result
  *
@@ -13,12 +13,15 @@
  */
 	.globl	ishr
 ishr:
-	bic	$!017,(sp)
+	mov	r2,-(sp)
+	mov	4(sp),r2
+	bic	$!017,r2
 	beq	9f
 1:
-	asr	r0		/ right shift
-
-	dec	(sp)
-	bgt	1b
+	clc
+	ror	r0		/ right shift, no sign extension
+	sob	r2,1b
 9:
+	mov	(sp)+,r2
+	mov	(sp)+,(sp)
 	rts	pc		/ exit
