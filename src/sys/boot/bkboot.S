@@ -20,6 +20,7 @@ init:
 wrk:
 	.word	0240	/ nop is the "bootable" mark
 	mov	r3, wrk
+
 	/ attempt booting bkunix first unless RUS is on
 	tstb	*$043
 	bne	start

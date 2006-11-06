@@ -4,7 +4,7 @@
  *
  * 	mov	value_high, r0
  * 	mov	value_low, r1
- * 	mov	count, (sp)
+ * 	mov	count, -(sp)
  *	jsr	pc, lshl
  * 	mov	r0, result_high
  * 	mov	r1, result_low
@@ -15,13 +15,15 @@
  */
 	.globl	lshl
 lshl:
-	bic	$!037,(sp)
+	mov	r2,-(sp)
+	mov	4(sp),r2
+	bic	$!037,r2
 	beq	9f
 1:
 	asl	r1		/ left shift
 	rol	r0
-
-	dec	(sp)
-	bgt	1b
+	sob	r2,1b
 9:
+	mov	(sp)+,r2
+	mov	(sp)+,(sp)
 	rts	pc		/ exit

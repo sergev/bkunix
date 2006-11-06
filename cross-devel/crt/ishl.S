@@ -3,7 +3,7 @@
  * Calls to ishl are generated automatically by the C compiler.
  *
  * 	mov	value, r0
- * 	mov	count, (sp)
+ * 	mov	count, -(sp)
  *	jsr	pc, ishl
  * 	mov	r0, result
  *
@@ -13,12 +13,14 @@
  */
 	.globl	ishl
 ishl:
-	bic	$!017,(sp)
+	mov	r2,-(sp)
+	mov	4(sp),r2
+	bic	$!017,r2
 	beq	9f
 1:
 	asl	r0		/ left shift
-
-	dec	(sp)
-	bgt	1b
+	sob	r2,1b
 9:
+	mov	(sp)+,r2
+	mov	(sp)+,(sp)
 	rts	pc		/ exit
