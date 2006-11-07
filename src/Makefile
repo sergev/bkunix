@@ -24,8 +24,8 @@ clean:
 
 root.bkd:	remake
 		pdp11-strip $(ETC) $(BIN)
-		dd bs=512 count=1600 < /dev/zero > $@
-		$(FSUTIL) -n -s762368 -bsys/bkboot $@
+		dd bs=512 count=1440 < /dev/zero > $@
+		$(FSUTIL) -n -s671744 -bsys/bkboot $@
 		cp sys/bkunix .
 		$(FSUTIL) -a $@ bkunix usr/ tmp/
 		@rm -f bkunix

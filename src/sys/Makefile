@@ -44,7 +44,7 @@ HIBASE		= 0120000
 
 all:		bkunix bkboot
 		@echo "Warning: For BK-0011, size must be less than 040000"
-		$(SIZE) bkunix
+		$(SIZE) bkunix bkboot
 
 clean:
 		rm -f *~ dev/*~ boot/*~ *.o *.s a.out bkunix bkboot bkunix.dis bkunix.map
