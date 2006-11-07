@@ -76,8 +76,13 @@ fdstart()
 	bp->b_flags != B_ERROR;
 }
 
-void fdinit() {
-	register char *r4, *r3;
+void fdinit()
+{
+	register char *r3;
+
 	r3 = ioarea;
 	((void(*)())0160010)();
+
+	/* Set 9 sectors per track - use 720k floppy format. */
+	*(int*)(ioarea+060) = 9;
 }

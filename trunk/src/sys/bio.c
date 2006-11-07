@@ -186,10 +186,12 @@ binit()
 	register struct buf *bp;
 	register int i;
 
+	bp = &buf[0];
 	for(i = 0; i < NBUF; i++) {
-		bp = bufp[i] = &buf[i];
+		bufp[i] = bp;
 		bp->b_dev = NODEV;
 		bp->b_addr = &buffers[i][0];
+		bp++;
 	}
 	fdinit();
 }
