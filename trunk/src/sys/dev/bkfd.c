@@ -78,11 +78,8 @@ fdstart()
 
 void fdinit()
 {
-	register char *r3;
+	register char *r4, *r3;
 
 	r3 = ioarea;
 	((void(*)())0160010)();
-
-	/* Set 9 sectors per track - use 720k floppy format. */
-	*(int*)(ioarea+060) = 9;
 }

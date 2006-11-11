@@ -20,12 +20,10 @@ init:
 wrk:
 	.word	0240		/ nop is the "bootable" mark
 	mov	r3, wrk
-	mov	$9,060(r3)	/ 9 sectors per track (720k floppy format)
-#if 0
+
 	/ attempt booting bkunix first unless RUS is on
 	tstb	*$043
 	bne	start
-#endif
 	clr	r1
 	mov	$bkunix,r0
 	mov	$4,r2

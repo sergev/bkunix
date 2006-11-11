@@ -22,7 +22,7 @@
 #define BOTSYS	0120000		/* must not be an expression */
 #define TOPSYS	0160000		/* must not be an expression */
 #define SYSSIZ	((TOPSYS-BOTSYS)/1024) 	/* system size in 1K bytes */
-#define NBLKS	1440		/* 2-sided, 80 tracks, 9 sectors */
+#define NBLKS	1600		/* 2-sided, 80 tracks, 9 sectors */
 #define USRSIZ	27		/* size for extended memory */
 #define BOTUSR	02000		/* must not be an expression */
 #define UCORE	(USRSIZ*1024)	/* bytes */

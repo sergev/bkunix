@@ -430,7 +430,7 @@ ASG MOD,	INAREG,
 	STAREG,	TINT|TUNSIGNED|TPOINT,
 	AWD,	TINT|TUNSIGNED|TPOINT,
 		NAREG,	RLEFT,
-		"	mov	AR,r0\n	jsr	pc,imod\n",  /* since lhs must be in r1 */
+		"	mov	AR,r0\n	jsr	pc,irem\n",  /* since lhs must be in r1 */
 #endif /* EIS */
 
 ASG PLUS,	INAREG|FORCC,
