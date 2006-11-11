@@ -78,6 +78,10 @@ fdstart()
 
 void fdinit()
 {
+	/* When calling floppy BIOS, we must pass an address of
+	 * i/o area in R3. Declare two register variables:
+	 * the first is always placed in R4 by compiler,
+	 * the second - in R3. */
 	register char *r4, *r3;
 
 	r3 = ioarea;
