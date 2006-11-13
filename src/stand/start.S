@@ -7,15 +7,18 @@
  */
 TOPSYS = 0160000
 	.globl	_edata
+	.globl	_bootdev
 	.globl	_main
-	.comm	_bootdev, 2
+	.data
+_bootdev: .word	0
+
 
 /-----------------------
 / System starts here.
 /
+	.text
 init:
-	mov	r0,*$_bootdev
-	reset
+	mov	r0,*$_bootdev		/ save boot floppy number
 
 	mov	$_edata,r0		/ clear bss and stack
 1:	clr	(r0)+
@@ -24,4 +27,4 @@ init:
 
 	mov	r0,sp			/ set up stack pointer
 	jsr	pc,_main
-	jbr	init
+	jbr	0160000

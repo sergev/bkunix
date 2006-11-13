@@ -20,5 +20,5 @@ int main ()
 		printf ("\n");
 	}
 	printf ("Done.\n");
-	for (;;);
+	return 0;
 }

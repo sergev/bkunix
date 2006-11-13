@@ -16,7 +16,8 @@ printf (str)
 		putchar (*str++);
 }
 
-void phexgidit (val)
+void
+phexgidit (val)
 {
 	val &= 15;
 	if (val <= 9)
@@ -40,7 +41,8 @@ asm ("rol r1");
 asm ("rol r0");
 asm ("rts pc");
 
-void printhex (val)
+void
+printhex (val)
 {
 	val = rol4 (val);
 	phexgidit (val);
