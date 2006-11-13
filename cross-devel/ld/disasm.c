@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include "a.out.h"
 
 /*
@@ -281,7 +282,7 @@ struct opcode {
 
 struct exec hdr;
 FILE *textfd, *relfd;
-int rflag;
+int rflag, bflag;
 unsigned int relcode, srccode, dstcode, srcrel, dstrel;
 unsigned int baseaddr;
 
@@ -967,6 +968,34 @@ disasm (fname)
 	}
 }
 
+void
+disbin (fname)
+	register char *fname;
+{
+	unsigned int addr;
+	struct stat st;
+
+	textfd = fopen (fname, "r");
+	if (! textfd) {
+		fprintf (stderr, "dis: %s not found\n", fname);
+		return;
+	}
+	stat (fname, &st);
+	symtext.n_value = baseaddr;
+	symdata.n_value = baseaddr + st.st_size;
+	symbss.n_value = baseaddr + st.st_size;
+	rflag = 0;
+	addr = baseaddr;
+
+	printf ("         File: %s\n", fname);
+	printf ("         Type: Binary\n");
+	printf ("         Code: %d bytes\n", (int) st.st_size);
+	printf ("      Address: %#o\n", baseaddr);
+	printf ("\n");
+	prsection (&addr, baseaddr + (int) st.st_size);
+	fclose (textfd);
+}
+
 int
 main (argc, argv)
 	register char **argv;
@@ -976,13 +1005,19 @@ main (argc, argv)
 	while(--argc) {
 		++argv;
 		if (**argv != '-') {
-			disasm (*argv);
+			if (bflag)
+				disbin (*argv);
+			else
+				disasm (*argv);
 			continue;
 		}
 		for (cp = *argv+1; *cp; cp++) {
 			switch (*cp) {
 			case 'r':       /* -r: print relocation info */
 				rflag++;
+				break;
+			case 'b':	/* -b: disassemble binary file */
+				bflag++;
 				break;
 			case 'a':       /* -aN: base address */
 				while (cp[1] >= '0' && cp[1] <= '7') {
@@ -992,7 +1027,7 @@ main (argc, argv)
 				}
 				break;
 			default:
-				fprintf (stderr, "Usage: disasm [-r] [-aN] file...\n");
+				fprintf (stderr, "Usage: disasm [-r] [-b] [-aN] file...\n");
 				return (1);
 			}
 		}
