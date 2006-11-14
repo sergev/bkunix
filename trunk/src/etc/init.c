@@ -17,11 +17,10 @@ int
 main()
 {
 	open(ctty, 2);
-	dup(0);
-	dup(0);
 	write(0, hello, sizeof(hello) - 1);
+	dup(0);
+	dup(0);
 	chdir("/usr");
-	open("/bin", 4);
 	execl(shell, minus, 0);
 	write(0, failed, sizeof(failed) - 1);
 	return 0;
