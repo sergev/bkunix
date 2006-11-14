@@ -25,7 +25,7 @@ LDFLAGS		= -X
 
 SRCS		= start.S console.c
 OBJS		= start.o console.o
-PROG		= hello tstsh tstlsh tstmul getfdrom fdinfo
+PROG		= hello tstsh tstlsh tstmul fdgetrom fdinfo
 
 CPPFLAGS	= -I. -DKERNEL
 
@@ -53,8 +53,8 @@ tstmul:		$(OBJS) tstmul.o
 		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) tstmul.o $(LIBS)
 		pdp11-disasm -a$(HIBASE) $@ > $@.dis
 
-getfdrom:	$(OBJS) getfdrom.o
-		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) getfdrom.o $(LIBS)
+fdgetrom:	$(OBJS) fdgetrom.o
+		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) fdgetrom.o $(LIBS)
 		pdp11-disasm -a$(HIBASE) $@ > $@.dis
 
 fdinfo:		$(OBJS) fdinfo.o
@@ -82,7 +82,8 @@ depend:
 ### DO NOT DELETE THIS LINE
 start.o: start.S
 console.o: console.c
-getfdrom.o: getfdrom.c
+fdgetrom.o: fdgetrom.c
+fdinfo.o: fdinfo.c
 hello.o: hello.c
 tstlsh.o: tstlsh.c
 tstmul.o: tstmul.c
