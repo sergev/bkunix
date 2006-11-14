@@ -25,7 +25,7 @@ LDFLAGS		= -X
 
 SRCS		= start.S console.c
 OBJS		= start.o console.o
-PROG		= hello tstsh tstlsh tstmul getfdrom
+PROG		= hello tstsh tstlsh tstmul getfdrom fdinfo
 
 CPPFLAGS	= -I. -DKERNEL
 
@@ -55,6 +55,10 @@ tstmul:		$(OBJS) tstmul.o
 
 getfdrom:	$(OBJS) getfdrom.o
 		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) getfdrom.o $(LIBS)
+		pdp11-disasm -a$(HIBASE) $@ > $@.dis
+
+fdinfo:		$(OBJS) fdinfo.o
+		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) fdinfo.o $(LIBS)
 		pdp11-disasm -a$(HIBASE) $@ > $@.dis
 
 install:	$(PROG)	../root.bkd
