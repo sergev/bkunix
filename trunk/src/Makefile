@@ -21,6 +21,7 @@ clean:
 		$(MAKE) -C sys clean
 		$(MAKE) -C libc clean
 		$(MAKE) -C libfs clean
+		$(MAKE) -C stand clean
 
 root.bkd:	remake
 		pdp11-strip $(ETC) $(BIN)

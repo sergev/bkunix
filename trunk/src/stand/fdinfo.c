@@ -19,7 +19,7 @@ struct fdio {
 	unsigned char	fd_trk;		/* Номер дорожки */
 	unsigned char	fd_unit;	/* Номер привода */
 	unsigned char	fd_sector;	/* Номер сектора */
-	unsigned char	fd_wrk1 [22];	/* Рабочие ячейки драйвера */
+	unsigned char	fd_wrk1 [18];	/* Рабочие ячейки драйвера */
 	int		fd_maxsec;	/* Число секторов на дорожке */
 	unsigned char	fd_wrk2 [4];	/* Рабочие ячейки */
 };
