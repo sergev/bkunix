@@ -20,7 +20,7 @@ init:
 wrk:
 	.word	0240		/ nop is the "bootable" mark
 	mov	r3, wrk
-
+#if 0
 	/ attempt booting bkunix first unless RUS is on
 	tstb	*$043
 	bne	start
@@ -30,7 +30,11 @@ wrk:
 0:	mov	(r0)+,(r1)+
 	sob	r2,0b
 	jbr	go
+#endif
 start:
+	/ stop floppy motor
+	clr	*$0177130
+
 	/output message to tty (using the monitor)
 	mov	$nm,r1
 1:

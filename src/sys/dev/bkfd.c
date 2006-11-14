@@ -12,37 +12,10 @@
 struct devtab fdtab;
 #define NFDBLK 1600
 
-static char ioarea[64];
+static char ioarea[66];
 
-void fdstrategy( abp )
-struct buf *abp;
+void fdstart()
 {
-
-	register struct buf *bp;
-
-	bp = abp;
-
-	if( bp->b_blkno >= NFDBLK ) {
-		bp->b_flags |= B_DONE | B_ERROR;
-		return;
-	}
-
-	bp->b_link = 0;
-	spl7();
-	if( fdtab.d_actf == 0 )
-		fdtab.d_actf = bp;
-	else
-		fdtab.d_actl->b_link = (int *) bp;
-
-	fdtab.d_actl = bp;
-	if( fdtab.d_active == 0 )
-		fdstart();
-	spl0();
-}
-
-fdstart()
-{
-
 	register struct buf *bp;
 	register char *r3, *r2;
 	static struct buf * savbp;
@@ -73,17 +46,43 @@ fdstart()
 	} while (++fdtab.d_errcnt <= 10);
 
 	fdtab.d_errcnt = 0;
-	bp->b_flags != B_ERROR;
+	bp->b_flags |= B_ERROR;
+}
+
+void fdstrategy( abp )
+	struct buf *abp;
+{
+
+	register struct buf *bp;
+
+	bp = abp;
+
+	if( bp->b_blkno >= NFDBLK ) {
+		bp->b_flags |= B_DONE | B_ERROR;
+		return;
+	}
+
+	bp->b_link = 0;
+	spl7();
+	if( fdtab.d_actf == 0 )
+		fdtab.d_actf = bp;
+	else
+		fdtab.d_actl->b_link = (int *) bp;
+
+	fdtab.d_actl = bp;
+	if( fdtab.d_active == 0 )
+		fdstart();
+	spl0();
 }
 
 void fdinit()
 {
-	/* When calling floppy BIOS, we must pass an address of
-	 * i/o area in R3. Declare two register variables:
-	 * the first is always placed in R4 by compiler,
-	 * the second - in R3. */
-	register char *r4, *r3;
+	/* Using BIOS i/o area at address 02000. */
+	memcpy (ioarea, (char*) 02000, sizeof(ioarea));
+}
 
-	r3 = ioarea;
-	((void(*)())0160010)();
+void fdstop()
+{
+	/* Stop floppy motor. */
+	*(int*) 0177130 = 0;
 }
