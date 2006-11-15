@@ -9,10 +9,33 @@
 #include "buf.h"
 #include "user.h"
 
+struct fdio {
+	int		fd_csrw;	/* Copy of fdc state register */
+	int		fd_curtrk;	/* Current track */
+	unsigned char	fd_trktab [4];	/* Table of current tracks */
+	int		fd_tdown;	/* Head down time (in SOB loops) */
+	int		fd_tstep;	/* Track change time */
+	unsigned char	fd_trkcor;	/* Write precompensation track number */
+	unsigned char	fd_bretry;	/* Max retries */
+	unsigned char	fd_flags;	/* Driver data */
+	unsigned char	fd_fillb;	/* Fill byte for formatting */
+	int		fd_flgptr;	/* Pointer to flag byte */
+	unsigned char	fd_flgtab [4];	/* Flag table */
+	int		fd_addr;	/* Buffer address in RAM */
+	int		fd_wcnt;	/* Number of words to transfer */
+	unsigned char	fd_side;	/* Disk side */
+	unsigned char	fd_trk;		/* Track */
+	unsigned char	fd_unit;	/* Disk unit number */
+	unsigned char	fd_sector;	/* Sector */
+	unsigned char	fd_wrk1 [18];	/* Driver working area */
+	int		fd_maxsec;	/* Number of sectors per track */
+	unsigned char	fd_wrk2 [4];	/* Driver working area */
+};
+
 struct devtab fdtab;
 #define NFDBLK 1600
 
-static char ioarea[66];
+static struct fdio ioarea;
 
 int stopdelay;
 #define STOPDELAY 5
@@ -30,10 +53,10 @@ void fdstart()
 	fdtab.d_actf = (struct buf *) bp->b_link; /* unlink immediately */
 	bp->b_flags |= B_DONE;
 	savbp = bp;
-	r3 = ioarea;
-	r3[034] = bp->b_dev;
+	ioarea.fd_unit = bp->b_dev;
+	r3 = &ioarea;
 	stopdelay = STOPDELAY;
-	
+
 	do {
 		r2 = bp->b_addr;
 		asm("mov 4(r4), r1");	/* word cnt */
@@ -82,7 +105,10 @@ void fdstrategy( abp )
 void fdinit()
 {
 	/* Using BIOS i/o area at address 02000. */
-	memcpy (ioarea, (char*) 02000, sizeof(ioarea));
+	memcpy (&ioarea, (char*) 02000, sizeof(ioarea));
+
+	/* Disable write precompensation. */
+	ioarea.fd_trkcor = 999;
 }
 
 void fdstop()

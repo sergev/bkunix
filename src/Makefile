@@ -2,7 +2,7 @@ ETC		= etc/init etc/glob etc/mknod etc/mkfs etc/fsck
 BIN		= bin/sh bin/ls bin/echo bin/cal bin/cp bin/date bin/mkdir \
 		  bin/sync bin/mv bin/rm bin/rmdir bin/stty bin/od bin/ed \
 		  bin/cat bin/ln bin/wc bin/pwd bin/df bin/mount bin/umount \
-		  bin/clock
+		  bin/clock bin/halt
 SYS		= sys/bkunix sys/bkboot
 
 DEV		= dev/tty0!c0:0 dev/fd0!b0:0 dev/fd1!b0:1

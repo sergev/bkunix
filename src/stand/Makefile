@@ -25,7 +25,7 @@ LDFLAGS		= -X
 
 SRCS		= start.S console.c
 OBJS		= start.o console.o
-PROG		= hello tstsh tstlsh tstmul fdgetrom fdinfo
+PROG		= hello tstsh tstlsh tstmul fdgetrom fdinfo fdfmt
 
 CPPFLAGS	= -I. -DKERNEL
 
@@ -61,6 +61,10 @@ fdinfo:		$(OBJS) fdinfo.o
 		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) fdinfo.o $(LIBS)
 		pdp11-disasm -a$(HIBASE) $@ > $@.dis
 
+fdfmt:		$(OBJS) fdfmt.o
+		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) fdfmt.o $(LIBS)
+		pdp11-disasm -a$(HIBASE) $@ > $@.dis
+
 install:	$(PROG)	../root.bkd
 		pdp11-strip $(PROG)
 		$(FSUTIL) -a ../root.bkd $(PROG)
@@ -82,6 +86,7 @@ depend:
 ### DO NOT DELETE THIS LINE
 start.o: start.S
 console.o: console.c
+fdfmt.o: fdfmt.c
 fdgetrom.o: fdgetrom.c
 fdinfo.o: fdinfo.c
 hello.o: hello.c
