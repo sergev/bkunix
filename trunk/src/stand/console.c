@@ -1,4 +1,15 @@
 int
+getchar ()
+{
+        register int c;
+
+	asm ("mov r5,-(sp)");
+	c = ((int(*)()) 0101010) ();
+	asm ("mov (sp)+,r5");
+	return c;
+}
+
+int
 putchar (c)
         int c;
 {
@@ -17,7 +28,7 @@ printf (str)
 }
 
 void
-phexgidit (val)
+phexdigit (val)
 {
 	val &= 15;
 	if (val <= 9)
@@ -45,11 +56,11 @@ void
 printhex (val)
 {
 	val = rol4 (val);
-	phexgidit (val);
+	phexdigit (val);
 	val = rol4 (val);
-	phexgidit (val);
+	phexdigit (val);
 	val = rol4 (val);
-	phexgidit (val);
+	phexdigit (val);
 	val = rol4 (val);
-	phexgidit (val);
+	phexdigit (val);
 }

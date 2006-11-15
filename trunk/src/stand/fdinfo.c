@@ -2,26 +2,26 @@
  * Print floppy drive info.
  */
 struct fdio {
-	int		fd_csrw;	/* Копия по записи регистра состояния НГМД - 0 */
-	int		fd_curtrk;	/* Адрес текущей дорожки */
-	unsigned char	fd_trktab [4];	/* Таблица текущих дорожек */
-	int		fd_tdown;	/* Время опускания головки (в циклах SOB) - 20000 */
-	int		fd_tstep;	/* Время перехода с дорожки на дорожку */
-	unsigned char	fd_trkcor;	/* Номер дорожки, с которой включается предкомпенсация при записи - 36 */
-	unsigned char	fd_bretry;	/* Число повторных операций при ошибках - 30 */
-	unsigned char	fd_flags;	/* Рабочая ячейка драйвера */
-	unsigned char	fd_fillb;	/* Код заполнения секторов при форматировании */
-	int		fd_flgptr;	/* Указатель на байт признаков */
-	unsigned char	fd_flgtab [4];	/* Таблица признаков - 0 */
-	int		fd_addr;	/* Адрес буфера ОЗУ */
-	int		fd_wcnt;	/* Число слов для пересылки */
-	unsigned char	fd_side;	/* Номер стороны диска */
-	unsigned char	fd_trk;		/* Номер дорожки */
-	unsigned char	fd_unit;	/* Номер привода */
-	unsigned char	fd_sector;	/* Номер сектора */
-	unsigned char	fd_wrk1 [18];	/* Рабочие ячейки драйвера */
-	int		fd_maxsec;	/* Число секторов на дорожке */
-	unsigned char	fd_wrk2 [4];	/* Рабочие ячейки */
+	int		fd_csrw;	/* Copy of fdc state register */
+	int		fd_curtrk;	/* Current track */
+	unsigned char	fd_trktab [4];	/* Table of current tracks */
+	int		fd_tdown;	/* Head down time (in SOB loops) */
+	int		fd_tstep;	/* Track change time */
+	unsigned char	fd_trkcor;	/* Write precompensation track number */
+	unsigned char	fd_bretry;	/* Max retries */
+	unsigned char	fd_flags;	/* Driver data */
+	unsigned char	fd_fillb;	/* Fill byte for formatting */
+	int		fd_flgptr;	/* Pointer to flag byte */
+	unsigned char	fd_flgtab [4];	/* Flag table */
+	int		fd_addr;	/* Buffer address in RAM */
+	int		fd_wcnt;	/* Number of words to transfer */
+	unsigned char	fd_side;	/* Disk side */
+	unsigned char	fd_trk;		/* Track */
+	unsigned char	fd_unit;	/* Disk unit number */
+	unsigned char	fd_sector;	/* Sector */
+	unsigned char	fd_wrk1 [18];	/* Driver working area */
+	int		fd_maxsec;	/* Number of sectors per track */
+	unsigned char	fd_wrk2 [4];	/* Driver working area */
 };
 
 int bootdev;

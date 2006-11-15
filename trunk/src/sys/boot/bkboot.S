@@ -17,20 +17,7 @@ diskio = 0160004
 .. = 01000
 
 init:
-wrk:
 	.word	0240		/ nop is the "bootable" mark
-	mov	r3, wrk
-#if 0
-	/ attempt booting bkunix first unless RUS is on
-	tstb	*$043
-	bne	start
-	clr	r1
-	mov	$bkunix,r0
-	mov	$4,r2
-0:	mov	(r0)+,(r1)+
-	sob	r2,0b
-	jbr	go
-#endif
 start:
 	/ stop floppy motor
 	clr	*$0177130
@@ -72,10 +59,15 @@ start:
 	br	1b
 
 	/put command on stack in exec format
-
 go:
 	cmp	$1,r1
-	beq	start		/ empty string
+	bne	2f
+	clr	r1		/ empty string - boot bkunix
+	mov	$bkunix,r0
+	mov	$4,r2
+1:	mov	(r0)+,(r1)+
+	sob	r2,1b
+2:
 	mov	sp,r3
 	clrb	(r1)+
 	clrb	(r1)+
@@ -150,7 +142,7 @@ go:
 		br	1f
 	br	2b
 1:
-	mov	wrk,r3
+	mov	$02000, r3	/ use floppy i/o area at 02000
 	movb	034(r3), r0	/ boot dev num
 	jsr	pc,*$ BOTSYS
 
@@ -214,7 +206,7 @@ rblk:
 	mov	r1, r0		/ block num
 	mov	$256, r1	/ word count, >0 - read
 	mov	$buf, r2	/ read addr
-	mov	wrk, r3		/ driver data
+	mov	$02000, r3	/ use floppy i/o area at 02000
 	jsr	pc,*$diskio
 	bcc	2f
 	mov	$err, r1
@@ -246,7 +238,7 @@ rblk:
 bkunix: <\0bkunix\0>
 nm:
 	.byte	012
-	<boot:\0>
+	<boot: \0>
 err:	<err >
 	.even
 

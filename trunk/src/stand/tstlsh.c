@@ -24,21 +24,21 @@ void printlhex (val)
 	long val;
 {
 	val = lrol4 (val);
-	phexgidit ((int) val);
+	phexdigit ((int) val);
 	val = lrol4 (val);
-	phexgidit ((int) val);
+	phexdigit ((int) val);
 	val = lrol4 (val);
-	phexgidit ((int) val);
+	phexdigit ((int) val);
 	val = lrol4 (val);
-	phexgidit ((int) val);
+	phexdigit ((int) val);
 	val = lrol4 (val);
-	phexgidit ((int) val);
+	phexdigit ((int) val);
 	val = lrol4 (val);
-	phexgidit ((int) val);
+	phexdigit ((int) val);
 	val = lrol4 (val);
-	phexgidit ((int) val);
+	phexdigit ((int) val);
 	val = lrol4 (val);
-	phexgidit ((int) val);
+	phexdigit ((int) val);
 }
 
 int main ()
