@@ -38,6 +38,8 @@ void clkinit()
 	last = TIMER->curval;
 }
 
+extern int stopdelay;
+
 /* incr cannot be greater than 178 (65535*128/46875) */
 void clock(incr)
 	register unsigned incr;
@@ -54,6 +56,9 @@ void clock(incr)
 				pp->p_clktim -= incr;
 			}
 		}
+	}
+	if ((stopdelay -= incr) <= 0) {
+		fdstop();
 	}
 }
 

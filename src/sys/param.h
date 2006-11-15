@@ -6,6 +6,12 @@
 #ifndef PARAM_H
 #define PARAM_H 1
 
+/* 
+ * uncomment if compiled for a machine with an EIS emulator
+ * in the FDD controller ROM
+ */
+/*#define EIS 1*/
+
 /*
  * remove the comments to enable background process,
  * mount user file system on /usr and enable clock, respectively
