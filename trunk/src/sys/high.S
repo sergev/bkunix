@@ -38,8 +38,9 @@ init:
 	mov	$060, r0	/ console interrupt handlers
 	mov	$klin, (r0)+
 	mov	$ IM, (r0)+
-
-/	mov	$0160016, *$010 / EIS emulator
+#ifdef EIS
+	mov	$0160016, *$010 / EIS emulator
+#endif
 	mov	$0274, r0
 	mov	$klin, (r0)+
 	mov	$ IM, (r0)+

@@ -14,6 +14,9 @@ struct devtab fdtab;
 
 static char ioarea[66];
 
+int stopdelay;
+#define STOPDELAY 5
+
 void fdstart()
 {
 	register struct buf *bp;
@@ -29,7 +32,8 @@ void fdstart()
 	savbp = bp;
 	r3 = ioarea;
 	r3[034] = bp->b_dev;
-
+	stopdelay = STOPDELAY;
+	
 	do {
 		r2 = bp->b_addr;
 		asm("mov 4(r4), r1");	/* word cnt */
@@ -85,4 +89,5 @@ void fdstop()
 {
 	/* Stop floppy motor. */
 	*(int*) 0177130 = 0;
+	stopdelay = 0;
 }
