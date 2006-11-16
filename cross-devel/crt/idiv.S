@@ -10,136 +10,75 @@
  * This file is part of BKUNIX project, which is distributed
  * under the terms of the GNU General Public License (GPL).
  * See the accompanying file "COPYING" for more details.
+ *
+ * Perform a bit shift algorithm as only 16 cycles are needed:
+ *	int
+ *	idiv(lhs, rhs)
+ *	{
+ *		int		flag;
+ *		int		hi_sreg, lo_sreg;
+ * 		unsigned int	quo, cnt;
+ *
+ *		flag = 0;
+ *		if (lhs < 0) {
+ *			lhs = -lhs;
+ *			flag = !flag;
+ *		}
+ *		if (rhs < 0) {
+ *			rhs = -rhs;
+ *			flag = !flag;
+ *		}
+ *		hi_sreg = 0;
+ *		lo_sreg = lhs;
+ *		quo = 0;
+ *		for (cnt = 16; cnt; cnt--) {
+ *			quo <<= 1;
+ *			shiftl(&hi_sreg, &lo_sreg);
+ *			if (hi_sreg >= rhs) {
+ *				hi_sreg -= rhs;
+ *				quo |= 1;
+ *			}
+ *		}
+ *		return flag ? -quo : quo;
+ *	}
+ * The assembly version of the above algorithm uses r2 and r1 to implement
+ * hi_sreg, lo_sreg and quo by putting lhs into r1 and zeroing r2 thereby
+ * creating a two word register r2:r1 with hi_sreg = r2, lo_sreg = r1,
+ * and quo = r1 (using the unused bits in r1 as they become available
+ * after the shift in the loop) ...
  */
 	.globl	idiv
 idiv:
-	/ TODO
-	rts	pc
+	mov	r2,-(sp)	/ faster than csv/cret ...
+	mov	r4,-(sp)
+	tst	r1		/ r1 = lhs
+	sxt	-(sp)		/ flag = sign(lhs)
+	bpl	1f		/ if lhs < 0
+	neg	r1		/   r1 = abs(lhs)
+1:
+	tst	r0		/ r0 = rhs
+	bge	2f		/ if rhs < 0
+	neg	r0		/   rhs = -rhs
+	com	(sp)		/   flag = !flag
+2:
+	clr	r2		/ clear top of shift register
+	mov	$16,r4		/ loop 16 times
+3:
+	clc			/ shift combined shift register and quotient
+	rol	r1		/   left one place
+	rol	r2
+	cmp	r0,r2		/ How do r2:r1 (hi_sreg) and rhs compare?
+	bgt	5f		/ r2:r1 (hi_sreg) >= rhs:
+	sub	r0,r2		/   subtract rhs from r2:r1 (hi_sreg)
+	inc	r1		/   set bit in quotient
+5:
+	sob	r4,3b		/   and loop
 
-#if 0
-/ this routine performs the division function
-/   the algorithm used is taken directly
-/   from the DEC microcode flow in order
-/   to make all condition codes and results
-/   agree in all cases.
-/
-	jsr	pc,getsrc
-	mov	r5,-(sp)
-	mov	r1,r5
-/ is divisor 0?
-	tst	r2
-	bne	div5
-/ if so, quit
-	br	div12
-div5:
-/ is dividend negative?
-	tst	r0
-	bge	div16
-/ yes
-	neg	r0
-	clr	r1
-	sub	r5,r1
-	sbc	r0
-	bpl	div16
-div12:
-/ error exit
-	mov	(sp)+,r5
-	mov	$17,r2
-	jmp	setcc
-div16:
-/ first step of algorithm
-	mov	r2,r3
-	neg	r3
-	clc
-	rol	r1
-	rol	r0
-	tst	r2
-	bmi	1f
-	add	r3,r0
-	br	2f
-1:
-	add	r2,r0
-2:
-	adc	r1
-/ test for overflow condition
-	bit	$1,r1
-	beq	1f
-	tst	r0
-	jne	div12
-	clr	r5
-	tst	r2
-	bge	3f
-	inc	r5
-3:
-	bit	$10,*r4
-	beq	3f
-	inc	r5
-3:
-	ror	r5
-	jcc	div12
-1:
-/ if no overflow, interate algorithm 15 times
-	mov	$17,-(sp)
-div19:
-	clc
-	rol	r1
-	rol	r0
-	clr	r5
-	tst	r2
-	bpl	1f
-	inc	r5
-1:
-	bit	$2,r1
-	beq	1f
-	inc	r5
-1:
-	ror	r5
-	bcc	1f
-	add	r3,r0
-	br	2f
-1:
-	add	r2,r0
-2:
-	adc	r1
-	dec	(sp)
-	bne	div19
-/ branch to appropriate cleanup and condition code routines
-	cmp	r2,(sp)+
-	bgt	1f
-	bit	$1,r1
-	beq	div31
-	bne	div33
-1:
-	bit	$1,r1
-	bne	div23
-div27:
-	add	r2,r0
-div23:
-	bit	$10,*r4
-	bne	div29
-div26:
-	jmp	div42
-div31:
-	sub	r2,r0
-div33:
-	bit	$10,*r4
-	beq	div37
-	neg	r0
-	jmp	div26
-div29:
-	neg	r0
-div37:
-	mov	r1,r3
-	neg	r1
-	com	r3
-	jmi	div26
-div42:
-/ exit procedure
-	mov	(sp)+,r5
-	mov	r0,r3
+	tst	(sp)+		/ test negative flag
+	bge	6f		/ if result should be negative
+	neg	r1		/   quo = -quo
+6:
 	mov	r1,r0
-	mov	r3,r1
-	mov	$1,r3
-	mov	$-17,r2
-	jmp	strreg
-#endif
+	mov	(sp)+,r4	/ restore registers
+	mov	(sp)+,r2
+	rts	pc
