@@ -12,6 +12,10 @@ main()
 {
 	write(2, "System halted\n", 14);
 	sync();
-	asm("jbr 0100000");
+	sleep(2);
+
+	/* Store "rts pc" instruction to prevent kernel restart. */
+	*(int*) 0120000 = 0207;
+	asm("jmp 0100000");
 	return 0;
 }

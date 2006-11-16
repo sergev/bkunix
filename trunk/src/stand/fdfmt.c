@@ -113,7 +113,9 @@ int format (track)
 	}
 	putchar ('.');
 	if (read_track (track) < 0) {
-		putchar ('%');
+		printf ("<err");
+		printhex (*(unsigned char*) 052);
+		printf (">");
 		return -1;
 	}
 	for (i=0; i<256*10; ++i) {
@@ -137,11 +139,13 @@ int main ()
 again:
 	/* Stop floppy motor. */
 	*(int*) 0177130 = 0;
+
 	printf ("\nInsert another floppy and press Y when ready.\n");
 	printf ("Do you really want to format this floppy? (Y/N) ");
 	c = getchar();
+	putchar (c);
+	putchar ('\n');
 	if (c == 'n' || c == 'N') {
-		printf ("\n");
 		ioarea->fd_bretry = save_bretry;
 		return 0;
 	}
@@ -151,12 +155,13 @@ again:
 	printf ("\nFormat:");
 	errors = 0;
 	for (track = 0; track < (81*2); track++) {
-		for (retry = 0; retry < 3; retry++) {
-			if (format (track) >= 0)
+		retry = 0;
+		while (format (track) < 0) {
+			if (++retry >= 3) {
+				errors++;
 				break;
+			}
 		}
-		if (retry >= 3)
-			errors++;
 	}
 	printf (errors ? " - FAILED.\n" : " - Done.\n");
 	goto again;

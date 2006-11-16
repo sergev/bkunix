@@ -13,13 +13,6 @@
  */
 
 /*
- * All routines have both a C interface and an assembly interface.  Normally
- * the two are the same.  In the case of 'ulsh' the compiler has placed one
- * of the operands in r0 and r1 so the assembly interface differs from the
- * C interface.
- */
-
-/*
  * u_long ulsh(lhs, count)
  *	u_long	lhs;
  *	short	count;
@@ -39,19 +32,6 @@ ulsh:
 	ashc	2(sp),r0
 	rts	pc
 
-/	.globl	_ulsh
-/_ulsh:
-/	mov	2(sp),r0
-/	mov	4(sp),r1
-/	tst	6(sp)		/ positive count?
-/	bpl	1f		/ yes - br
-/	ror	r0		/ do the first shift
-/	ror	r1		/    the hard way
-/	inc	6(sp)		/ bump count towards zero
-/1:
-/	ashc	6(sp),r0	/ do the rest of the shifting
-/	rts	pc
-
 /*
  * u_long ualsh(lhs, count)
  *	u_long	*lhs;
@@ -62,8 +42,6 @@ ulsh:
  */
 	.globl	ualsh
 ualsh:
-/	.globl	_ualsh
-/_ualsh:
 	mov	r2,-(sp)	/ save a register
 	mov	4(sp),r2	/ *lhs
 	mov	(r2)+,r0

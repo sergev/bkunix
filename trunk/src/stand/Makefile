@@ -25,7 +25,8 @@ LDFLAGS		= -X
 
 SRCS		= start.S console.c
 OBJS		= start.o console.o
-PROG		= hello tstsh tstlsh tstmul fdgetrom fdinfo fdfmt
+PROG		= hello tstsh tstlsh tstmul tstdiv tstrem tstuldiv tstulrem \
+		  tstlmul fdgetrom fdinfo fdfmt
 
 CPPFLAGS	= -I. -DKERNEL
 
@@ -51,6 +52,26 @@ tstlsh:		$(OBJS) tstlsh.o
 
 tstmul:		$(OBJS) tstmul.o
 		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) tstmul.o $(LIBS)
+		pdp11-disasm -a$(HIBASE) $@ > $@.dis
+
+tstdiv:		$(OBJS) tstdiv.o
+		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) tstdiv.o $(LIBS)
+		pdp11-disasm -a$(HIBASE) $@ > $@.dis
+
+tstrem:		$(OBJS) tstrem.o
+		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) tstrem.o $(LIBS)
+		pdp11-disasm -a$(HIBASE) $@ > $@.dis
+
+tstuldiv:	$(OBJS) tstuldiv.o
+		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) tstuldiv.o $(LIBS)
+		pdp11-disasm -a$(HIBASE) $@ > $@.dis
+
+tstulrem:	$(OBJS) tstulrem.o
+		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) tstulrem.o $(LIBS)
+		pdp11-disasm -a$(HIBASE) $@ > $@.dis
+
+tstlmul:	$(OBJS) tstlmul.o
+		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) tstlmul.o $(LIBS)
 		pdp11-disasm -a$(HIBASE) $@ > $@.dis
 
 fdgetrom:	$(OBJS) fdgetrom.o
@@ -90,8 +111,10 @@ fdfmt.o: fdfmt.c
 fdgetrom.o: fdgetrom.c
 fdinfo.o: fdinfo.c
 hello.o: hello.c
+tstdiv.o: tstdiv.c
 tstlsh.o: tstlsh.c
 tstmul.o: tstmul.c
+tstrem.o: tstrem.c
 tstsh.o: tstsh.c
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
