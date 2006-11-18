@@ -22,16 +22,6 @@ struct stat st2;
 char strbuf[70];
 
 int
-getchar()
-{
-	char c;
-
-	if (read(0, &c, 1) != 1)
-		return 0;
-	return c;
-}
-
-int
 main(argc, argv)
 	int argc;
 	char **argv;

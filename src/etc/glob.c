@@ -39,7 +39,7 @@ void
 toolong()
 {
 	write(2, "Arg list too long\n", 18);
-	exit(1);
+	_exit(1);
 }
 
 char *
@@ -213,7 +213,7 @@ expand(as)
 	}
 	if (! dirf) {
 		write(2, "No directory\n", 13);
-		exit(1);
+		_exit(1);
 	}
 	oav = av;
 	while ((entry = readdir(dirf))) {

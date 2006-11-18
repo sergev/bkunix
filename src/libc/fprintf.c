@@ -10,14 +10,15 @@
 #include <stdio.h>
 
 int
-printf (fmt)
+fprintf (fdout, fmt)
+	FILE *fdout;
 	char *fmt;
 {
 	va_list	args;
 	int err;
 
 	va_start (args, fmt);
-	err = vfprintf (stdout, fmt, args);
+	err = vfprintf (fdout, fmt, args);
 	va_end (args);
 	return err;
 }

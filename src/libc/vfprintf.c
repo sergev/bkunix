@@ -13,34 +13,9 @@
  * either version 2 of the License, or (at your discretion) any later version.
  * See the accompanying file "COPYING" for more details.
  */
-/*
- * Two additional formats:
- *
- * The format %b is supported to decode error registers.
- * Its usage is:
- *
- *	printf("reg=%b\n", regval, "<base><arg>*");
- *
- * where <base> is the output base expressed as a control character, e.g.
- * \10 gives octal; \20 gives hex.  Each arg is a sequence of characters,
- * the first of which gives the bit number to be inspected (origin 1), and
- * the next characters (up to a control character, i.e. a character <= 32),
- * give the name of the register.  Thus:
- *
- *	kvprintf("reg=%b\n", 3, "\10\2BITTWO\1BITONE\n");
- *
- * would produce output:
- *
- *	reg=3<BITTWO,BITONE>
- *
- * The format %D -- Hexdump, takes a pointer. Sharp flag - use `:' as
- * a separator, instead of a space. For example:
- *
- *	("%6D", ptr)       -> XX XX XX XX XX XX
- *	("%#*D", len, ptr) -> XX:XX:XX:XX ...
- */
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 /* Max number conversion buffer length: a long in base 2, plus NUL byte. */
 #define MAXNBUF	(sizeof(long) * 8 + 1)
@@ -87,38 +62,13 @@ ksprintn (nbuf, ul, base, width, lenp)
 	return (p);
 }
 
-static void
-outchar (c)
-	char c;
-{
-	write (1, &c, 1);
-}
-
-#if 0
-static void printlong (a)
-	long a;
-{
-	long b;
-
-	if (a < 0) {
-		outchar ('-');
-		a = - a;
-	}
-	b = a / 10;
-	if (b > 0) {
-		printlong (b);
-		a -= b * 10;
-	}
-	outchar ((int) a + '0');
-}
-#endif
-
 int
-vprintf (fmt, ap)
+vfprintf (fout, fmt, ap)
+	FILE *fout;
 	char *fmt;
 	va_list ap;
 {
-#define PUTC(c) { outchar(c); ++retval; }
+#define PUTC(c) { unsigned x = c; putc(x, fout); ++retval; }
 	char nbuf [MAXNBUF], padding, *p, *q;
 	unsigned char ch, base, lflag, ladjust, sharpflag, neg, sign, dot, size;
 	unsigned char *up;
@@ -196,31 +146,6 @@ reswitch:	ch = *fmt++;
 				width = n;
 			goto reswitch;
 
-		case 'b':
-			ul = va_arg (ap, int);
-			p = va_arg (ap, char*);
-			q = ksprintn (nbuf, ul, *p++, -1, 0);
-			while (*q)
-				PUTC (*q--);
-
-			if (! ul)
-				break;
-			size = 0;
-			while (*p) {
-				n = *p++;
-				if ((char) (ul >> (n-1)) & 1) {
-					PUTC (size ? ',' : '<');
-					for (; (n = *p) > ' '; ++p)
-						PUTC (n);
-					size = 1;
-				} else
-					while (*p > ' ')
-						++p;
-			}
-			if (size)
-				PUTC ('>');
-			break;
-
 		case 'c':
 			if (! ladjust && width > 0)
 				while (width--)
@@ -231,21 +156,6 @@ reswitch:	ch = *fmt++;
 			if (ladjust && width > 0)
 				while (width--)
 					PUTC (' ');
-			break;
-
-		case 'D':
-			up = va_arg (ap, unsigned char*);
-			if (! width)
-				width = 16;
-			if (sharpflag)
-				padding = ':';
-			while (width--) {
-				ch = *up++;
-				PUTC (mkhex (ch >> 4));
-				PUTC (mkhex (ch));
-				if (width)
-					PUTC (padding);
-			}
 			break;
 
 		case 'd':
@@ -330,15 +240,9 @@ string:
 
 nosign:			sign = 0;
 number:
-/*PUTC('<');*/
-/*printlong(ul);*/
-/*PUTC('>');*/
 			if (sign && (long) ul < 0L) {
 				neg = 1;
 				ul = -(long) ul;
-/*PUTC('<');*/
-/*printlong(ul);*/
-/*PUTC('>');*/
 			}
 			if (dwidth > 0 && dwidth >= sizeof(nbuf)) {
 				extrazeros = dwidth - sizeof(nbuf) + 1;

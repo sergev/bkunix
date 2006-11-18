@@ -13,7 +13,7 @@
 /*
  * Terminate the calling process.
  */
-void exit PARAMS((int));
+void _exit PARAMS((int));
 
 /*
  * Create a new process.

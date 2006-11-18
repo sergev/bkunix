@@ -327,7 +327,7 @@ readc()
 
 	if (arginp) {
 		if (arginp == &error)
-			exit(1);
+			_exit(1);
 		if ((c = *arginp++) == 0) {
 			arginp = &error;
 			c = '\n';
@@ -335,10 +335,12 @@ readc()
 		return c;
 	}
 	if (onelflg==1)
-		exit(1);
+		_exit(1);
 	if (read(0, &cc, 1) != 1) {
-		if (!promp) exit(1);
-		else error++;
+		if (! promp)
+			_exit(1);
+		else
+			error++;
 		return 0;
 	}
 	if (cc=='\n' && onelflg)
@@ -648,7 +650,7 @@ execute(t, pf1, pf2)
 			if (i < 0) {
 				prs((char*) t[DLEF]);
 				err(": cannot open");
-				exit(1);
+				_exit(1);
 			}
 		}
 		if (t[DRIT] != 0) {
@@ -663,7 +665,7 @@ execute(t, pf1, pf2)
 			if (i < 0) {
 				prs((char*) t[DRIT]);
 				err(": cannot create");
-				exit(1);
+				_exit(1);
 			}
 		f1:
 			close(1);
@@ -695,7 +697,7 @@ execute(t, pf1, pf2)
 			if (t1)
 				t1[DFLG] |= f&FINT;
 			execute(t1, 0, 0);
-			exit(1);
+			_exit(1);
 		}
 		gflg = 0;
 		scan(t, tglob);
@@ -703,7 +705,7 @@ execute(t, pf1, pf2)
 			t[DSPR] = (int) "/etc/glob";
 			execv((char*) t[DSPR], (char**) (t+DSPR));
 			prs("glob: cannot execute\n");
-			exit(1);
+			_exit(1);
 		}
 		scan(t, trim);
 		*linep = 0;
@@ -721,7 +723,7 @@ execute(t, pf1, pf2)
 */
 		prs((char*) t[DCOM]);
 		err(": not found");
-		exit(1);
+		_exit(1);
 
 	case TFIL:
 		f = t[DFLG];
@@ -773,12 +775,12 @@ texec(f, at)
 		t[DSPR] = (int) "/bin/sh";
 		execv((char*) t[DSPR], (char**) (t+DSPR));
 		prs("No shell!\n");
-		exit(1);
+		_exit(1);
 	}
 	if (errno==ENOMEM) {
 		prs((char*) t[DCOM]);
 		err(": too large");
-		exit(1);
+		_exit(1);
 	}
 }
 
@@ -790,7 +792,7 @@ err(s)
 	prs("\n");
 	if (promp == 0) {
 		lseek(0, 0L, 2);
-		exit(1);
+		_exit(1);
 	}
 }
 
