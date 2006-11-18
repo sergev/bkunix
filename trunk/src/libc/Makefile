@@ -17,7 +17,7 @@ SRCS		= crt0.S nullsys.S nosys.S \
 		  cerror.S exit.S fork.S read.S write.S \
 		  open.S creat.S close.S wait.S link.S unlink.S \
 		  execv.S execl.S chdir.S time.S mknod.S chmod.S sbrk.S \
-		  stat.S seek.S getpid.S getuid.S stime.S fstat.S \
+		  stat.S lseek.S getpid.S getuid.S stime.S fstat.S \
 		  stty.S gtty.S sync.S dup.S signal.S setjmp.S \
 		  vprintf.c printf.c atoi.c ctime.c malloc.c calloc.c \
 		  strcat.c strchr.c strcmp.c strcpy.c strlen.c \
@@ -29,7 +29,7 @@ SRCS		= crt0.S nullsys.S nosys.S \
 OBJS		= nullsys.o nosys.o cerror.o exit.o fork.o read.o write.o \
 		  open.o creat.o close.o wait.o link.o unlink.o \
 		  execv.o execl.o chdir.o time.o mknod.o chmod.o sbrk.o \
-		  stat.o seek.o getpid.o getuid.o stime.o fstat.o \
+		  stat.o lseek.o getpid.o getuid.o stime.o fstat.o \
 		  stty.o gtty.o sync.o dup.o signal.o setjmp.o \
 		  vprintf.o printf.o atoi.o ctime.o malloc.o calloc.o \
 		  strcat.o strchr.o strcmp.o strcpy.o strlen.o \
@@ -95,7 +95,7 @@ nullsys.o: nullsys.S
 open.o: open.S syscall.h
 read.o: read.S syscall.h
 sbrk.o: sbrk.S syscall.h
-seek.o: seek.S syscall.h
+lseek.o: lseek.S syscall.h
 setjmp.o: setjmp.S
 signal.o: signal.S syscall.h
 sleep.o: sleep.S syscall.h

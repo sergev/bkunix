@@ -100,7 +100,7 @@ void mknod();
 void chmod();
 void sbreak();
 void stat();
-void seek();
+void lseek();
 void getpid();
 void getuid();
 void stime();

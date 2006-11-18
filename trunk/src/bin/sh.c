@@ -655,7 +655,7 @@ execute(t, pf1, pf2)
 			if ((f&FCAT) != 0) {
 				i = open((char*) t[DRIT], 1);
 				if (i >= 0) {
-					seek(i, 0, 2);
+					lseek(i, 0L, 2);
 					goto f1;
 				}
 			}
@@ -789,7 +789,7 @@ err(s)
 	prs(s);
 	prs("\n");
 	if (promp == 0) {
-		seek(0, 0, 2);
+		lseek(0, 0L, 2);
 		exit(1);
 	}
 }

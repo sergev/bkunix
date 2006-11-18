@@ -25,7 +25,7 @@ bread(fd, bno, data)
 {
 	int n;
 
-	seek(fd, bno, 3);
+	lseek(fd, (unsigned long) bno << 9, 0);
 	n = read(fd, data, 512);
 	if (n != 512) {
 		printf("df: block %d: read error\n", bno);

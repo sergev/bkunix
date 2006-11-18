@@ -343,8 +343,7 @@ gstat(file, argfl)
 		if (Iflg) {
 			register int ino;
 			ino = atoi(file);
-			seek(filsys, (ino+31)/16, 3);
-			seek(filsys, 32*((ino+31)%16), 1);
+			lseek(filsys, (long) (ino+31) << 5, 0);
 			read(filsys, (char*) &statb.st_mode, sizeof(statb)-2*sizeof(0));
 		} else
 #endif
