@@ -57,22 +57,22 @@ static void putbuf(c)
 register int c;
 {
 	register int sps;
+
 	sps = spl7();
-	if (c)
-		outbuf[nch++] = c;
-	else if (nch)
+	if (! c) {
+		if (! nch)
+			return;
 		goto doit;
-	else
-		return;
+	}
+	outbuf[nch++] = c;
 	if (nch == 64)
 		goto many;
+
 	if (c == '\n') {
-	doit:
-		if (nch == 1)
+doit:		if (nch == 1)
 			ttputc(outbuf[0]);
 		else {
-		many:
-			bksend();
+many:			bksend();
 		}
 		nch = 0;
 	}

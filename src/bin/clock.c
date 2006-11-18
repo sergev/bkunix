@@ -3,7 +3,8 @@
 
 int go = 1;
 
-void intr() {
+void intr()
+{
 	go = 0;
 }
 
