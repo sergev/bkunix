@@ -6,11 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char _sibuf[BUFSIZ];
-char _sobuf[BUFSIZ];
-
 FILE _iob[_NFILE] = {
-	{ _sibuf,	0,	_sibuf,	_IOREAD,	0},
+	{ NULL,		0,	NULL,	_IOREAD,	0},
 	{ NULL,		0,	NULL,	_IOWRT,		1},
 	{ NULL,		0,	NULL,	_IOWRT+_IONBF,	2},
 };
@@ -43,13 +40,8 @@ tryagain:
 	} else {
 		base = iop->_base;
 		if (base == NULL) {
-			if (iop == stdout) {
-				if (isatty(fileno(stdout))) {
-					iop->_flag |= _IONBF;
-					goto tryagain;
-				}
-				iop->_base = _sobuf;
-				iop->_ptr = _sobuf;
+			if (iop == stdout && isatty(fileno(stdout))) {
+				iop->_flag |= _IONBF;
 				goto tryagain;
 			}
 			base = iop->_base = malloc(BUFSIZ);
