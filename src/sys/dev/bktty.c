@@ -178,7 +178,7 @@ ttyinput()
 	register int flags;
 	static int last;
 	c = KLADDR->klrbuf;
-	if (c != last) { 
+	if (c != last) {
 		keypress = 0;
 		last = c;
 	}
@@ -352,16 +352,17 @@ ttwrite()
 {
 	register unsigned char *base;
 	register int n;
-	if (!cursoff) {
+
+	if (! cursoff) {
 		putbuf(0232);
 		cursoff++;
 	}
-	base = u.u_base;
+	base = (unsigned char*) u.u_base;
 	n = u.u_count;
 	u.u_offset += n;
 	while (n--) {
 		ttyoutput(*base++);
 	}
 	u.u_count = 0;
-	u.u_base = base;
+	u.u_base = (char*) base;
 }

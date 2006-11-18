@@ -26,7 +26,7 @@ LDFLAGS		= -X
 SRCS		= start.S console.c
 OBJS		= start.o console.o
 PROG		= hello tstsh tstlsh tstmul tstdiv tstrem tstuldiv tstulrem \
-		  tstlmul tstldiv fdgetrom fdinfo fdfmt
+		  tstlmul tstldiv tstlrem fdgetrom fdinfo fdfmt
 
 CPPFLAGS	= -I. -DKERNEL
 
@@ -76,6 +76,10 @@ tstlmul:	$(OBJS) tstlmul.o
 
 tstldiv:	$(OBJS) tstldiv.o
 		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) tstldiv.o $(LIBS)
+		pdp11-disasm -a$(HIBASE) $@ > $@.dis
+
+tstlrem:	$(OBJS) tstlrem.o
+		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) tstlrem.o $(LIBS)
 		pdp11-disasm -a$(HIBASE) $@ > $@.dis
 
 fdgetrom:	$(OBJS) fdgetrom.o
