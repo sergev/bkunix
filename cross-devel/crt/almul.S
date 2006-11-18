@@ -8,31 +8,22 @@
  * almul(lhs, rhs)
  *	long	*lhs, rhs;
  *
- * 32-bit "*=" routine for fixed point hardware.  Also recommended for floating
- * hardware, for compatility & speed.  Credit to an unknown author who slipped
- * it under the door.  Calls to aldiv are generated automatically by the C
- * compiler.
+ * 32-bit "*=" routine.  See lmul for more detailed comments.
+ * Calls to aldiv are generated automatically by the C compiler.
  */
+	.globl	lmul		/ 32-bit "*" routine
+
 	.globl	almul
 almul:
-	mov	r2,-(sp)	/ save r2-4
-	mov	r3,-(sp)
-	mov	r4,-(sp)
-	mov	8(sp),r4	/ r4 = lhs
-	mov	2(r4),r2	/ r2 = loint(*lhs)
-	sxt	r1		/ r1 = sxt(loint(*lhs)) - hiint(*lhs)
-	sub	(r4),r1
-	mov	12(sp),r0	/ r0 = loint(rhs)
-	sxt	r3		/ r3 = sxt(loint(rhs)) - hiint(rhs)
-	sub	10(sp),r3
-	mul	r0,r1		/ MAGIC = loint(rhs) * hiint(*lhs)'
-	mul	r2,r3		/       + loint(*lhs) * hiint(rhs)'
-	add	r1,r3
-	mul	r2,r0		/ prod (r0:r1) = loint(lhs)*loint(rhs)
-	sub	r3,r0		/ hiint(prod) -= MAGIC
-	mov	r0,(r4)+	/ *lhs = prod
-	mov	r1,(r4)
-	mov	(sp)+,r4	/ restore regsisters
-	mov	(sp)+,r3	/   and return
-	mov	(sp)+,r2
-	rts	pc
+	mov	r2,-(sp)	/ need a register to point at the lhs
+	mov	8(sp),-(sp)	/ The fixed point multiply algorithm is long
+	mov	8(sp),-(sp)	/   enough that it just doesn't make sense
+	mov	8(sp),r0	/   to bother repeating it.  We just translate
+	mov	2(r0),-(sp)	/   the call for lmul and let it do the work
+	mov	(r0),-(sp)	/   and return its results (also stuffing it
+	jsr	pc,lmul		/   into *lhs)
+	add	$8,sp		/ clean up stack
+	mov	r0,(r2)+	/ store high word,
+	mov	r1,(r2)		/   and low
+	mov	(sp)+,r2	/ restore r2
+	rts	pc		/   and return

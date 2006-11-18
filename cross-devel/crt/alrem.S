@@ -11,7 +11,7 @@
  * 32-bit "/=" routine.  Calls to aldiv are generated automatically by the C
  * compiler.  See lrem for more detailed comments.
  */
-	.globl	lrem			/ 32-bit "%" routine
+	.globl	lrem		/ 32-bit "%" routine
 
 	.globl	alrem
 alrem:
