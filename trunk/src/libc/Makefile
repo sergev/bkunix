@@ -14,7 +14,7 @@ CPPFLAGS	+= -DLOWSTACK=1
 endif
 
 SRCS		= crt0.S nullsys.S nosys.S \
-		  cerror.S exit.S fork.S read.S write.S \
+		  cerror.S _exit.S fork.S read.S write.S \
 		  open.S creat.S close.S wait.S link.S unlink.S \
 		  execv.S execl.S chdir.S time.S mknod.S chmod.S sbrk.S \
 		  stat.S lseek.S getpid.S getuid.S stime.S fstat.S \
@@ -26,7 +26,7 @@ SRCS		= crt0.S nullsys.S nosys.S \
 		  opendir.c closedir.c readdir.c isatty.c mkstemp.c \
 		  readmtab.c mount.S umount.S sleep.S alarm.S pipe.c #execvp.c
 
-OBJS		= nullsys.o nosys.o cerror.o exit.o fork.o read.o write.o \
+OBJS		= nullsys.o nosys.o cerror.o _exit.o fork.o read.o write.o \
 		  open.o creat.o close.o wait.o link.o unlink.o \
 		  execv.o execl.o chdir.o time.o mknod.o chmod.o sbrk.o \
 		  stat.o lseek.o getpid.o getuid.o stime.o fstat.o \
@@ -37,6 +37,17 @@ OBJS		= nullsys.o nosys.o cerror.o exit.o fork.o read.o write.o \
 		  memccpy.o memchr.o memcmp.o memcpy.o memset.o qsort.o \
 		  opendir.o closedir.o readdir.o isatty.o mkstemp.o \
 		  readmtab.o mount.o umount.o sleep.o alarm.o pipe.o #execvp.o
+
+# stdio
+SRCS		+= exit.c fprintf.c sprintf.c vfprintf.c flsbuf.c filbuf.c \
+		   fopen.c fdopen.c freopen.c rdwr.c clrerr.c fgetc.c fgets.c \
+	           fputc.c fputs.c fseek.c ftell.c getchar.c gets.c putchar.c \
+                   puts.c rew.c setbuf.c ungetc.c
+
+OBJS		+= exit.o fprintf.o sprintf.o vfprintf.o flsbuf.o filbuf.o \
+		   fopen.o fdopen.o freopen.o rdwr.o clrerr.o fgetc.o fgets.o \
+	           fputc.o fputs.o fseek.o ftell.o getchar.o gets.o putchar.o \
+                   puts.o rew.o setbuf.o ungetc.o
 
 all:		crt0.o libc.a
 
@@ -81,7 +92,7 @@ crt0.o: crt0.S syscall.h
 dup.o: dup.S syscall.h
 execl.o: execl.S syscall.h
 execv.o: execv.S syscall.h
-exit.o: exit.S syscall.h
+_exit.o: _exit.S syscall.h
 fork.o: fork.S syscall.h
 fstat.o: fstat.S syscall.h
 getpid.o: getpid.S syscall.h

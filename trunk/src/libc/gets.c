@@ -1,23 +1,22 @@
 /*
- * Formatted output.
- *
  * This file is part of BKUNIX project, which is distributed
  * under the terms of the GNU General Public License (GPL).
  * See the accompanying file "COPYING" for more details.
  */
-#include <stdlib.h>
-#include <stdarg.h>
 #include <stdio.h>
 
-int
-printf (fmt)
-	char *fmt;
+char *
+gets(s)
+	char *s;
 {
-	va_list	args;
-	int err;
+	register c;
+	register char *cs;
 
-	va_start (args, fmt);
-	err = vfprintf (stdout, fmt, args);
-	va_end (args);
-	return err;
+	cs = s;
+	while ((c = getchar()) != '\n' && c >= 0)
+		*cs++ = c;
+	if (c<0 && cs==s)
+		return NULL;
+	*cs++ = '\0';
+	return s;
 }

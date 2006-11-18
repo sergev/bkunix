@@ -1,23 +1,17 @@
 /*
- * Formatted output.
+ * A subroutine version of the macro putchar
  *
  * This file is part of BKUNIX project, which is distributed
  * under the terms of the GNU General Public License (GPL).
  * See the accompanying file "COPYING" for more details.
  */
-#include <stdlib.h>
-#include <stdarg.h>
 #include <stdio.h>
 
-int
-printf (fmt)
-	char *fmt;
-{
-	va_list	args;
-	int err;
+#undef putchar
 
-	va_start (args, fmt);
-	err = vfprintf (stdout, fmt, args);
-	va_end (args);
-	return err;
+int
+putchar(c)
+	register c;
+{
+	return putc(c, stdout);
 }

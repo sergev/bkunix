@@ -19,6 +19,7 @@ char	*smon[] = {
 };
 
 char	string[432];
+char	buf[512];
 
 int
 number(str)
@@ -162,6 +163,7 @@ main(argc, argv)
 	register int y, i, j;
 	int m;
 
+	setbuf(stdout, buf);
 	if (argc < 2) {
 		printf("usage: cal [month] year\n");
 		exit(0);
@@ -193,20 +195,21 @@ xlong:
 	if (y<1 || y>9999)
 		goto badarg;
 	printf("\n");
-	printf("			       %d\n", y);
+	printf("			      %d\n", y);
 	printf("\n");
 	for (i=0; i<12; i+=3) {
 		for (j=0; j<6*72; j++)
 			string[j] = '\0';
 		printf("	 %s", smon[i]);
-		printf("		       %s", smon[i+1]);
-		printf("		     %s\n", smon[i+2]);
-		printf("%s  %s  %s\n", dayw, dayw, dayw);
+		printf("		      %s", smon[i+1]);
+		printf("		   %s\n", smon[i+2]);
+		printf("%s %s %s\n", dayw, dayw, dayw);
 		cal(i+1, y, string, 72);
-		cal(i+2, y, string+22, 72);
-		cal(i+3, y, string+44, 72);
+		cal(i+2, y, string+21, 72);
+		cal(i+3, y, string+42, 72);
 		for(j=0; j<6*72; j+=72)
 			pstr(string+j, 72);
+		fflush(stdout);
 	}
 	printf("\n");
 	exit(0);

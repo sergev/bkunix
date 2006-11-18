@@ -43,6 +43,7 @@ struct	lbuf	*lastp;
 struct	lbuf	*rlastp;
 struct	lbuf	*firstp;
 char	*dotp = ".";
+char	buf [512];
 
 struct lbuf *gstat PARAMS((char*, int));
 void pentry PARAMS((struct lbuf*));
@@ -73,6 +74,7 @@ main(argc, argv)
 	firstp = lastp = rlastp = (struct lbuf*) malloc(1);
 	fout = dup(1);
 	time(&lb.lmtime);
+	setbuf (stdout, buf);
 	year = lb.lmtime - 245L*65536; /* 6 months ago */
 	if (--argc > 0 && *argv[1] == '-') {
 		argv++;
@@ -213,6 +215,7 @@ pentry(ap)
 		printf("%s\n", p->ln.namep);
 	else
 		printf("%.14s\n", p->ln.lname);
+	fflush(stdout);
 }
 
 int
@@ -254,14 +257,14 @@ pmode(flags)
 	case S_IFCHR: c = 'c'; break;
 	case S_IFBLK: c = 'b'; break;
 	}
-	write (1, &c, 1);
+	putchar (c);
 	for (mp = &m[0]; *mp; mp++) {
 		ap = *mp;
 		n = *ap++;
 		while (--n >= 0 && (flags & *ap++) == 0)
 			ap++;
 		c = *ap;
-		write (1, &c, 1);
+		putchar (c);
 	}
 }
 

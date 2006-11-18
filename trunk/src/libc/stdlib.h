@@ -8,6 +8,7 @@
 
 #include <ansidecl.h>
 
+void exit PARAMS((int));
 void qsort PARAMS((char*, int, int, int (*)()));
 int atoi PARAMS((char*));
 
