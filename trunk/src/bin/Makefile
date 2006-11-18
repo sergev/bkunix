@@ -1,11 +1,8 @@
-# Base address of user programs.
-BOTUSR		= 02000
-
 AS		= pdp11-as
 LD		= pdp11-ld
 SIZE		= pdp11-size
 CFLAGS		= -O -I../libc
-LDFLAGS		= -a$(BOTUSR)
+LDFLAGS		=
 ifdef LOWSTACK
 LDFLAGS		+= -t1024
 endif
@@ -31,7 +28,7 @@ clean:
 
 %: %.o
 		$(CC) $(LDFLAGS) -o $@ $^
-		pdp11-disasm -a$(BOTUSR) $@ > $@.dis
+		pdp11-disasm $@ > $@.dis
 
 .c.s:
 		$(CC) $(CFLAGS) -S $<

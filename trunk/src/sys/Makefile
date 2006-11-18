@@ -34,7 +34,6 @@ COBJS		= alloc.o bio.o \
 OBJS		= $(ASOBJS) $(COBJS)
 
 vpath %.c . dev
-vpath %.S . boot
 
 CPPFLAGS	= -I. -DKERNEL
 
@@ -42,12 +41,12 @@ CSRCS		+= dev/bktty.c dev/bkfd.c
 OBJS		+= bktty.o bkfd.o
 HIBASE		= 0120000
 
-all:		bkunix bkboot
+all:		bkunix boot
 		@echo "Warning: For BK-0011, size must be less than 040000"
-		$(SIZE) bkunix bkboot
+		$(SIZE) bkunix boot
 
 clean:
-		rm -f *~ dev/*~ boot/*~ *.o *.s a.out bkunix bkboot bkunix.dis bkunix.map
+		rm -f *~ dev/*~ *.o *.s a.out bkunix boot bkunix.dis bkunix.map
 
 bkunix:		$(OBJS)
 		$(LD) $(LDFLAGS) -a$(HIBASE) -o $@ $(OBJS) $(LIBS)
@@ -55,12 +54,12 @@ bkunix:		$(OBJS)
 		pdp11-nm $@ > $@.map
 		pdp11-disasm -a$(HIBASE) $@ > $@.dis
 
-bkboot:		bkboot.o
+boot:		boot.o
 		mv $< $@
 		pdp11-strip $@
 
-install:	bkunix bkboot
-		$(FSUTIL) -b bkboot -a root.bkd bkunix
+install:	bkunix boot
+		$(FSUTIL) -b boot -a root.bkd bkunix
 
 count:		$(ASRCS) $(CSRCS)
 		wc $(ASRCS) $(CSRCS)

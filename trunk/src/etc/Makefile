@@ -1,6 +1,3 @@
-# Base address of user programs.
-BOTUSR		= 02000
-
 # GNU compiler.
 #CC		= pdp11-gcc -Wall
 #CFLAGS		= -Os -fomit-frame-pointer -fno-builtin -I../libc
@@ -16,7 +13,7 @@ AS		= pdp11-as
 LD		= pdp11-ld
 SIZE		= pdp11-size -o
 CFLAGS		= -O -I../libc
-LDFLAGS		= -a$(BOTUSR)
+LDFLAGS		=
 ifdef LOWSTACK
 LDFLAGS		+= -t1024
 endif
@@ -30,15 +27,15 @@ clean:
 
 %: %.o
 		$(CC) $(LDFLAGS) -o $@ $^
-		pdp11-disasm -a$(BOTUSR) $@ > $@.dis
+		pdp11-disasm $@ > $@.dis
 
 mkfs:		mkfs.o ../libfs/libfs.a
 		$(CC) $(LDFLAGS) -v -o $@ $^ ../libfs/libfs.a
-		pdp11-disasm -a$(BOTUSR) $@ > $@.dis
+		pdp11-disasm $@ > $@.dis
 
 fsck:		fsck.o ../libfs/libfs.a
 		$(CC) $(LDFLAGS) -v -o $@ $^ ../libfs/libfs.a
-		pdp11-disasm -a$(BOTUSR) $@ > $@.dis
+		pdp11-disasm $@ > $@.dis
 
 ../libfs/libfs.a:
 		$(MAKE) -C ../libfs
