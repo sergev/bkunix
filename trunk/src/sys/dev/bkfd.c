@@ -43,43 +43,40 @@ int stopdelay;
 void fdstart()
 {
 	register struct buf *bp;
-	register char *r3, *r2;
-	static struct buf * savbp;
+	register struct fdio *r3;
+	register char *r2;
+	struct buf *savbp;
 
-	if( (bp = fdtab.d_actf) == 0)
+	if ((bp = fdtab.d_actf) == 0)
 		return;
 
 	/* fdtab.d_active++ ; */
 	fdtab.d_actf = (struct buf *) bp->b_link; /* unlink immediately */
 	bp->b_flags |= B_DONE;
 	savbp = bp;
-	ioarea.fd_unit = bp->b_dev;
-	r3 = &ioarea;
 	stopdelay = STOPDELAY;
 
-	do {
-		r2 = bp->b_addr;
-		asm("mov 4(r4), r1");	/* word cnt */
-		if (bp->b_flags & B_READ)
-			asm("neg r1");;	/* negative cnt == write */
-		asm("mov 010(r4), r0"); /* blk num */
-		asm("mov r5,-(sp)");	/* r5 will be corrupted */
-		asm("jsr pc, *$0160004");
-		asm("bcs 1f");
-		asm("mov (sp)+,r5");
-		asm("jmp cret");
-		asm("1: mov (sp)+,r5");
-		bp = savbp;
-	} while (++fdtab.d_errcnt <= 10);
+	ioarea.fd_unit = bp->b_dev;
+	r3 = &ioarea;
+	r2 = bp->b_addr;
+	asm("mov 4(r4), r1");	/* word cnt */
+	if (bp->b_flags & B_READ)
+		asm("neg r1");;	/* negative cnt == write */
+	asm("mov 010(r4), r0"); /* blk num */
+	asm("mov r5,-(sp)");	/* r5 will be corrupted */
+	asm("jsr pc, *$0160004");
+	asm("bcs 1f");
+	asm("mov (sp)+,r5");
+	asm("jmp cret");
 
-	fdtab.d_errcnt = 0;
+	asm("1: mov (sp)+,r5");
+	bp = savbp;
 	bp->b_flags |= B_ERROR;
 }
 
 void fdstrategy( abp )
 	struct buf *abp;
 {
-
 	register struct buf *bp;
 
 	bp = abp;

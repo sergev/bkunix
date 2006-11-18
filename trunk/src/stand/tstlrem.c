@@ -8,9 +8,9 @@ void test (a, b, msg)
 {
 	long c;
 
-	c = a / b;
+	c = a % b;
 	printhex ((int) (a >> 16)); printhex ((int) a);
-	printf (" / ");
+	printf (" % ");
 	printhex ((int) (b >> 16)); printhex ((int) b);
 	printf (" = ");
 	printhex ((int) (c >> 16)); printhex ((int) c);
@@ -23,13 +23,13 @@ int main ()
 {
 	int a, b, c;
 
-	printf ("Testing signed long division.\n");
-	test (1234567L, 56789L, "00000015");
-	test (-1234567L, 56789L, "ffffffeb");
-	test (1234567L, -56789L, "ffffffeb");
-	test (-1234567L, -56789L, "00000015");
-	test (1234567L, 56L, "0000561d");
-	test (1234L, 56L, "00000016");
+	printf ("Testing signed long remainder.\n");
+	test (1234567L, 456789L, "0004e5dd");
+	test (-1234567L, 456789L, "fffb1a23");
+	test (1234567L, -456789L, "0004e5dd");
+	test (-1234567L, -456789L, "fffb1a23");
+	test (1234567L, 56L, "0000002f");
+	test (1234L, 56L, "00000002");
 	printf ("Done.\n");
 	return 0;
 }
