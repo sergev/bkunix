@@ -45,7 +45,7 @@ struct nlocal {
 
 struct	nlocal	local[NSYM/2];
 
-unsigned aflag;		/* address to relocate, default absolute 0 */
+unsigned aflag = 02000;	/* address to relocate */
 unsigned tflag;		/* stack size to add to .bss, default 0 */
 int	xflag;		/* discard local symbols */
 int	Xflag;		/* discard locals starting with 'L' */

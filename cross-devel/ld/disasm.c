@@ -284,7 +284,7 @@ struct exec hdr;
 FILE *textfd, *relfd;
 int rflag, bflag;
 unsigned int relcode, srccode, dstcode, srcrel, dstrel;
-unsigned int baseaddr;
+unsigned int baseaddr = 02000;
 
 /* Symbol table, dynamically allocated. */
 struct nlist *stab;
