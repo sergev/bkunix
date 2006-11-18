@@ -96,7 +96,7 @@ int stat PARAMS((char*, struct stat*));
 /*
  * Reposition read/write file offset.
  */
-int seek PARAMS((int, unsigned int, int));
+int lseek PARAMS((int, long, int));
 
 /*
  * Get calling process identification.

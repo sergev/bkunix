@@ -186,11 +186,7 @@ error(s)
 	putchr('?');
 	putstr(s);
 	count = 0;
-#ifdef __pdp11__
-	seek(0, 0, 2);
-#else
 	lseek(0, 0L, 2);
-#endif
 	pflag = 0;
 	if (globp)
 		lastc = '\n';
@@ -237,11 +233,7 @@ blkio(b, buf, iofcn)
 	char *buf;
 	int (*iofcn)();
 {
-#ifdef __pdp11__
-	seek(tfile, b, 3);
-#else
-	lseek(tfile, b * 512L, 0);
-#endif
+	lseek(tfile, b << 9, 0);
 	if ((*iofcn)(tfile, buf, 512) != 512) {
 		error(T);
 	}
@@ -1528,11 +1520,7 @@ commands()
 			if ((io = creat(file, 0666)) < 0)
 				error(file);
 		} else {
-#ifdef __pdp11__
-			seek(io, 0, 2);
-#else
 			lseek(io, 0L, 2);
-#endif
 		}
 		wrapp = 0;
 		putfile();

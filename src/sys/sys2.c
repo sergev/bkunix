@@ -172,40 +172,33 @@ close()
 }
 
 /*
- * seek system call
+ * lseek system call
  */
 void
-seek()
+lseek()
 {
 	long n;
 	register struct file *fp;
 	register int t;
 
 	fp = getf(u.u_ar0[R0]);
-	if(fp == NULL)
+	if (fp == NULL)
 		return;
-	t = u.u_arg[1];
-	n = u.u_arg[0];
-	if (t > 2)
-		n <<= 9;
-	if (t == 0 || t == 3)
-		n &= 0x1ffffff;
+	t = u.u_arg[2];
+	n = *(long*) &u.u_arg[0];
 
-	switch(t) {
-
-	case 1:
-	case 4:
-		n += fp->f_offset;
-		break;
-
+	switch (t) {
 	default:
-		n += fp->f_inode->i_size;
-
 	case 0:
-	case 3:
-		;
+		fp->f_offset = n;
+		break;
+	case 1:
+		fp->f_offset += n;
+		break;
+	case 2:
+		fp->f_offset = n + fp->f_inode->i_size;
+		break;
 	}
-	fp->f_offset = n;
 }
 
 /*

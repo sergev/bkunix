@@ -48,8 +48,8 @@ openmtab()
 		outerr("no name list\n");
 		goto error;
 	}
-	if (seek(fd, N_RELOFF(hdr), 0) < 0) {
-		outerr("seek error\n", kernel);
+	if (lseek(fd, (long) N_RELOFF(hdr), 0) < 0) {
+		outerr("lseek error\n", kernel);
 		goto error;
 	}
 	for (i=0; i<hdr.a_syms; i+=sizeof(sym)) {

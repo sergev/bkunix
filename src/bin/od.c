@@ -179,11 +179,7 @@ offset(s)
 		}
 		i++;
 	}
-#ifdef __pdp11__
-	seek(fi, i, 3);
-#else
-	lseek(fi, i * 512L, 0);
-#endif
+	lseek(fi, (long) i << 9, 0);
 	while (a[0]!=addr[0] || a[1]!=addr[1])
 		if (getch() == -1)
 			break;
