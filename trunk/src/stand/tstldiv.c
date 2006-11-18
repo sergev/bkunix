@@ -8,7 +8,7 @@ void test (a, b, msg)
 {
 	long c;
 
-	c = a * b;
+	c = a / b;
 	printhex ((int) (a >> 16)); printhex ((int) a);
 	printf (" * ");
 	printhex ((int) (b >> 16)); printhex ((int) b);
@@ -23,13 +23,13 @@ int main ()
 {
 	int a, b, c;
 
-	printf ("Testing signed long multiplication.\n");
-	test (12345L, 6789L, "04fed79d");
-	test (-12345L, 6789L, "fb012863");
-	test (12345L, -6789L, "fb012863");
-	test (-12345L, -6789L, "04fed79d");
-	test (123L, 456789L, "035950d7");
-	test (456789L, 123L, "035950d7");
+	printf ("Testing signed long division.\n");
+	test (1234567L, 56789L, "00000015");
+	test (-1234567L, 56789L, "ffffffeb");
+	test (1234567L, -56789L, "ffffffeb");
+	test (-1234567L, -56789L, "00000015");
+	test (1234567L, 56L, "0000561d");
+	test (1234L, 56L, "00000016");
 	printf ("Done.\n");
 	return 0;
 }
