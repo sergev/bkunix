@@ -41,7 +41,9 @@ struct klregs {
 static char outbuf[64];
 static char nch;
 
-static void bksend() {
+static void
+bksend()
+{
 	asm("mov $_outbuf, r1");
 	asm("movb _nch, r2");
 	asm("mov r5, -(sp)");
@@ -53,8 +55,9 @@ static void bksend() {
  * When called with c == 0, performs a flush,
  * also flushes an \n.
  */
-static void putbuf(c)
-register int c;
+static void
+putbuf(c)
+	register int c;
 {
 	register int sps;
 
@@ -237,7 +240,9 @@ klclose()
 	wflushtty();
 }
 
-void fullscr() {
+void
+fullscr()
+{
 	LIMIT = 03000;
 	BASE = 040000;
 	VSIZE = 040000;

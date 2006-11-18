@@ -28,7 +28,7 @@ clean:
 
 %: %.o
 		$(CC) $(LDFLAGS) -o $@ $^
-		pdp11-disasm $@ > $@.dis
+#		pdp11-disasm $@ > $@.dis
 
 .c.s:
 		$(CC) $(CFLAGS) -S $<
