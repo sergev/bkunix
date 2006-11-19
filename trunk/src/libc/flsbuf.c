@@ -17,6 +17,20 @@ FILE _iob[_NFILE] = {
  */
 FILE *_lastbuf = &_iob[_NFILE];
 
+extern void (*_exitfunc)();
+
+/*
+ * Flush buffers on exit
+ */
+void
+_cleanup()
+{
+	register FILE *iop;
+
+	for (iop = _iob; iop < _lastbuf; iop++)
+		fclose(iop);
+}
+
 int
 _flsbuf(c, iop)
 	int c;
@@ -49,6 +63,7 @@ tryagain:
 				iop->_flag |= _IONBF;
 				goto tryagain;
 			}
+			_exitfunc = _cleanup;
 			iop->_flag |= _IOMYBUF;
 			rn = n = 0;
 		} else if((rn = n = iop->_ptr - base) > 0) {
@@ -83,17 +98,6 @@ fflush(iop)
 		}
 	}
 	return(0);
-}
-
-/*
- * Flush buffers on exit
- */
-_cleanup()
-{
-	register FILE *iop;
-
-	for (iop = _iob; iop < _lastbuf; iop++)
-		fclose(iop);
 }
 
 int

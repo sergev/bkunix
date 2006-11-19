@@ -7,10 +7,13 @@
  */
 #include <stdlib.h>
 
+void (*_exitfunc)();
+
 void
 exit(code)
 	int code;
 {
-	_cleanup();
+	if (_exitfunc)
+		(*_exitfunc)();
 	_exit(code);
 }

@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+extern void (*_exitfunc)();
+extern void _cleanup();
+
 int
 _filbuf(iop)
 	register FILE *iop;
@@ -29,6 +32,7 @@ tryagain:
 			goto tryagain;
 		}
 		iop->_flag |= _IOMYBUF;
+		_exitfunc = _cleanup;
 	}
 	iop->_ptr = iop->_base;
 	iop->_cnt = read(fileno(iop), iop->_ptr, iop->_flag&_IONBF?1:BUFSIZ);

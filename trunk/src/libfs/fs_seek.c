@@ -17,7 +17,7 @@ fs_seek (fs, offset)
 {
 	int r;
 
-/*printf ("  seek %ld, block %ld\n", offset, offset >> 9);*/
+/*printf ("seek %ld, block %ld\n", offset, offset >> 9);*/
 	r = lseek (fs->fd, offset, 0);
 	if (r < 0) {
 error:		printf ("error seeking %ld, block %ld\n",

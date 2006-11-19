@@ -5,6 +5,9 @@
  */
 #include <stdio.h>
 
+extern void (*_exitfunc)();
+extern void _cleanup();
+
 void
 setbuf(iop, buf)
 	register struct _iobuf *iop;
@@ -19,5 +22,6 @@ setbuf(iop, buf)
 	} else {
 		iop->_ptr = iop->_base;
 		iop->_cnt = BUFSIZ;
+		_exitfunc = _cleanup;
 	}
 }
