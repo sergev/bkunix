@@ -30,11 +30,12 @@ clean:
 #		pdp11-disasm $@ > $@.dis
 
 mkfs:		mkfs.o ../libfs/libfs.a
-		$(CC) $(LDFLAGS) -v -o $@ $^ ../libfs/libfs.a
+		$(CC) $(LDFLAGS) -o $@ $^
 #		pdp11-disasm $@ > $@.dis
 
 fsck:		fsck.o ../libfs/libfs.a
-		$(CC) $(LDFLAGS) -v -o $@ $^ ../libfs/libfs.a
+		$(CC) $(LDFLAGS) -o $@ $^
+
 #		pdp11-disasm $@ > $@.dis
 
 ../libfs/libfs.a:
