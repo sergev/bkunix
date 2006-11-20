@@ -11,6 +11,7 @@ void intr()
 int main()
 {
 	long t;
+	register char *s;
 
 	signal(SIGINT, intr);
 	signal(SIGQUIT, intr);
@@ -18,9 +19,13 @@ int main()
 	/* Clear screen, go to the middle, set wide font */
 	write(1, "\f\n\n\n\n\n\n\n\n\n\n\n\233", 13);
 	while (go) {
-		time(&t);
 		/* imitate \r */
-		printf("\032    %s", ctime(&t));
+		write(1, "\032    ", 5);
+
+		time(&t);
+		s = ctime(&t);
+		write(1, s, 25);
+
 		sleep(1);
 	}
 	/* Set narrow font */
