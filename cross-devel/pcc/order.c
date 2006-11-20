@@ -256,6 +256,9 @@ sucomp( p ) register NODE *p; {
 
 	if( ( o==DIV || o==MOD || o==MUL )
 	    && p->in.type!=FLOAT && p->in.type!=DOUBLE ) nr = fregs;
+#ifndef EIS
+	if( ( o==LS || o==RS || o==ASG LS || o==ASG RS ) ) nr = fregs;
+#endif
 	if( o==PLUS || o==MUL || o==OR || o==ER ){
 		/* AND is ruined by the hardware */
 		/* permute: get the harder on the left */
@@ -398,10 +401,11 @@ rallo( p, down ) register NODE *p; {
 #ifndef EIS
 	case ASG LS:
 	case ASG RS:
+	case LS:
+	case RS:
 		/* lhs in r0, nothing else matters */
-		rallo( p->in.left, R0|MUSTDO );
-		rallo( p->in.right, NOPREF );
-		return;
+		down1 = R0|MUSTDO;
+		break;
 #endif
 	case CALL:
 	case STASG:
