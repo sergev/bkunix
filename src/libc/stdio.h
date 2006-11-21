@@ -11,7 +11,7 @@
 #include <ansidecl.h>
 
 #define	BUFSIZ		512
-#define	_NFILE		20
+#define	_NFILE		15
 
 struct _iobuf {
 	char	*_ptr;

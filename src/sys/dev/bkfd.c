@@ -37,8 +37,8 @@ struct devtab fdtab;
 
 static struct fdio ioarea;
 
-int stopdelay;
-#define STOPDELAY 5
+static int stopdelay;
+#define STOPDELAY	5		/* stop motor after 5 seconds */
 
 void fdstart()
 {
@@ -81,20 +81,20 @@ void fdstrategy( abp )
 
 	bp = abp;
 
-	if( bp->b_blkno >= NFDBLK ) {
+	if (bp->b_blkno >= NFDBLK) {
 		bp->b_flags |= B_DONE | B_ERROR;
 		return;
 	}
 
 	bp->b_link = 0;
 	spl7();
-	if( fdtab.d_actf == 0 )
+	if (fdtab.d_actf == 0)
 		fdtab.d_actf = bp;
 	else
 		fdtab.d_actl->b_link = (int *) bp;
 
 	fdtab.d_actl = bp;
-	if( fdtab.d_active == 0 )
+	if (fdtab.d_active == 0)
 		fdstart();
 	spl0();
 }
@@ -108,8 +108,13 @@ void fdinit()
 	ioarea.fd_trkcor = 999;
 }
 
-void fdstop()
+void fdstop(sec)
+	register unsigned sec;
 {
+	stopdelay -= sec;
+	if (stopdelay > 0)
+		return;
+
 	/* Stop floppy motor. */
 	*(int*) 0177130 = 0;
 	stopdelay = 0;

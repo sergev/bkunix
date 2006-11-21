@@ -16,6 +16,11 @@ main()
 
 	/* Store "rts pc" instruction to prevent kernel restart. */
 	*(int*) 0120000 = 0207;
+
+	/* Stop floppy motor. */
+	*(int*) 0177130 = 0;
+
+	/* Jump to BIOS. */
 	asm("jmp 0100000");
 	return 0;
 }

@@ -70,7 +70,7 @@ void panic(s)
 	ttputs("panic: ");
 	ttputs(s);
 	ttputc('\n');
-	fdstop();
+	fdstop(999);
 	for(;;);
 }
 
