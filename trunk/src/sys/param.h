@@ -6,7 +6,7 @@
 #ifndef PARAM_H
 #define PARAM_H 1
 
-/* 
+/*
  * uncomment if compiled for a machine with an EIS emulator
  * in the FDD controller ROM
  */
@@ -56,7 +56,6 @@
 #define NOFILE	15		/* max open files per process */
 #define CANBSIZ	132		/* max size of typewriter line */
 #define NCLIST	25		/* max total clist size */
-#define HZ	60		/* Ticks/second of the clock */
 
 /*
  * priorities

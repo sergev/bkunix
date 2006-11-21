@@ -1083,7 +1083,7 @@ quit()
 		error(Q);
 	}
 	unlink(tfname);
-	_exit(0);
+	exit(0);
 }
 
 int
@@ -1332,7 +1332,7 @@ callunix()
 		signal(SIGHUP, oldhup);
 		signal(SIGQUIT, oldquit);
 		execl("/bin/sh", "sh", "-t", 0);
-		_exit(0100);
+		exit(0100);
 	}
 	savint = signal(SIGINT, SIG_IGN);
 	while ((rpid = wait(&retcode)) != pid && rpid != -1)

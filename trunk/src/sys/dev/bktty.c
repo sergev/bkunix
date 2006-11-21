@@ -129,16 +129,16 @@ ttyoutput(c)
 	 * Turn tabs to spaces as required
 	 */
 	if (c=='\t') {
-		do
+		do {
 			ttyoutput(' ');
-		while (tty.t_col&07);
+		} while (tty.t_col&07);
 		return;
 	}
 
 	/*
 	 * turn <nl> to <cr><lf> if desired.
 	 */
-	if(tty.t_flags & CRMOD)
+	if (tty.t_flags & CRMOD)
 		if (c=='\n')
 			ttyoutput('\r');
 	putbuf(c);
@@ -180,6 +180,7 @@ ttyinput()
 	register int c;
 	register int flags;
 	static int last;
+
 	c = KLADDR->klrbuf;
 	if (c != last) {
 		keypress = 0;
@@ -187,7 +188,7 @@ ttyinput()
 	}
 	flags = tty.t_flags;
 	c &= 0177;
-	if(flags & CRMOD) if(c == '\r')
+	if ((flags & CRMOD) && c == '\r')
 		c = '\n';
 	if (c==CQUIT) {
 		signal(SIGQIT);
@@ -208,7 +209,7 @@ ttyinput()
 		if (putc(0377, &tty.t_rawq)==0)
 			tty.t_delct++;
 	}
-	if(flags & ECHO) {
+	if (flags & ECHO) {
 		ttyoutput(c == CKILL ? '\n' : c);
 		putbuf(0); /* flush */
 	}
@@ -227,7 +228,7 @@ ttyinput()
 void
 klopen()
 {
-	if((tty.t_modes & TOPEN) == 0) {
+	if ((tty.t_modes & TOPEN) == 0) {
 		tty.t_modes |= TOPEN;
 		tty.t_flags = ECHO|CRMOD;
 	}
@@ -265,7 +266,7 @@ klsgtty(f)
 	wflushtty();
 	if (bad_user_address (a))
 		return;
-	if(f)
+	if (f)
 		tty.t_flags = *a;
 	else
 		*a = tty.t_flags;
@@ -297,12 +298,12 @@ loop:
 			break;
 		}
 		if (bp[-1]!='\\') {
-			if(c == CERASE) {
+			if (c == CERASE) {
 				if (bp > &canonb[2])
 					bp--;
 				continue;
 			}
-			if(c == CKILL)
+			if (c == CKILL)
 				goto loop;
 			if (c==CEOT)
 				continue;
