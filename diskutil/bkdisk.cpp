@@ -1,6 +1,9 @@
 //
 // bkdisk.exe -- utility to format, read, write and verify
 // floppy disks for BK-0010/BK-0011 microcomputers.
+//
+// Copyright (C) 2006 Serge Vakulenko
+//
 // Based on sources of Demo Disk Utility by Simon Owen <simon@simonowen.com>
 //
 #ifndef WIN32_LEAN_AND_MEAN
@@ -33,8 +36,8 @@ bool CmdRead (HANDLE h, BYTE cyl, BYTE head, BYTE start,
 	FD_READ_WRITE_PARAMS rwp = { FD_OPTION_MFM, head, cyl, head,
 		start, size, start+count, 0x0a, 0xff };
 
-	return !!DeviceIoControl(h, IOCTL_FDCMD_READ_DATA, &rwp, sizeof(rwp),
-		pv, count * (128 << rwp.size), &dwRet, NULL);
+	return DeviceIoControl(h, IOCTL_FDCMD_READ_DATA, &rwp, sizeof(rwp),
+		pv, count * (128 << rwp.size), &dwRet, NULL) != 0;
 }
 
 bool CmdWrite (HANDLE h, BYTE cyl, BYTE head, BYTE start,
@@ -43,8 +46,8 @@ bool CmdWrite (HANDLE h, BYTE cyl, BYTE head, BYTE start,
 	FD_READ_WRITE_PARAMS rwp = { FD_OPTION_MFM, head, cyl, head,
 		start, size, start+count, 0x0a, 0xff };
 
-	return !!DeviceIoControl(h, IOCTL_FDCMD_WRITE_DATA, &rwp, sizeof(rwp),
-		pv, count * (128 << rwp.size), &dwRet, NULL);
+	return DeviceIoControl(h, IOCTL_FDCMD_WRITE_DATA, &rwp, sizeof(rwp),
+		pv, count * (128 << rwp.size), &dwRet, NULL) != 0;
 }
 
 bool CmdVerify (HANDLE h, BYTE cyl, BYTE head, BYTE start,
@@ -53,20 +56,20 @@ bool CmdVerify (HANDLE h, BYTE cyl, BYTE head, BYTE start,
 	FD_READ_WRITE_PARAMS rwp = { FD_OPTION_MFM, head, cyl, head,
 		start, size, end, 0x0a, 0xff };
 
-	return !!DeviceIoControl(h, IOCTL_FDCMD_VERIFY, &rwp, sizeof(rwp),
-		NULL, 0, &dwRet, NULL);
+	return DeviceIoControl(h, IOCTL_FDCMD_VERIFY, &rwp, sizeof(rwp),
+		NULL, 0, &dwRet, NULL) != 0;
 }
 
 bool CmdFormat (HANDLE h, PFD_FORMAT_PARAMS pfp, ULONG ulSize)
 {
-	return !!DeviceIoControl(h, IOCTL_FDCMD_FORMAT_TRACK, pfp,
-		ulSize, NULL, 0, &dwRet, NULL);
+	return DeviceIoControl(h, IOCTL_FDCMD_FORMAT_TRACK, pfp,
+		ulSize, NULL, 0, &dwRet, NULL) != 0;
 }
 
 bool SetDataRate (HANDLE h, BYTE bDataRate)
 {
-	return !!DeviceIoControl(h, IOCTL_FD_SET_DATA_RATE, &bDataRate,
-		sizeof(bDataRate), NULL, 0, &dwRet, NULL);
+	return DeviceIoControl(h, IOCTL_FD_SET_DATA_RATE, &bDataRate,
+		sizeof(bDataRate), NULL, 0, &dwRet, NULL) != 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -161,6 +164,7 @@ const char* LastError ()
 
 bool ReadTrack (HANDLE h, BYTE cyl, BYTE head, PBYTE pb)
 {
+	WriteCon("\rReading track %u/%u side %u", cyl, DISK_TRACKS, head);
 	return CmdRead(h, cyl, head, SECTOR_BASE, DISK_SECTORS,
 		SECTOR_SIZE_CODE, pb);
 }
@@ -210,8 +214,8 @@ void Usage ()
 	WriteCon("BK-0010 Disk Utility by Serge Vakulenko <vak@cronyx.ru>\n"
 		"Based on driver fdrawcmd.sys from http://simonowen.com/fdrawcmd/\n"
 		"Usage:\n"
+		"\tbkdisk image.bkd A: [-f] [-v]\n"
 		"\tbkdisk A: image.bkd [-81]\n"
-		"\tbkdisk image.bkd A: [-81] [-f] [-v]\n"
 		"\tbkdisk --format A: [-81] [-v]\n"
 		"\tbkdisk --verify A: [-81]\n"
 		"Options:\n"
@@ -226,12 +230,14 @@ enum {
 	cmdNone=0, cmdRead, cmdWrite, cmdFormat, cmdVerify
 };
 
-bool FormatFloppy (HANDLE h, HANDLE hfile,
+bool DoCommand (HANDLE h, HANDLE hfile,
 	int nCommand, bool fVerify, bool fFormat)
 {
 	PBYTE pbTrack = (PBYTE)VirtualAlloc(NULL, TRACK_SIZE,
 		MEM_COMMIT, PAGE_READWRITE);
 
+	WriteCon("Geometry %d cylinders %d heads %d sectors per track\n",
+		DISK_TRACKS, DISK_SIDES, DISK_SECTORS);
 	for (BYTE cyl = 0; cyl < DISK_TRACKS; cyl++) {
 		for (BYTE head = 0; head < DISK_SIDES; head++) {
 			if (! DeviceIoControl(h, IOCTL_FDCMD_SEEK,
@@ -240,40 +246,44 @@ bool FormatFloppy (HANDLE h, HANDLE hfile,
 
 			switch (nCommand) {
 			case cmdFormat:
-				if (FormatTrack(h, cyl, head) &&
-				    (! fVerify || VerifyTrack(h, cyl, head)))
-					break;
-
-				WriteCon("\n\nFormat failed: %s\n", LastError());
-				return false;
+				if (! FormatTrack(h, cyl, head)) {
+format_failed:				WriteCon("\n\nFormat failed: %s\n",
+						LastError());
+					return false;
+				}
+				if (fVerify && ! VerifyTrack(h, cyl, head))
+					goto verify_failed;
+				break;
 
 			case cmdRead:
-				WriteCon("\rReading track %u/%u side %u",
-					cyl, DISK_TRACKS, head);
-				if (ReadTrack(h, cyl, head, pbTrack) &&
-				    WriteFile(hfile, pbTrack,
-				    TRACK_SIZE, &dwRet, NULL))
-					break;
-
-				WriteCon("\n\nRead failed: %s\n", LastError());
-				return false;
+				if (! ReadTrack(h, cyl, head, pbTrack)) {
+					WriteCon("\n\nRead failed: %s\n", LastError());
+					return false;
+				}
+				WriteFile(hfile, pbTrack, TRACK_SIZE,
+					&dwRet, NULL);
+				break;
 
 			case cmdWrite:
-				if (ReadFile(hfile, pbTrack, TRACK_SIZE, &dwRet, NULL) &&
-				    (! fFormat || FormatTrack(h, cyl, head)) &&
-				     WriteTrack(h, cyl, head, pbTrack) &&
-				    (! fVerify || VerifyTrack(h, cyl, head)))
-					break;
-
-				WriteCon("\n\nWrite failed: %s\n", LastError());
-				return false;
+				if (fFormat && ! FormatTrack(h, cyl, head))
+					goto format_failed;
+				if (ReadFile(hfile, pbTrack, TRACK_SIZE,
+				    &dwRet, NULL) &&
+				    ! WriteTrack(h, cyl, head, pbTrack)) {
+					WriteCon("\n\nWrite failed: %s\n", LastError());
+					return false;
+				}
+				if (fVerify && ! VerifyTrack(h, cyl, head))
+					goto verify_failed;
+				break;
 
 			case cmdVerify:
-				if (VerifyTrack(h, cyl, head))
-					break;
+				if (! VerifyTrack(h, cyl, head)) {
+verify_failed:				WriteCon("\n\nVerify failed: %s\n", LastError());
+					return false;
+				}
+				break;
 
-				WriteCon("\n\nVerify failed: %s\n", LastError());
-				return false;
 			}
 		}
 	}
@@ -283,16 +293,16 @@ bool FormatFloppy (HANDLE h, HANDLE hfile,
 
 	switch (nCommand) {
 	case cmdFormat:
-		WriteCon("\rFormat complete.             \n");
+		WriteCon("\rFormat complete              \n");
 		break;
 	case cmdRead:
-		WriteCon("\rImage created successfully.  \n");
+		WriteCon("\rImage created successfully   \n");
 		break;
 	case cmdWrite:
-		WriteCon("\rImage written successfully.  \n");
+		WriteCon("\rImage written successfully   \n");
 		break;
 	case cmdVerify:
-		WriteCon("\rDisk verified successfully.  \n");
+		WriteCon("\rDisk verified successfully   \n");
 		break;
 	}
 	return true;
@@ -348,12 +358,28 @@ int main (int argc, char *argv[])
 	else if (pcszFile &&
 	    ! (hfile = OpenImage(pcszFile, (nCommand == cmdRead))))
 		WriteCon("Failed to open image: %s\n", LastError());
-	else if (nCommand == cmdWrite &&
-	    GetFileSize(hfile, NULL) % TRACK_SIZE != 0)
-		WriteCon("Image file is wrong size (should be multiple of %lu bytes)\n",
-			TRACK_SIZE);
-	else if (FormatFloppy (h, hfile, nCommand, fVerify, fFormat))
-		return EXIT_SUCCESS;
-
+	else {
+		switch (nCommand) {
+		case cmdFormat:
+			WriteCon("Format floppy %c:\n", nDrive + 'A');
+			break;
+		case cmdRead:
+			WriteCon("Read floppy %c: to file \"%s\"\n",
+				nDrive + 'A', pcszFile);
+			break;
+		case cmdWrite:
+			WriteCon("Write file \"%s\" to floppy %c:\n",
+				pcszFile, nDrive + 'A');
+			if (GetFileSize(hfile, NULL) >
+			    (unsigned) DISK_TRACKS * DISK_SIDES * TRACK_SIZE)
+				DISK_TRACKS = 81;
+			break;
+		case cmdVerify:
+			WriteCon("Verify floppy %c:\n", nDrive + 'A');
+			break;
+		}
+		if (DoCommand (h, hfile, nCommand, fVerify, fFormat))
+			return EXIT_SUCCESS;
+	}
 	return EXIT_FAILURE;
 }
