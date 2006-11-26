@@ -25,8 +25,13 @@
  * the following 4 variables may be modified.
  */
 #define NPROC	3		/* max number of processes */
+#ifdef BK0011
+#define BOTSYS	0100000		/* must not be an expression */
+#define TOPSYS	0140000		/* must not be an expression */
+#else
 #define BOTSYS	0120000		/* must not be an expression */
 #define TOPSYS	0160000		/* must not be an expression */
+#endif
 #define SYSSIZ	((TOPSYS-BOTSYS)/1024) 	/* system size in 1K bytes */
 #define NBLKS	1600		/* 2-sided, 80 tracks, 9 sectors */
 #define USRSIZ	27		/* size for extended memory */

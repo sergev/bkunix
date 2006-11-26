@@ -5,40 +5,51 @@
  * under the terms of the GNU General Public License (GPL).
  * See the accompanying file "COPYING" for more details.
  */
-rootdir = 1
-BOTSYS = 0120000
-TOPSYS = 0160000
-reset = 5
-large = 010000
-putc = 0102234
-getc = 0101010
-diskio = 0160004
+#include "param.h"
 
-.. = 01000
+#ifdef BK0011
+#define PUTC	*0140156
+#define GETC	*0140076
+#else
+#define PUTC	*$0102234
+#define GETC	*$0101010
+#endif
+#define DISKIO	*$0160004
 
-init:
+rootdir	=	1
+inode	=	010000
+large	=	010000
+mode	=	inode
+addr	=	inode+8
+buf	=	inode+32
+
+..	=	01000
+
+inum:				/ use this word later as inode number
 	.word	0240		/ nop is the "bootable" mark
 start:
-	/ stop floppy motor
-	clr	*$0177130
+	clr	*$0177130	/ stop floppy motor
+#ifdef BK0011
+	mov	$0x0104,r0
+	jsr	pc,*0140034	/ map page 4 at 0100000
+#endif
 
 	/output message to tty (using the monitor)
 	mov	$nm,r1
 1:
 	movb	(r1)+,r0
 	beq	1f
-	jsr	pc,*$putc
+	jsr	pc,PUTC
 	br	1b
 
 	/get command from tty (using the monitor)
-
 1:
 	mov	$1,r1
 2:
 	dec	r1
 	beq	3f
 	mov	$030,r0
-0:	jsr	pc,*$putc
+0:	jsr	pc,PUTC
 	sob	r1,0b		/ erase all input
 3:	clr	r0
 3:
@@ -46,10 +57,10 @@ start:
 	cmp	$040, r1
 	beq	start		/ string too long
 4:
-	jsr	pc,*$getc
+	jsr	pc,GETC
 	cmp	r0,$025		/ ^U = kill
 	beq	2b
-	jsr	pc,*$putc
+	jsr	pc,PUTC
 	cmp	r0,$'\n
 	beq	go
 	cmp	r0,$030		/ ^X = backspace
@@ -60,6 +71,9 @@ start:
 
 	/put command on stack in exec format
 go:
+	mov	$'\r,r0
+	jsr	pc,PUTC
+
 	cmp	$1,r1
 	bne	2f
 	clr	r1		/ empty string - boot bkunix
@@ -92,7 +106,7 @@ go:
 	/look up command path name
 
 	decb	-(r4)
-	mov	$rootdir,in
+	mov	$rootdir,inum
 1:
 	jsr	pc,geti
 	mov	r4,r3
@@ -110,7 +124,7 @@ go:
 4:
 	cmp	r3,r4
 	bne	5f
-	mov	(r0)+,in
+	mov	(r0)+,inum
 	beq	2b
 5:
 	tstb	(r4)+
@@ -124,7 +138,6 @@ go:
 	br	2b
 1:
 	jsr	pc,geti
-/ was	clr	r3
 	mov	$ BOTSYS, r3
 1:
 	jsr	pc,getblk
@@ -145,9 +158,8 @@ go:
 	mov	$02000, r3	/ use floppy i/o area at 02000
 	movb	034(r3), r0	/ boot dev num
 	jsr	pc,*$ BOTSYS
-
 geti:
-	mov	in,r1
+	mov	inum,r1
 	add	$31,r1
 	mov	r1,-(sp)
 	asr	r1
@@ -170,7 +182,6 @@ geti:
 	blo	1b
 	clr	r2
 	rts	pc
-
 getblk:
 	add	$2,(sp)
 	mov	r2,r0
@@ -197,7 +208,6 @@ getblk:
 	add	(sp)+,r0
 	mov	(r0),r1
 	beq	2b
-
 rblk:
 	mov	r5,-(sp)
 	mov	r4,-(sp)
@@ -207,15 +217,11 @@ rblk:
 	mov	$256, r1	/ word count, >0 - read
 	mov	$buf, r2	/ read addr
 	mov	$02000, r3	/ use floppy i/o area at 02000
-	jsr	pc,*$diskio
+	jsr	pc,DISKIO
 	bcc	2f
-	mov	$err, r1
-1:
-	movb	(r1)+,r0
-	beq	1f
-	jsr	pc,*$putc
-	br	1b
-1:
+
+	mov	$'!, r0		/ print error message
+	jsr	pc,PUTC
 	movb	*$052, r0	/ err code
 	mov	r0, r1
 	asr	r0
@@ -223,28 +229,24 @@ rblk:
 	asr	r0
 	bic	$!1, r0
 	bis	$060, r0
-	jsr     pc,*$putc
+	jsr     pc,PUTC
 	mov	r1, r0
 	bic	$!7, r0
 	bis	$060, r0
-	jsr	pc,*$putc
+	jsr	pc,PUTC
 	jbr     start
-2:	mov	(sp)+,r2
+2:
+	mov	(sp)+,r2
 	mov	(sp)+,r3
 	mov	(sp)+,r4
 	mov	(sp)+,r5
 	mov	$buf, r0
 	rts	pc
+
 bkunix: <\0bkunix\0>
-nm:
-	.byte	012
+
+nm:	.byte	'\n
+#ifdef BK0011
+	.byte	'\r, 033, '1
+#endif
 	<boot: \0>
-err:	<err >
-	.even
-
-in:	rootdir
-
-inode = 010000
-mode = inode
-addr = inode+8
-buf = inode+32

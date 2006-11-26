@@ -25,12 +25,16 @@ LDFLAGS		= -X
 
 SRCS		= start.S console.c
 OBJS		= start.o console.o
-PROG		= hello tstsh tstlsh tstmul tstdiv tstrem tstuldiv tstulrem \
-		  tstlmul tstldiv tstlrem fdgetrom fdinfo fdfmt
+PROG		= fdfmt fdgetrom fdinfo hello #\
+		  tstsh tstlsh tstmul tstdiv tstrem tstuldiv tstulrem \
+		  tstlmul tstldiv tstlrem
 
 CPPFLAGS	= -I. -DKERNEL
-
 HIBASE		= 0120000
+
+# For BK-0011M model.
+CPPFLAGS	+= -DBK0011
+HIBASE		= 0100000
 
 all:		$(PROG)
 		$(SIZE) $(PROG)
