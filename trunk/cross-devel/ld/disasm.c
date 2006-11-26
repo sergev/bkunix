@@ -1020,6 +1020,7 @@ main (argc, argv)
 				bflag++;
 				break;
 			case 'a':       /* -aN: base address */
+				baseaddr = 0;
 				while (cp[1] >= '0' && cp[1] <= '7') {
 					baseaddr <<= 3;
 					baseaddr += cp[1] - '0';

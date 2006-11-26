@@ -37,12 +37,15 @@ vpath %.c . dev
 
 CPPFLAGS	= -I. -DKERNEL
 
+# For BK-0011M model.
+CPPFLAGS	+= -DBK0011
+
 CSRCS		+= dev/bktty.c dev/bkfd.c
 OBJS		+= bktty.o bkfd.o
 HIBASE		= 0120000
 
 all:		bkunix boot
-		@echo "Warning: For BK-0011, size must be less than 040000"
+		@echo "Warning: For BK-0010/0011, size must be less than 040000"
 		$(SIZE) bkunix boot
 
 clean:
@@ -71,7 +74,7 @@ depend:
 		@cp Makefile Makefile~~
 		(sed '/^### DO NOT DELETE THIS LINE/,$$d' Makefile;\
 		echo '### DO NOT DELETE THIS LINE';\
-		gcc -MM $(CFLAGS) *.S *.c |\
+		gcc -MM $(CFLAGS) $(CPPFLAGS) *.S *.c |\
 		sed ':1;/\.o: .* \\/{;N;s/ *\\\n */ /;};s/ \/[^ ]*h */ /;t1';\
 		echo '# DEPENDENCIES MUST END AT END OF FILE';\
 		echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY';\

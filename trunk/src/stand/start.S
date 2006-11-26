@@ -5,7 +5,11 @@
  * under the terms of the GNU General Public License (GPL).
  * See the accompanying file "COPYING" for more details.
  */
+#ifdef BK0011
+TOPSYS = 0140000
+#else
 TOPSYS = 0160000
+#endif
 	.globl	_edata
 	.globl	_bootdev
 	.globl	_main
