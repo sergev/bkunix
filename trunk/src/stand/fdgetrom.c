@@ -21,7 +21,7 @@ int main ()
 	printhex (blk);
 	printf ("\n");
 
-	asm("mov $-4096, r1");	/* word cnt, negative for write */
+	asm("mov $-2048, r1");	/* word cnt, negative for write */
 	asm("mov r4, r0");	/* blk num */
 	asm("mov r5,-(sp)");	/* r5 will be corrupted */
 	asm("jsr pc, *$0160004");

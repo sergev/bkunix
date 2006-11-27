@@ -157,7 +157,9 @@ go:
 1:
 	mov	$02000, r3	/ use floppy i/o area at 02000
 	movb	034(r3), r0	/ boot dev num
-	jsr	pc,*$ BOTSYS
+	jmp	*$ BOTSYS
+
+/-----------------------
 geti:
 	mov	inum,r1
 	add	$31,r1
@@ -182,6 +184,8 @@ geti:
 	blo	1b
 	clr	r2
 	rts	pc
+
+/-----------------------
 getblk:
 	add	$2,(sp)
 	mov	r2,r0
@@ -245,8 +249,8 @@ rblk:
 
 bkunix: <\0bkunix\0>
 
-nm:	.byte	'\n
+nm:	<\r\n>
 #ifdef BK0011
-	.byte	'\r, 033, '1
+	.byte	033, '1
 #endif
 	<boot: \0>
