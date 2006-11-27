@@ -49,7 +49,11 @@ ttputc (c)
 {
 	asm("mov 4(r5),r0");
 	asm("mov r5,-(sp)");
+#ifdef BK0011
+	asm("jsr pc,*0140156");
+#else
 	asm("jsr pc,*$0102234");
+#endif
 	asm("mov (sp)+,r5");
 }
 

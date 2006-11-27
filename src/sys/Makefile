@@ -36,13 +36,14 @@ OBJS		= $(ASOBJS) $(COBJS)
 vpath %.c . dev
 
 CPPFLAGS	= -I. -DKERNEL
+HIBASE		= 0120000
 
 # For BK-0011M model.
 CPPFLAGS	+= -DBK0011
+HIBASE		= 0100000
 
 CSRCS		+= dev/bktty.c dev/bkfd.c
 OBJS		+= bktty.o bkfd.o
-HIBASE		= 0120000
 
 all:		bkunix boot
 		@echo "Warning: For BK-0010/0011, size must be less than 040000"

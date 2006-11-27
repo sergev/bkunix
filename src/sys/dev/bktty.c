@@ -20,12 +20,14 @@
 #define	KLADDR	((struct klregs*) 0177660)
 
 /* BIOS variables */
+#ifndef BK0011
 #define	LIMIT	(*(int*)0164)
 #define	BASE	(*(int*)0202)
 #define	OFFSET	(*(int*)0204)
 #define	VSIZE	(*(int*)0206)
 #define	WRKSIZE	(*(int*)0210)
 #define	EXTRAM	(*(char*)042)
+#endif
 
 struct	tty tty;
 static char cursoff;
@@ -44,10 +46,16 @@ static char nch;
 static void
 bksend()
 {
+	asm("mov r5, -(sp)");
+#ifdef BK0011
+	outbuf[nch] = 0;
+	asm("mov $_outbuf, r0");
+	asm("jsr pc, *0140162");
+#else
 	asm("mov $_outbuf, r1");
 	asm("movb _nch, r2");
-	asm("mov r5, -(sp)");
 	asm("jsr pc, *$0107050");
+#endif
 	asm("mov (sp)+, r5");
 }
 
@@ -68,7 +76,7 @@ putbuf(c)
 		goto doit;
 	}
 	outbuf[nch++] = c;
-	if (nch == 64)
+	if (nch == sizeof(outbuf) - 1)
 		goto many;
 
 	if (c == '\n') {
@@ -244,6 +252,7 @@ klclose()
 void
 fullscr()
 {
+#ifndef BK0011
 	LIMIT = 03000;
 	BASE = 040000;
 	VSIZE = 040000;
@@ -253,6 +262,7 @@ fullscr()
 	memzero(040000, 030000);
 	memzero(077000, 01000);	/* erase the horizontal bar */
 	KLADDR->scroll = 01230;
+#endif
 }
 
 void
@@ -332,7 +342,12 @@ ttread()
 	register int n;
 
 	if (cursoff) {
+#ifdef BK0011
+		putbuf(033);
+		putbuf(070);
+#else
 		putbuf(0232);
+#endif
 		cursoff = 0;
 	}
 	putbuf(0);
@@ -360,7 +375,12 @@ ttwrite()
 	register int n;
 
 	if (! cursoff) {
+#ifdef BK0011
+		putbuf(033);
+		putbuf(071);
+#else
 		putbuf(0232);
+#endif
 		cursoff++;
 	}
 	base = (unsigned char*) u.u_base;
