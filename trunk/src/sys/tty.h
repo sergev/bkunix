@@ -54,7 +54,8 @@ struct tty
 #define	TTIPRI	10
 #define	TTOPRI	20
 
-#define	CERASE	030
+#define	CERASE	010		/* ^H */
+#define	CBACKSP	030		/* <= */
 #define	CEOT	004
 #define	CKILL	025		/* ^U */
 #define	CQUIT	034		/* ^\ */
