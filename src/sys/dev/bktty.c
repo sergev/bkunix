@@ -132,23 +132,26 @@ ttyoutput(c)
 {
 	register char *colp;
 
-	if (!c) return;
-	/*
-	 * Turn tabs to spaces as required
-	 */
-	if (c=='\t') {
+	if (! c)
+		return;
+
+	/* Turn tabs to spaces as required. */
+	if (c == '\t') {
 		do {
 			ttyoutput(' ');
-		} while (tty.t_col&07);
+		} while (tty.t_col & 07);
 		return;
 	}
 
-	/*
-	 * turn <nl> to <cr><lf> if desired.
-	 */
+	/* Turn <nl> to <cr><lf> if desired. */
 	if (tty.t_flags & CRMOD)
 		if (c=='\n')
 			ttyoutput('\r');
+
+	/* Turn Backspace to ^H . */
+	if (c == CBACKSP)
+		c = CERASE;
+
 	putbuf(c);
 	colp = &tty.t_col;
 	switch (c) {
@@ -296,18 +299,22 @@ canon()
 	register int c;
 
 	spl7();
-	while (tty.t_delct==0) {
+	while (tty.t_delct == 0) {
 		sleep(&tty.t_rawq, TTIPRI);
 	}
 	spl0();
 loop:
 	bp = &canonb[2];
-	while ((c=getc(&tty.t_rawq)) >= 0) {
-		if (c==0377) {
+	while ((c = getc(&tty.t_rawq)) >= 0) {
+		if (c == 0377) {
 			tty.t_delct--;
 			break;
 		}
-		if (bp[-1]!='\\') {
+		if (bp[-1] != '\\') {
+			/* Turn Backspace to ^H . */
+			if (c == CBACKSP)
+				c = CERASE;
+
 			if (c == CERASE) {
 				if (bp > &canonb[2])
 					bp--;
@@ -315,16 +322,16 @@ loop:
 			}
 			if (c == CKILL)
 				goto loop;
-			if (c==CEOT)
+			if (c == CEOT)
 				continue;
 		}
 		*bp++ = c;
-		if (bp>=canonb+CANBSIZ)
+		if (bp >= canonb+CANBSIZ)
 			break;
 	}
 	bp1 = bp;
 	bp = &canonb[2];
-	while (bp<bp1)
+	while (bp < bp1)
 		putc(*bp++, &tty.t_canq);
 	return(1);
 }
@@ -338,7 +345,7 @@ loop:
 void
 ttread()
 {
-	register char * base;
+	register char *base;
 	register int n;
 
 	if (cursoff) {

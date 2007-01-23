@@ -7,6 +7,9 @@ ifdef LOWSTACK
 LDFLAGS		+= -t1024
 endif
 
+# For BK-0011M model.
+CFLAGS		+= -DBK0011
+
 # GNU compiler.
 #CC		= pdp11-gcc -Wall -fomit-frame-pointer -fno-builtin
 #LDFLAGS		=
