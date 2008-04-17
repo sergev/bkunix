@@ -4,7 +4,7 @@ touch dummy$$.o
 set - `$1 -v -o /dev/null dummy$$.o 2>&1`
 rm dummy$$.o
 
-while ( (($#)) ) do
+while [ $# != 0 ]; do
 	shift
 	case $1 in
 	-L*) lib="$lib $1"

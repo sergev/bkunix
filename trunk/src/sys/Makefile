@@ -14,7 +14,7 @@
 CC		= pdp11-pcc
 
 CFLAGS		= -O
-LIBS		= $(shell sh findlib.sh $(CC) ) -lcrt
+LIBS		= $(shell sh findlib.sh $(CC)) -lcrt
 
 # Using ported AT&T UNIX utils.
 AS		= pdp11-asm
