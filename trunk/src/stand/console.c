@@ -33,7 +33,7 @@ again:
 }
 
 void
-printf (str)
+puts (str)
 	char *str;
 {
 	while (*str)

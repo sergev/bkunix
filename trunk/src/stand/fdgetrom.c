@@ -11,15 +11,15 @@ int main ()
 	ioarea = 02000;		/* r3 */
 	addr = 0160000;		/* r2 */
 	blk = 80;		/* r4 */
-	printf ("Get floppy controller ROM.\n");
+	puts ("Get floppy controller ROM.\n");
 
-	printf ("Write buffer ");
+	puts ("Write buffer ");
 	printhex (addr);
-	printf (" to device ");
+	puts (" to device ");
 	printhex (bootdev);
-	printf (" block ");
+	puts (" block ");
 	printhex (blk);
-	printf ("\n");
+	puts ("\n");
 
 	asm("mov $-2048, r1");	/* word cnt, negative for write */
 	asm("mov r4, r0");	/* blk num */
@@ -30,12 +30,12 @@ int main ()
 	asm("jmp 2f");
 	asm("1: mov (sp)+,r5");
 
-	printf (" -- Error ");
+	puts (" -- Error ");
 	printhex (*(unsigned char*) 052);
-	printf ("\n");
+	puts ("\n");
 
 	asm("2:");
-	printf ("Done.\n");
+	puts ("Done.\n");
 
 	/* Stop floppy motor. */
 	*(int*) 0177130 = 0;

@@ -10,26 +10,26 @@ void test (a, b, msg)
 
 	c = a * b;
 	printhex ((int) (a >> 16)); printhex ((int) a);
-	printf (" * ");
+	puts (" * ");
 	printhex ((int) (b >> 16)); printhex ((int) b);
-	printf (" = ");
+	puts (" = ");
 	printhex ((int) (c >> 16)); printhex ((int) c);
-	printf (" -- expected ");
-	printf (msg);
-	printf ("\n");
+	puts (" -- expected ");
+	puts (msg);
+	puts ("\n");
 }
 
 int main ()
 {
 	int a, b, c;
 
-	printf ("Testing signed long multiplication.\n");
+	puts ("Testing signed long multiplication.\n");
 	test (12345L, 6789L, "04fed79d");
 	test (-12345L, 6789L, "fb012863");
 	test (12345L, -6789L, "fb012863");
 	test (-12345L, -6789L, "04fed79d");
 	test (123L, 456789L, "035950d7");
 	test (456789L, 123L, "035950d7");
-	printf ("Done.\n");
+	puts ("Done.\n");
 	return 0;
 }

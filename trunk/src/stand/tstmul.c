@@ -2,23 +2,23 @@ int main ()
 {
 	int a, b, c;
 
-	printf ("Testing integer multiplication.\n");
-	printf ("     ");
+	puts ("Testing integer multiplication.\n");
+	puts ("     ");
 	for (b=2; b<10; ++b) {
-		printf (" ");
+		puts (" ");
 		printhex (b);
 	}
-	printf ("\n");
+	puts ("\n");
 	for (a=2; a<10; ++a) {
 		printhex (a);
-		printf (":");
+		puts (":");
 		for (b=2; b<10; ++b) {
 			c = a * b;
-			printf (" ");
+			puts (" ");
 			printhex (c);
 		}
-		printf ("\n");
+		puts ("\n");
 	}
-	printf ("Done.\n");
+	puts ("Done.\n");
 	return 0;
 }

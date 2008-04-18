@@ -139,28 +139,20 @@ int format_track (track)
 {
 	register int i;
 
-	putchar ('\r');
-	phexdigit (track >> 4);
-	phexdigit (track);
+	printf ("\r%3d ", track);
 	fd_format (track >> 1, track & 1);
-	putchar (' ');
 
 	if (fd_wrtrack (track) < 0) {
-		printf ("format error ");
-		printhex (*(unsigned char*) 052);
-		printf ("\n");
+		printf ("format error %#o\n", *(unsigned char*) 052);
 		return -1;
 	}
-	putchar ('.');
 	if (fd_rdtrack (track) < 0) {
-		printf ("read error ");
-		printhex (*(unsigned char*) 052);
-		printf ("\n");
+		printf ("read error %#o\n", *(unsigned char*) 052);
 		return -1;
 	}
 	for (i=0; i<256*10; ++i) {
 		if (buf[i] != 0xf6f6) {
-			printf ("data error\n");
+			puts ("data error\n");
 			return -1;
 		}
 	}
@@ -172,7 +164,7 @@ void format ()
 	register int track, retry;
 	int errors, i;
 
-	printf ("\nFormatting, 160 tracks (0...9f)\n");
+	puts ("\nFormatting floppy, 160 tracks\n");
 	for (i=0; i<256*10; ++i)
 		buf[i] = 0xf6f6;
 	errors = 0;
@@ -185,29 +177,23 @@ void format ()
 			}
 		}
 	}
-	printf (errors ? " - FAILED.\n" : " - Done.\n");
+	puts (errors ? " - FAILED.\n" : " - Done.\n");
 }
 
 void write_pattern ()
 {
 	register int s, i;
 
-	printf ("\nWriting test pattern, 1600 sectors (0...63f)\n");
+	puts ("\nWriting test pattern, 1600 sectors\n");
 	for (s=0; s<1600; ++s) {
 		for (i=0; i<256; ++i)
 			buf[i] = s;
-		putchar ('\r');
-		phexdigit (s >> 8);
-		phexdigit (s >> 4);
-		phexdigit (s);
-		putchar (' ');
+		printf ("\r%4d ", s);
 		if (fd_wrsector (s) < 0) {
-			printf ("write error ");
-			printhex (*(unsigned char*) 052);
-			printf ("\n");
+			printf ("write error %#o\n", *(unsigned char*) 052);
 		}
 	}
-	printf ("\n");
+	puts ("\n");
 }
 
 void test_sector (s)
@@ -215,20 +201,14 @@ void test_sector (s)
 {
 	register int i;
 
-	putchar ('\r');
-	phexdigit (s >> 8);
-	phexdigit (s >> 4);
-	phexdigit (s);
-	putchar (' ');
+	printf ("\r%4d ", s);
 	if (fd_rdsector (s) < 0) {
-		printf ("read error ");
-		printhex (*(unsigned char*) 052);
-		printf ("\n");
+		printf ("read error %#o\n", *(unsigned char*) 052);
 		return;
 	}
 	for (i=0; i<256; ++i)
 		if (buf[i] != s) {
-			printf ("data error\n");
+			puts ("data error\n");
 			return;
 		}
 }
@@ -237,22 +217,22 @@ void seq_test ()
 {
 	register int s;
 
-	printf ("\nSequential reading, 1600 sectors (0...63f)\n");
+	puts ("\nSequential reading, 1600 sectors\n");
 	for (s=0; s<1600; ++s)
 		test_sector (s);
-	printf ("\n");
+	puts ("\n");
 }
 
 void zigzag_test ()
 {
 	register int s;
 
-	printf ("\nZig-zag reading of tracks (0...63f)\n");
+	puts ("\nZig-zag reading, 0...1599 sectors\n");
 	for (s=0; s<1600-35; s+=15) {
 		test_sector (s);
 		test_sector (s + 35);
 	}
-	printf ("\n");
+	puts ("\n");
 }
 
 int main ()
@@ -267,11 +247,11 @@ again:
 	/* Stop floppy motor. */
 	*(int*) 0177130 = 0;
 
-	printf ("\n 1. Formatting floppy");
-	printf ("\n 2. Writing test pattern to floppy");
-	printf ("\n 3. Sequential reading and checking of all sectors");
-	printf ("\n 4. Zig-zag reading and checking of 100 sectors");
-	printf ("\n\nCommand: ");
+	puts ("\n 1. Formatting floppy");
+	puts ("\n 2. Writing test pattern to floppy");
+	puts ("\n 3. Sequential reading and checking of all sectors");
+	puts ("\n 4. Zig-zag reading and checking of 100 sectors");
+	puts ("\n\nCommand: ");
 	c = getchar();
 	putchar (c);
 	putchar ('\n');

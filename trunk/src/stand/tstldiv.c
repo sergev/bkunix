@@ -10,26 +10,26 @@ void test (a, b, msg)
 
 	c = a / b;
 	printhex ((int) (a >> 16)); printhex ((int) a);
-	printf (" / ");
+	puts (" / ");
 	printhex ((int) (b >> 16)); printhex ((int) b);
-	printf (" = ");
+	puts (" = ");
 	printhex ((int) (c >> 16)); printhex ((int) c);
-	printf (" -- expected ");
-	printf (msg);
-	printf ("\n");
+	puts (" -- expected ");
+	puts (msg);
+	puts ("\n");
 }
 
 int main ()
 {
 	int a, b, c;
 
-	printf ("Testing signed long division.\n");
+	puts ("Testing signed long division.\n");
 	test (1234567L, 56789L, "00000015");
 	test (-1234567L, 56789L, "ffffffeb");
 	test (1234567L, -56789L, "ffffffeb");
 	test (-1234567L, -56789L, "00000015");
 	test (1234567L, 56L, "0000561d");
 	test (1234L, 56L, "00000016");
-	printf ("Done.\n");
+	puts ("Done.\n");
 	return 0;
 }
