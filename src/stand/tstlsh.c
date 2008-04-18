@@ -46,25 +46,25 @@ int main ()
 	int i;
 	long lval;
 
-	printf ("Testing long shift.\n");
+	puts ("Testing long shift.\n");
 	printlhex (0x12345678); putchar ('\n');
 	printlhex (0x87654321); putchar ('\n');
 	for (i=0; i<16; ++i) {
-		printf ("0x100 << ");
+		puts ("0x100 << ");
 		printhex (i);
-		printf (" --> ");
+		puts (" --> ");
 		lval = 0x100;
 		lval <<= i;
 		printlhex (lval);
 
-		printf (", 0x800000 >> ");
+		puts (", 0x800000 >> ");
 		printhex (i);
-		printf (" --> ");
+		puts (" --> ");
 		lval = 0x800000;
 		lval >>= i;
 		printlhex (lval);
-		printf ("\n");
+		puts ("\n");
 	}
-	printf ("Done.\n");
+	puts ("Done.\n");
 	return 0;
 }

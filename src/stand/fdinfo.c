@@ -44,46 +44,46 @@ void fdinit (io)
 void fdprint (io)
 	register struct fdio *io;
 {
-	printf ("csrw "); printhex (io->fd_csrw);
-	printf (" curtrk "); printhex (io->fd_curtrk);
-	printf (" trktab "); printhex (io->fd_trktab[0]);
-	printf (" "); printhex (io->fd_trktab[1]);
-	printf (" "); printhex (io->fd_trktab[2]);
-	printf (" "); printhex (io->fd_trktab[3]);
-	printf ("\n");
+	puts ("csrw "); printhex (io->fd_csrw);
+	puts (" curtrk "); printhex (io->fd_curtrk);
+	puts (" trktab "); printhex (io->fd_trktab[0]);
+	puts (" "); printhex (io->fd_trktab[1]);
+	puts (" "); printhex (io->fd_trktab[2]);
+	puts (" "); printhex (io->fd_trktab[3]);
+	puts ("\n");
 
-	printf ("tdown "); printhex (io->fd_tdown);
-	printf (" tstep "); printhex (io->fd_tstep);
-	printf (" trkcor "); printhex (io->fd_trkcor);
-	printf (" bretry "); printhex (io->fd_bretry);
-	printf (" flags "); printhex (io->fd_flags);
-	printf ("\n");
+	puts ("tdown "); printhex (io->fd_tdown);
+	puts (" tstep "); printhex (io->fd_tstep);
+	puts (" trkcor "); printhex (io->fd_trkcor);
+	puts (" bretry "); printhex (io->fd_bretry);
+	puts (" flags "); printhex (io->fd_flags);
+	puts ("\n");
 
-	printf ("fillb "); printhex (io->fd_fillb);
-	printf (" flgptr "); printhex (io->fd_flgptr);
-	printf (" flgtab "); printhex (io->fd_flgtab[0]);
-	printf (" "); printhex (io->fd_flgtab[1]);
-	printf (" "); printhex (io->fd_flgtab[2]);
-	printf (" "); printhex (io->fd_flgtab[3]);
-	printf (" addr "); printhex (io->fd_addr);
-	printf ("\n");
+	puts ("fillb "); printhex (io->fd_fillb);
+	puts (" flgptr "); printhex (io->fd_flgptr);
+	puts (" flgtab "); printhex (io->fd_flgtab[0]);
+	puts (" "); printhex (io->fd_flgtab[1]);
+	puts (" "); printhex (io->fd_flgtab[2]);
+	puts (" "); printhex (io->fd_flgtab[3]);
+	puts (" addr "); printhex (io->fd_addr);
+	puts ("\n");
 
-	printf ("wcnt "); printhex (io->fd_wcnt);
-	printf (" side "); printhex (io->fd_side);
-	printf (" trk "); printhex (io->fd_trk);
-	printf (" unit "); printhex (io->fd_unit);
-	printf (" sector "); printhex (io->fd_sector);
-	printf (" maxsec "); printhex (io->fd_maxsec);
-	printf ("\n");
+	puts ("wcnt "); printhex (io->fd_wcnt);
+	puts (" side "); printhex (io->fd_side);
+	puts (" trk "); printhex (io->fd_trk);
+	puts (" unit "); printhex (io->fd_unit);
+	puts (" sector "); printhex (io->fd_sector);
+	puts (" maxsec "); printhex (io->fd_maxsec);
+	puts ("\n");
 }
 
 int main()
 {
 	fdinit (&ioarea);
-	printf ("After fdinit:\n");
+	puts ("After fdinit:\n");
 	fdprint (&ioarea);
 
-	printf ("\nSystem area at 2000:\n");
+	puts ("\nSystem area at 2000:\n");
 	fdprint ((struct fdio*) 02000);
 	return 0;
 }
