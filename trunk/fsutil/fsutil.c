@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <argp.h>
+#include <getopt.h>
 #include "u6fs.h"
 
 int verbose;
@@ -27,90 +27,57 @@ unsigned long bytes;
 char *boot_sector;
 char *boot_sector2;
 
-const char *argp_program_version =
-	"LSX file system information, version 1.0\n"
-	"Copyright (C) 2002 Serge Vakulenko\n"
-	"This program is free software; it comes with ABSOLUTELY NO WARRANTY;\n"
-	"see the GNU General Public License for more details.";
+static const char *program_version =
+	"LSX file system utility, version 1.1\n"
+	"Copyright (C) 2002-2009 Serge Vakulenko";
 
-const char *argp_program_bug_address = "<vak@cronyx.ru>";
+static const char *program_bug_address = "<serge@vak.ru>";
 
-struct argp_option argp_options[] = {
-	{"verbose",	'v', 0,		0,	"Print verbose information" },
-	{"add",		'a', 0,		0,	"Add files to filesystem" },
-	{"extract",	'x', 0,		0,	"Extract all files" },
-	{"check",	'c', 0,		0,	"Check filesystem, use -c -f to fix" },
-	{"fix",		'f', 0,		0,	"Fix bugs in filesystem" },
-	{"new",		'n', 0,		0,	"Create new filesystem, -s required" },
-	{"size",	's', "NUM",	0,	"Size in bytes for created filesystem" },
-	{"boot",	'b', "FILE",	0,	"Boot sector, -B required if not -F" },
-	{"boot2",	'B', "FILE",	0,	"Secondary boot sector, -b required" },
-	{"flat",	'F', 0,		0,	"Flat mode, no sector remapping" },
+static struct option program_options[] = {
+	{ "help",	no_argument,		0,	'h' },
+	{ "version",	no_argument,		0,	'V' },
+	{ "verbose",	no_argument,		0,	'v' },
+	{ "add",	no_argument,		0,	'a' },
+	{ "extract",	no_argument,		0,	'x' },
+	{ "check",	no_argument,		0,	'c' },
+	{ "fix",	no_argument,		0,	'f' },
+	{ "new",	no_argument,		0,	'n' },
+	{ "size",	required_argument,	0,	's' },
+	{ "boot",	required_argument,	0,	'b' },
+	{ "boot2",	required_argument,	0,	'B' },
+	{ "flat",	no_argument,		0,	'F' },
 	{ 0 }
 };
 
-/*
- * Parse a single option.
- */
-int argp_parse_option (int key, char *arg, struct argp_state *state)
+static void print_help (char *progname)
 {
-	switch (key) {
-	case 'v':
-		++verbose;
-		break;
-	case 'a':
-		++add;
-		break;
-	case 'x':
-		++extract;
-		break;
-	case 'n':
-		++newfs;
-		break;
-	case 'c':
-		++check;
-		break;
-	case 'f':
-		++fix;
-		break;
-	case 'F':
-		++flat;
-		break;
-	case 's':
-		bytes = strtol (arg, 0, 0);
-		break;
-	case 'b':
-		boot_sector = arg;
-		break;
-	case 'B':
-		boot_sector2 = arg;
-		break;
-	case ARGP_KEY_END:
-		if (state->arg_num < 1)		/* Not enough arguments. */
-			argp_usage (state);
-		break;
-	default:
-		return ARGP_ERR_UNKNOWN;
-	}
-	return 0;
+	printf ("%s\n", program_version);
+	printf ("This program is free software; it comes with ABSOLUTELY NO WARRANTY;\n"
+		"see the GNU General Public License for more details.\n");
+	printf ("\n");
+	printf ("Usage:\n");
+	printf ("    %s filesys.bkd\n", progname);
+	printf ("    %s --add filesys.bkd files...\n", progname);
+	printf ("    %s --extract filesys.bkd\n", progname);
+	printf ("    %s --check [--fix] filesys.bkd\n", progname);
+	printf ("    %s --new --size=bytes filesys.bkd\n", progname);
+	printf ("\n");
+	printf ("Options:\n");
+	printf ("  -a, --add          Add files to filesystem.\n");
+	printf ("  -x, --extract      Extract all files.\n");
+	printf ("  -c, --check        Check filesystem, use -c -f to fix.\n");
+	printf ("  -f, --fix          Fix bugs in filesystem.\n");
+	printf ("  -n, --new          Create new filesystem, -s required.\n");
+	printf ("  -s NUM, --size=NUM Size in bytes for created filesystem.\n");
+	printf ("  -b FILE, --boot=FILE Boot sector, -B required if not -F.\n");
+	printf ("  -B FILE, --boot2=FILE Secondary boot sector, -b required.\n");
+	printf ("  -F, --flat         Flat mode, no sector remapping.\n");
+	printf ("  -v, --verbose      Print verbose information.\n");
+	printf ("  -V, --version      Print version information and then exit.\n");
+	printf ("  -h, --help         Print this message.\n");
+	printf ("\n");
+	printf ("Report bugs to \"%s\".\n", program_bug_address);
 }
-
-/*
- * Our argp parser.
- */
-const struct argp argp_parser = {
-	/* The options we understand. */
-	argp_options,
-
-	/* Function to parse a single option. */
-	argp_parse_option,
-
-	/* A description of the arguments we accept. */
-	"infile.dsk [files-to-add...]",
-
-	/* Program documentation. */
-	"\nPrint LSX file system information"
-};
 
 void print_inode (u6fs_inode_t *inode,
 	char *dirname, char *filename, FILE *out)
@@ -438,18 +405,66 @@ void add_boot (u6fs_t *fs)
 
 int main (int argc, char **argv)
 {
-	int i;
+	int i, key;
 	u6fs_t fs;
 	u6fs_inode_t inode;
 
-	argp_parse (&argp_parser, argc, argv, 0, &i, 0);
+	for (;;) {
+		key = getopt_long (argc, argv, "vaxncfFs:b:B:",
+			program_options, 0);
+		if (key == -1)
+			break;
+		switch (key) {
+		case 'v':
+			++verbose;
+			break;
+		case 'a':
+			++add;
+			break;
+		case 'x':
+			++extract;
+			break;
+		case 'n':
+			++newfs;
+			break;
+		case 'c':
+			++check;
+			break;
+		case 'f':
+			++fix;
+			break;
+		case 'F':
+			++flat;
+			break;
+		case 's':
+			bytes = strtol (optarg, 0, 0);
+			break;
+		case 'b':
+			boot_sector = optarg;
+			break;
+		case 'B':
+			boot_sector2 = optarg;
+			break;
+		case 'V':
+			printf ("%s\n", program_version);
+			return 0;
+		case 'h':
+			print_help (argv[0]);
+			return 0;
+		default:
+			print_help (argv[0]);
+			return -1;
+		}
+	}
+	i = optind;
 	if ((! add && i != argc-1) || (add && i >= argc-1) ||
 	    (extract + newfs + check + add > 1) ||
 	    (!flat && (! boot_sector ^ ! boot_sector2)) ||
 	    (newfs && bytes < 5120)) {
-		argp_help (&argp_parser, stderr, ARGP_HELP_USAGE, argv[0]);
+		print_help (argv[0]);
 		return -1;
 	}
+
 	if (newfs) {
 		/* Create new filesystem. */
 		if (! u6fs_create (&fs, argv[i], bytes)) {
