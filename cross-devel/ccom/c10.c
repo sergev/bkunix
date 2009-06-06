@@ -1184,6 +1184,7 @@ struct table *table;
 	lbuf.type = tree->t.type;
 	lbuf.degree = tree->t.degree;
 	lbuf.tr1 = tree;
+	lbuf.tr2 = NULL;
 	return(rcexpr((union tree *)&lbuf, table, reg));
 }
 
