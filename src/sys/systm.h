@@ -61,7 +61,7 @@ int subyte();
 int cpass();
 int passc();
 int issig();
-int swap();
+void swap();
 int newproc();
 int bad_user_address();
 extern char stop;

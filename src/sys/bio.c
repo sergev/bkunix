@@ -249,7 +249,7 @@ swap(rdflg,tab)
 #endif
 #undef SQUEEZE
 #ifndef BGOPTION
-int
+void
 swap(rdflg)
 	int rdflg;
 {
@@ -303,6 +303,7 @@ swap(rdflg)
 			}
 	}
 #endif
-	return(swbuf.b_flags&B_ERROR);
+	if (swbuf.b_flags&B_ERROR)
+		panic(rdflg == B_READ ? "swapin" : "swapout");
 }
 #endif

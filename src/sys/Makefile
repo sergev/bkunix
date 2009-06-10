@@ -39,8 +39,8 @@ CPPFLAGS	= -I. -DKERNEL
 HIBASE		= 0120000
 
 # For BK-0011M model.
-CPPFLAGS	+= -DBK0011
-HIBASE		= 0100000
+#CPPFLAGS	+= -DBK0011
+#HIBASE		= 0100000
 
 CSRCS		+= dev/bktty.c dev/bkfd.c
 OBJS		+= bktty.o bkfd.o

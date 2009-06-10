@@ -22,7 +22,7 @@ struct fdio {
 };
 
 struct fdio *ioarea = (struct fdio*) 02000;
-unsigned short buf [256*10];
+unsigned buf [10 * 512 / sizeof (short)];
 
 void fd_format (cyl, head)
 {
@@ -38,11 +38,12 @@ void fd_format (cyl, head)
 	asm ("mov (sp)+,r5");
 }
 
-int fd_wrtrack (track)
+int fd_wrtrack (track, data)
+	unsigned *data;
 {
 	register int r4;
 	register struct fdio *r3;
-	register unsigned short *r2;
+	register unsigned *r2;
 	int blk;
 
 	/* blk = track * 10 */
@@ -51,7 +52,7 @@ int fd_wrtrack (track)
 	blk += blk;
 
 	r3 = ioarea;
-	r2 = buf;
+	r2 = data;
 	r4 = blk;
 	asm ("mov $-2560, r1");	/* word cnt, negative for write */
 	asm ("mov r4, r0");	/* blk num */
@@ -65,11 +66,12 @@ int fd_wrtrack (track)
 	return -1;
 }
 
-int fd_rdtrack (track)
+int fd_rdtrack (track, data)
+	unsigned *data;
 {
 	register int r4;
 	register struct fdio *r3;
-	register unsigned short *r2;
+	register unsigned *r2;
 	int blk;
 
 	/* blk = track * 10 */
@@ -78,7 +80,7 @@ int fd_rdtrack (track)
 	blk += blk;
 
 	r3 = ioarea;
-	r2 = buf;
+	r2 = data;
 	r4 = blk;
 	asm ("mov $2560, r1");	/* word cnt, negative for write */
 	asm ("mov r4, r0");	/* blk num */
@@ -92,14 +94,15 @@ int fd_rdtrack (track)
 	return -1;
 }
 
-int fd_wrsector (blk)
+int fd_wrsector (blk, data)
+	unsigned *data;
 {
 	register int r4;
 	register struct fdio *r3;
-	register unsigned short *r2;
+	register unsigned *r2;
 
 	r3 = ioarea;
-	r2 = buf;
+	r2 = data;
 	r4 = blk;
 	asm ("mov $-256, r1");	/* word cnt, negative for write */
 	asm ("mov r4, r0");	/* blk num */
@@ -113,14 +116,15 @@ int fd_wrsector (blk)
 	return -1;
 }
 
-int fd_rdsector (blk)
+int fd_rdsector (blk, data)
+	unsigned *data;
 {
 	register int r4;
 	register struct fdio *r3;
-	register unsigned short *r2;
+	register unsigned *r2;
 
 	r3 = ioarea;
-	r2 = buf;
+	r2 = data;
 	r4 = blk;
 	asm ("mov $256, r1");	/* word cnt, negative for write */
 	asm ("mov r4, r0");	/* blk num */
@@ -142,11 +146,13 @@ int format_track (track)
 	printf ("\r%3d ", track);
 	fd_format (track >> 1, track & 1);
 
-	if (fd_wrtrack (track) < 0) {
+	for (i=0; i<256*10; ++i)
+		buf[i] = 0xf6f6;
+	if (fd_wrtrack (track, buf) < 0) {
 		printf ("format error %#o\n", *(unsigned char*) 052);
 		return -1;
 	}
-	if (fd_rdtrack (track) < 0) {
+	if (fd_rdtrack (track, buf) < 0) {
 		printf ("read error %#o\n", *(unsigned char*) 052);
 		return -1;
 	}
@@ -165,8 +171,6 @@ void format ()
 	int errors, i;
 
 	puts ("\nFormatting floppy, 160 tracks\n");
-	for (i=0; i<256*10; ++i)
-		buf[i] = 0xf6f6;
 	errors = 0;
 	for (track = 0; track < (80*2); track++) {
 		retry = 0;
@@ -189,7 +193,7 @@ void write_pattern ()
 		for (i=0; i<256; ++i)
 			buf[i] = s;
 		printf ("\r%4d ", s);
-		if (fd_wrsector (s) < 0) {
+		if (fd_wrsector (s, buf) < 0) {
 			printf ("write error %#o\n", *(unsigned char*) 052);
 		}
 	}
@@ -202,7 +206,7 @@ void test_sector (s)
 	register int i;
 
 	printf ("\r%4d ", s);
-	if (fd_rdsector (s) < 0) {
+	if (fd_rdsector (s, buf) < 0) {
 		printf ("read error %#o\n", *(unsigned char*) 052);
 		return;
 	}
@@ -241,7 +245,7 @@ int main ()
 
 	save_bretry = ioarea->fd_bretry;
 	ioarea->fd_bretry = 1;		/* Disable retries */
-        ioarea->fd_trkcor = 999;	/* Disable write precompensation */
+        ioarea->fd_trkcor = 80;		/* Disable write precompensation */
 	ioarea->fd_fillb = 0366;
 again:
 	/* Stop floppy motor. */
