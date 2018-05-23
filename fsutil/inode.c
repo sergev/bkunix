@@ -105,6 +105,7 @@ void u6fs_inode_clear (u6fs_inode_t *inode)
 int u6fs_inode_save (u6fs_inode_t *inode, int force)
 {
 	unsigned long offset;
+	time_t now;
 	int i;
 
 	if (! inode->fs->writable)
@@ -115,8 +116,9 @@ int u6fs_inode_save (u6fs_inode_t *inode, int force)
 		return 0;
 	offset = (inode->number + 31) * 32;
 
-	time (&inode->atime);
-	time (&inode->mtime);
+	time (&now);
+	inode->atime = now;
+	inode->mtime = now;
 
 	if (! u6fs_seek (inode->fs, offset))
 		return 0;
@@ -176,8 +178,8 @@ void u6fs_inode_print (u6fs_inode_t *inode, FILE *out)
 	}
 	fprintf (out, "\n");
 
-	fprintf (out, "Last access: %s", ctime (&inode->atime));
-	fprintf (out, "   Modified: %s", ctime (&inode->mtime));
+	fprintf (out, "Last access: %s", ctime ((time_t*) &inode->atime));
+	fprintf (out, "   Modified: %s", ctime ((time_t*) &inode->mtime));
 }
 
 void u6fs_directory_scan (u6fs_inode_t *dir, char *dirname,
@@ -206,7 +208,7 @@ void u6fs_directory_scan (u6fs_inode_t *dir, char *dirname,
 			fprintf (stderr, "cannot scan inode %d\n", inum);
 			continue;
 		}
-		scanner (dir, &file, dirname, &data[2], arg);
+		scanner (dir, &file, dirname, (char*) &data[2], arg);
 	}
 }
 
@@ -524,7 +526,7 @@ cloop:
 		inum = data [1] << 8 | data [0];
 		if (inum == 0)
 			continue;
-		if (strncmp (dbuf, data+2, 14) == 0) {
+		if (strncmp (dbuf, (char*)data+2, 14) == 0) {
 			/* Here a component matched in a directory.
 			 * If there is more pathname, go back to
 			 * cloop, otherwise return. */

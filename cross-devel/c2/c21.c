@@ -480,6 +480,7 @@ ok:	p->subop = brtable [(int) p->subop] [(int) p1->subop];
  * Get LF label value.
  */
 int lfvalue(lfno)
+int lfno;
 {
 	register struct node *p;
 
@@ -675,6 +676,7 @@ void clearreg()
 }
 
 void savereg(ai, as)
+int ai;
 char *as;
 {
 	register char *p, *s, *sp;
@@ -696,6 +698,7 @@ char *as;
 
 void dest(as, flt)
 char *as;
+int flt;
 {
 	register char *s;
 	register int i;
@@ -768,6 +771,7 @@ struct node *ap;
 
 int findrand(as, flt)
 char *as;
+int flt;
 {
 	register int i;
 	for (i = flt; i<NREG+flt; i++) {
@@ -827,6 +831,7 @@ char *ap;
 
 void repladdr(p, f, flt)
 struct node *p;
+int f, flt;
 {
 	register int r;
 	int r1;
@@ -965,6 +970,7 @@ register struct node *p;
 
 char *
 findcon(i)
+int i;
 {
 	register char *p;
 	register int r;
@@ -980,6 +986,7 @@ findcon(i)
 }
 
 int compare(oper, cp1, cp2)
+int oper;
 register char *cp1, *cp2;
 {
 	register unsigned n1, n2;

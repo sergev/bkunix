@@ -72,13 +72,15 @@ writehdr(fd, hdr)
 	buf[13] = hdr->a_unused >> 8;
 	buf[14] = hdr->a_flag;
 	buf[15] = hdr->a_flag >> 8;
-	write(fd, buf, 16);
+	if (write(fd, buf, 16) < 0)
+	    perror("write");
 #endif
 }
 
 int
 copy(name, fr, to, size)
 	char *name;
+	int fr, to;
 	long size;
 {
 	register int s, n;
@@ -156,6 +158,7 @@ out:
 
 int
 main(argc, argv)
+        int argc;
 	char **argv;
 {
 	register int i;

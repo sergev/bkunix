@@ -214,13 +214,15 @@ int u6fs_open (u6fs_t *fs, const char *filename, int writable)
 int u6fs_sync (u6fs_t *fs, int force)
 {
 	int i;
+	time_t now;
 
 	if (! fs->writable)
 		return 0;
 	if (! force && ! fs->dirty)
 		return 1;
 
-	time (&fs->time);
+	time (&now);
+	fs->time = now;
 	if (! u6fs_seek (fs, 512))
 		return 0;
 
@@ -284,7 +286,7 @@ void u6fs_print (u6fs_t *fs, FILE *out)
 		fprintf (out, "Super block modified: %u\n", fs->fmod);
 		fprintf (out, "   Mounted read-only: %u\n", fs->ronly);
 	}
-	fprintf (out, "    Last update time: %s", ctime (&fs->time));
+	fprintf (out, "    Last update time: %s", ctime ((time_t*) &fs->time));
 }
 
 void u6fs_close (u6fs_t *fs)

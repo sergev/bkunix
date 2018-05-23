@@ -362,7 +362,7 @@ static void print_inode (u6fs_inode_t *inode)
 	printf (" OWNER=%d ", inode->uid);
 	printf ("MODE=%o\n", inode->mode);
 	printf ("SIZE=%ld ", inode->size);
-	p = ctime (&inode->mtime);
+	p = ctime ((time_t*) &inode->mtime);
 	printf ("MTIME=%12.12s %4.4s\n", p+4, p+20);
 }
 
@@ -388,7 +388,7 @@ static void scan_pass2 (u6fs_t *fs, unsigned short inum);
  */
 static int pass2 (u6fs_t *fs, u6fs_dirent_t *dirp)
 {
-	int inum, n, ret = KEEPON;
+	int inum, ret = KEEPON;
 	u6fs_inode_t inode;
 
 	inum = dirp->ino;
@@ -400,7 +400,6 @@ static int pass2 (u6fs_t *fs, u6fs_dirent_t *dirp)
 	strcpy (pathp, dirp->name);
 	pathp += strlen (pathp);
 /*printf ("%s  %d\n", pathname, inum);*/
-	n = 0;
 	if (inum > fs->isize * LSXFS_INODES_PER_BLOCK ||
 	    inum < LSXFS_ROOT_INODE)
 		print_dir_error (fs, inum, "I OUT OF RANGE");
@@ -714,7 +713,7 @@ static unsigned short check_free_list (u6fs_t *fs)
 		}
 		if (*ap == 0 || pass5 (fs, *ap, &free_blocks) != KEEPON)
 			break;
-		if (! u6fs_read_block (fs, *ap, (char*) data)) {
+		if (! u6fs_read_block (fs, *ap, (unsigned char*) data)) {
 			print_io_error ("READ", *ap);
 			break;
 		}
@@ -989,7 +988,9 @@ fatal:		if (block_map)
 	printf ("%d files %d blocks %d free\n",
 		total_files, used_blocks, free_blocks);
 	if (fs->modified) {
-		time (&fs->time);
+	        time_t now;
+		time (&now);
+		fs->time = now;
 		fs->dirty = 1;
 	}
 	buf_flush (fs);

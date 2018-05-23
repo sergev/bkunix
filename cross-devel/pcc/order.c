@@ -341,7 +341,7 @@ rallo( p, down ) register NODE *p; {
 	/* do register allocation */
 	register o, type, down1, down2, ty;
 
-	if( radebug ) printf( "rallo( %o, %o )\n", p, down );
+	if( radebug ) printf( "rallo( %p, %o )\n", p, down );
 
 	down2 = NOPREF;
 	p->in.rall = down;

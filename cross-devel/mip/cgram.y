@@ -793,12 +793,12 @@ funct_idn:	   NAME  LP
 %%
 
 NODE *
-mkty( t, d, s ) unsigned t; {
+mkty( t, d, s ) unsigned t; int d, s; {
 	return( block( TYPE, NIL, NIL, t, d, s ) );
 	}
 
 NODE *
-bdty( op, p, v ) NODE *p; {
+bdty( op, p, v ) NODE *p; int op, v; {
 	register NODE *q;
 
 	q = block( op, p, NIL, INT, 0, INT );
@@ -842,7 +842,7 @@ savebc() {
 	flostat = 0;
 	}
 
-resetbc(mask){
+resetbc(mask) int mask; {
 
 	swx = *--psavbc;
 	flostat = *--psavbc | (flostat&mask);

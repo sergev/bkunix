@@ -100,7 +100,7 @@ extern int passno;				/* pass of this phase	  */
 extern int outmod;				/* 777 for ok 666 for err */
 extern int line;				/* line in source file	  */
 extern int savop;				/* token "stack"		  */
-extern int xsymbol;				/* symbol offset for ext. */
+extern void *xsymbol;				/* symbol offset for ext. */
 extern int swapf;				/* true to swap operands  */
 extern int rlimit;				/* displacement limit	  */
 extern int datbase;				/* base addr for .data	  */

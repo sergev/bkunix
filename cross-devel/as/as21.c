@@ -263,7 +263,7 @@ void setup()
 		if(n != -1) {
 			fprintf(stderr,
 			   "setup: scanned only %d elements after %d symbols\n",
-				n,p-symtab);
+				n, (int) (p - symtab));
 			aexit(1);
 		}
 		fclose(fd);

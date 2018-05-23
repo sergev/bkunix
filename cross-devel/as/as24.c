@@ -23,7 +23,7 @@ void oset(p, o)
 	p->seek = o;
 	if(DEBUG)
 		printf("\noset: offset %x slot %d seek %d\n",
-			o, (p->slot - p->buf) / 2, p->seek);
+			o, (int) (p->slot - p->buf) / 2, p->seek);
 }
 
 
@@ -49,7 +49,7 @@ void aputw(p, v)
 	}
 	if(DEBUG)
 		printf("aputw  %s %o slot %d ", (p == &relp) ? "rel" : "txt",
-			v, (p->slot - p->buf) / 2);
+			v, (int) (p->slot - p->buf) / 2);
 }
 
 

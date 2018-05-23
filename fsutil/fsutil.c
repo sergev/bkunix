@@ -334,7 +334,8 @@ void add_file (u6fs_t *fs, char *name)
 {
 	u6fs_file_t file;
 	FILE *fd;
-	char data [512], *p;
+	unsigned char data [512];
+	char *p;
 	int len;
 
 	if (verbose) {

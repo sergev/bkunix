@@ -4,6 +4,7 @@ BIN		= bin/sh bin/ls bin/echo bin/cal bin/cp bin/date bin/mkdir \
 		  bin/cat bin/ln bin/wc bin/pwd bin/df bin/mount bin/umount \
 		  bin/clock bin/halt
 SYS		= sys/bkunix sys/boot
+STAND		= stand/fdfmt
 
 DEV		= dev/tty0!c0:0 dev/fd0!b0:0 dev/fd1!b0:1
 DSK		= root.bkd
@@ -12,7 +13,7 @@ FSUTIL		= u6-fsutil -F
 all:		$(DSK)
 #		$(FSUTIL) -v root.bkd
 
-build:		$(SYS) $(ETC) $(BIN)
+build:		$(SYS) $(ETC) $(BIN) $(STAND)
 
 clean:
 		rm -f *~ $(DSK) bkunix
@@ -38,6 +39,7 @@ remake:
 		$(MAKE) -C sys
 		$(MAKE) -C bin
 		$(MAKE) -C etc
+		$(MAKE) -C stand
 
 #		$(FSUTIL) -c $@
 
@@ -49,3 +51,6 @@ $(BIN):
 
 $(ETC):
 		$(MAKE) -C etc
+
+$(STAND):
+		$(MAKE) -C stand

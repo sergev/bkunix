@@ -1,4 +1,5 @@
 DESTDIR		= /usr/local
+CC              = gcc -m32
 CFLAGS		= -O -g -Wall -DDESTDIR=\"$(DESTDIR)\"
 
 all:		c0 c1
@@ -8,7 +9,7 @@ install:	c0 c1
 		install -s c1 ${DESTDIR}/lib/pdp11/c1
 
 clean:
-		rm -f *~ *.o c0 c1 cvopt table.c
+		rm -rf *~ *.o c0 c1 cvopt table.c cvopt.dSYM
 
 c0:		c00.o c01.o c02.o c03.o c04.o c05.o
 		${CC} ${LDFLAGS} -o c0 c00.o c01.o c02.o c03.o c04.o c05.o

@@ -96,6 +96,7 @@ getsuf(as)
 char *
 setsuf(as, ch)
 	char *as;
+	int ch;
 {
 	register char *s, *s1;
 
@@ -189,6 +190,7 @@ callsys(f, v)
 
 int
 main(argc, argv)
+        int argc;
 	char **argv;
 {
 	char *t;

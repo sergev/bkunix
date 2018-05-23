@@ -99,7 +99,7 @@ efcode(){
 		i = getlab();	/* label for return area */
 #ifndef LCOMM
 		putstr("	.bss\n" );
-		printf("L%d: .=.+%d\n", i, tsize(t, p->dimoff, p->sizoff)/SZCHAR );
+		printf("L%d: .=.+%d\n", i, (int) tsize(t, p->dimoff, p->sizoff)/SZCHAR );
 		putstr("	.text\n" );
 #else
 		{ int sz = tsize(t, p->dimoff, p->sizoff) / SZCHAR;
@@ -171,7 +171,7 @@ bfcode( a, n ) int a[]; {
 			p->sclass = PARAM;  /* forget that it is a register */
 			p->offset = NOOFFSET;
 			oalloc( p, &off );
-		printf( "	mov	%d(r5),r%d\n", p->offset/SZCHAR, temp);
+		printf( "	mov	%d(r5),r%d\n", (int) (p->offset/SZCHAR), temp);
 			p->offset = temp;  /* remember register number */
 			p->sclass = REGISTER;   /* remember that it is a register */
 			}
@@ -446,7 +446,7 @@ walkheap(start, limit)
 
 
 	if( start > limit ) return;
-	printf("	cmp	r0,$%d\n",  heapsw[start].sval);
+	printf("	cmp	r0,$%d\n", (int) heapsw[start].sval);
 	printf("	jeq	L%d\n", heapsw[start].slab);
 	if( (2*start) > limit ) {
 		printf("	jbr 	L%d\n", heapsw[0].slab);

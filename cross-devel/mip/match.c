@@ -51,7 +51,7 @@ tshape( p, shape ) NODE *p; {
 
 # ifndef BUG3
 	if( sdebug ){
-		printf( "tshape( %o, ", p );
+		printf( "tshape( %p, ", p );
 		prcook( shape );
 		printf( " ) op = %s\n", opst[o] );
 		}

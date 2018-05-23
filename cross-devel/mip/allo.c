@@ -373,7 +373,7 @@ rwprint( rw ){ /* print rewriting rule */
 		if( rw & (1<<i) ){
 			if( flag ) printf( "|" );
 			++flag;
-			printf( rwnames[i] );
+			printf( "%s", rwnames[i] );
 			}
 		}
 	}
@@ -390,7 +390,7 @@ reclaim( p, rw, cookie ) NODE *p; {
 
 # ifndef BUG3
 	if( rdebug ){
-		printf( "reclaim( %o, ", p );
+		printf( "reclaim( %p, ", p );
 		rwprint( rw );
 		printf( ", " );
 		prcook( cookie );

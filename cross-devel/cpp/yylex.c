@@ -14,6 +14,7 @@ extern void yyerror();
 int
 tobinary(st, b)
 	char *st;
+	int b;
 {
 	int n, c, t;
 	char *s;

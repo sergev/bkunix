@@ -189,6 +189,7 @@ sayline(where)
 void
 pperror(s,x,y)
 	char *s;
+	int x, y;
 {
 	if (fnames[ifno][0])
 		fprintf(stderr, "%s: ", fnames[ifno]);
@@ -201,6 +202,7 @@ pperror(s,x,y)
 void
 yyerror(s,a,b)
 	char *s;
+	int a, b;
 {
 	pperror(s, a, b);
 }
@@ -208,6 +210,7 @@ yyerror(s,a,b)
 void
 ppwarn(s,x)
 	char *s;
+	int x;
 {
 	int fail = exfail;
 
@@ -1108,6 +1111,7 @@ control(p)
 		}
 		--flslvl;
 	}
+        return 0;
 }
 
 struct symtab *
@@ -1155,6 +1159,7 @@ ppsym(s)
 struct symtab *
 lookup(namep, enterf)
 	char *namep;
+	int enterf;
 {
 	register char *np, *snp;
 	register int c, i;
@@ -1405,6 +1410,7 @@ yywrap()
 
 int
 main(argc, argv)
+        int argc;
 	char **argv;
 {
 	register int i, c;

@@ -128,6 +128,7 @@ static int create_root_directory (u6fs_t *fs)
 	u6fs_inode_t inode;
 	unsigned char buf [512];
 	unsigned int bno;
+	time_t now;
 
 	memset (&inode, 0, sizeof(inode));
 	inode.mode = INODE_MODE_ALLOC | INODE_MODE_FDIR | 0777;
@@ -152,8 +153,9 @@ static int create_root_directory (u6fs_t *fs)
 		return 0;
 	inode.addr[0] = bno;
 
-	time (&inode.atime);
-	time (&inode.mtime);
+        time (&now);
+	inode.atime = now;
+	inode.mtime = now;
 
 	if (! u6fs_inode_save (&inode, 1))
 		return 0;
@@ -183,7 +185,8 @@ int u6fs_create (u6fs_t *fs, const char *filename, unsigned long bytes)
 
 	/* make sure the file is of proper size - for SIMH */
 	if (lseek(fs->fd, bytes-1, SEEK_SET) == bytes-1) {
-		write(fs->fd, "", 1);
+		if (write(fs->fd, "", 1) != 1)
+		    /*ignore error*/;
 		lseek(fs->fd, 0, SEEK_SET);
 	} else
 		return 0;

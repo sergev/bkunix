@@ -450,7 +450,7 @@ prcook( cookie ){
 		if( cookie & (1<<i) ){
 			if( flag ) printf( "|" );
 			++flag;
-			printf( cnames[i] );
+			printf( "%s", cnames[i] );
 			}
 		}
 
@@ -494,7 +494,7 @@ order(p,cook) NODE *p; {
 	first:
 # ifndef BUG4
 	if( odebug ){
-		printf( "order( %o, ", p );
+		printf( "order( %p, ", p );
 		prcook( cookie );
 		printf( " )\n" );
 		fwalk( p, eprint, 0 );
@@ -548,7 +548,7 @@ order(p,cook) NODE *p; {
 
 # ifndef BUG4
 	if( odebug ){
-		printf( "order( %o, ", p );
+		printf( "order( %p, ", p );
 		prcook( cook );
 		printf( " ), cookie " );
 		prcook( cookie );
@@ -1050,7 +1050,7 @@ eprint( p, down, a, b ) NODE *p; int *a, *b; {
 	if( down-- ) printf( "    " );
 
 
-	printf( "%o) %s", p, opst[p->in.op] );
+	printf( "%p) %s", p, opst[p->in.op] );
 	switch( p->in.op ) { /* special cases */
 
 	case REG:

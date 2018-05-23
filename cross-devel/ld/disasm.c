@@ -86,8 +86,8 @@ struct opcode {
   { "cl_d",	0x00ad,	0xffff, OPCODE_NO_OPS,		BASIC },
   { "cl_e",	0x00ae,	0xffff, OPCODE_NO_OPS,		BASIC },
   { "ccc",	0x00af,	0xffff, OPCODE_NO_OPS,		BASIC },
-  { "se_0",	0x00b0,	0xffff, OPCODE_NO_OPS,		BASIC },
-  { "sec",	0x00a1,	0xffff, OPCODE_NO_OPS,		BASIC },
+  { "nop1",	0x00b0,	0xffff, OPCODE_NO_OPS,		BASIC },
+  { "sec",	0x00b1,	0xffff, OPCODE_NO_OPS,		BASIC },
   { "sev",	0x00b2,	0xffff, OPCODE_NO_OPS,		BASIC },
   { "se_3",	0x00b3,	0xffff, OPCODE_NO_OPS,		BASIC },
   { "sez",	0x00b4,	0xffff, OPCODE_NO_OPS,		BASIC },
@@ -338,14 +338,14 @@ prsym (addr)
 	for (p=stab; p<stab+stabindex; ++p) {
 		if (p->n_value == addr && ((p->n_type & N_TYPE) == N_TEXT ||
 		    (p->n_type & N_TYPE) == N_DATA)) {
-			printf ("%06o <%.8s>:\n", addr, p->n_name);
+			printf ("%06o               %.8s:\n", addr, p->n_name);
 			++printed;
 		}
 	}
 	if (printed == 0 && addr == 0)
-		printf ("%06o <.text>:\n", 0);
+		printf ("%06o               .text:\n", 0);
 	if (printed == 0 && addr == hdr.a_text)
-		printf ("%06o <.data>:\n", hdr.a_text);
+		printf ("%06o               .data:\n", hdr.a_text);
 }
 
 /*
@@ -671,30 +671,26 @@ prinsn (memaddr, opcode)
 			break;
 	switch (op[i].type) {
 	case OPCODE_NO_OPS:
-		printf (op[i].name);
+		printf ("%s", op[i].name);
 		break;
 	case OPCODE_REG:
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
+		printf ("%s"AFTER_INSTRUCTION, op[i].name);
 		prreg (dst);
 		break;
 	case OPCODE_OP:
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
+		printf ("%s"AFTER_INSTRUCTION, op[i].name);
 		if (strcmp (op[i].name, "jmp") == 0)
 			dst |= JUMP;
 		properand (memaddr, dst, dstcode, dstrel);
 		break;
 	case OPCODE_FOP:
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
+		printf ("%s"AFTER_INSTRUCTION, op[i].name);
 		if (strcmp (op[i].name, "jmp") == 0)
 			dst |= JUMP;
 		prfoperand (memaddr, dst);
 		break;
 	case OPCODE_REG_OP:
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
+		printf ("%s"AFTER_INSTRUCTION, op[i].name);
 		prreg (src);
 		printf (OPERAND_SEPARATOR);
 		if (strcmp (op[i].name, "jsr") == 0)
@@ -702,51 +698,39 @@ prinsn (memaddr, opcode)
 		properand (memaddr, dst, dstcode, dstrel);
 		break;
 	case OPCODE_REG_OP_REV:
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
+		printf ("%s"AFTER_INSTRUCTION, op[i].name);
 		properand (memaddr, dst, dstcode, dstrel);
-		printf (OPERAND_SEPARATOR);
+		printf ("%s", OPERAND_SEPARATOR);
 		prreg (src);
 		break;
 	case OPCODE_AC_FOP: {
 		int ac = (opcode & 0xe0) >> 6;
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
-		printf ("fr%d", ac);
-		printf (OPERAND_SEPARATOR);
+		printf ("%s"AFTER_INSTRUCTION"fr%d"OPERAND_SEPARATOR, op[i].name, ac);
 		prfoperand (memaddr, dst);
 		break;
 	}
 	case OPCODE_FOP_AC: {
 		int ac = (opcode & 0xe0) >> 6;
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
+		printf ("%s"AFTER_INSTRUCTION, op[i].name);
 		prfoperand (memaddr, dst);
-		printf (OPERAND_SEPARATOR);
-		printf ("fr%d", ac);
+		printf (OPERAND_SEPARATOR"fr%d", ac);
 		break;
 	}
 	case OPCODE_AC_OP: {
 		int ac = (opcode & 0xe0) >> 6;
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
-		printf ("fr%d", ac);
-		printf (OPERAND_SEPARATOR);
+		printf ("%s"AFTER_INSTRUCTION"fr%d"OPERAND_SEPARATOR, op[i].name, ac);
 		properand (memaddr, dst, dstcode, dstrel);
 		break;
 	}
 	case OPCODE_OP_AC: {
 		int ac = (opcode & 0xe0) >> 6;
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
+		printf ("%s"AFTER_INSTRUCTION, op[i].name);
 		properand (memaddr, dst, dstcode, dstrel);
-		printf (OPERAND_SEPARATOR);
-		printf ("fr%d", ac);
+		printf (OPERAND_SEPARATOR"fr%d", ac);
 		break;
 	}
 	case OPCODE_OP_OP:
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
+		printf ("%s"AFTER_INSTRUCTION, op[i].name);
 		properand (memaddr - 2, src, srccode, srcrel);
 		printf (OPERAND_SEPARATOR);
 		properand (memaddr, dst, dstcode, dstrel);
@@ -754,16 +738,14 @@ prinsn (memaddr, opcode)
 	case OPCODE_DISPL: {
 		int displ = (opcode & 0xff) << 8;
 		unsigned int address = memaddr + (sign_extend (displ) >> 7);
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
+		printf ("%s"AFTER_INSTRUCTION, op[i].name);
 		praddr (address, relcode);
 		break;
 	}
 	case OPCODE_REG_DISPL: {
 		int displ = (opcode & 0x3f) << 10;
 		unsigned int address = memaddr - (displ >> 9);
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
+		printf ("%s"AFTER_INSTRUCTION, op[i].name);
 		prreg (src);
 		printf (OPERAND_SEPARATOR);
 		praddr (address, relcode);
@@ -771,29 +753,21 @@ prinsn (memaddr, opcode)
 	}
 	case OPCODE_IMM8: {
 		int code = opcode & 0xff;
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
-		printf ("%d", code);
+		printf ("%s"AFTER_INSTRUCTION"%d", op[i].name, code);
 		break;
 	}
 	case OPCODE_IMM6: {
 		int code = opcode & 0x3f;
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
-		printf ("%d", code);
+		printf ("%s"AFTER_INSTRUCTION"%d", op[i].name, code);
 		break;
 	}
 	case OPCODE_IMM3: {
 		int code = opcode & 7;
-		printf (op[i].name);
-		printf (AFTER_INSTRUCTION);
-		printf ("%d", code);
+		printf ("%s"AFTER_INSTRUCTION"%d", op[i].name, code);
 		break;
 	}
 	case OPCODE_ILLEGAL:
-		printf (".word");
-		printf (AFTER_INSTRUCTION);
-		printf ("%d", opcode);
+		printf (".word"AFTER_INSTRUCTION"%d", opcode);
 		break;
 	default:
 		printf ("???");
@@ -808,7 +782,7 @@ prsection (addr, limit)
 
 	while (*addr < limit) {
 		prsym (*addr);
-		printf ("%6o:", *addr);
+		printf ("%06o", *addr);
 		opcode = freadw (textfd);
 		if (relfd)
 			relcode = freadw (relfd);
@@ -998,6 +972,7 @@ disbin (fname)
 
 int
 main (argc, argv)
+        int argc;
 	register char **argv;
 {
 	register char *cp;

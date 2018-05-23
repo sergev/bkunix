@@ -391,7 +391,7 @@ defid( q, class ) register NODE *q; register int class; {
 	FIXDEF(p);
 
 # ifndef BUG1
-	if( ddebug ) printf( "	dimoff, sizoff, offset: %d, %d, %d\n", p->dimoff, p->sizoff, p->offset );
+	if( ddebug ) printf( "	dimoff, sizoff, offset: %d, %d, %d\n", p->dimoff, p->sizoff, (int) p->offset );
 # endif
 
 	}
@@ -442,7 +442,7 @@ dclargs(){
 		p = &stab[j];
 # ifndef BUG1
 		if( ddebug > 2 ){
-			printf("\t%s (%d) ",p->sname, j);
+			printf("\t%s (%d) ", p->sname, (int) j);
 			tprint(p->stype);
 			printf("\n");
 			}
@@ -1082,7 +1082,7 @@ doinit( p ) register NODE *p; {
 		}
 
 # ifndef BUG1
-	if( idebug > 1 ) printf( "doinit(%o)\n", p );
+	if( idebug > 1 ) printf( "doinit(%o)\n", (int) p );
 # endif
 
 	t = pstk->in_t;  /* type required */

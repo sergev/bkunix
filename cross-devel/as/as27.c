@@ -34,7 +34,7 @@ struct value expres1()
 			   passno != 0)
 			   aerror('u');
 			if(rv.type.i == TYPEEXT) {
-				xsymbol = tok.u;
+				xsymbol = (void*) (size_t) tok.u;
 				rv.val.i = 0;
 				goto operand;
 			}

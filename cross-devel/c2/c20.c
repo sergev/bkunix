@@ -78,7 +78,7 @@ void	refcount();
 void	iterate();
 void	comjump();
 void	output();
-int	getline();
+int	getlin();
 int	getnum();
 int	oplook();
 void	reducelit();
@@ -86,6 +86,7 @@ void	xjump();
 void	backjmp();
 
 int main(argc, argv)
+int argc;
 char **argv;
 {
 	register int niter, maxiter, isend;
@@ -165,7 +166,7 @@ char **argv;
 		fprintf(stderr, "%d sob's added\t\t\t", nsob);
 		fprintf(stderr, "%d redundant tst's\n", nrtst);
 		fprintf(stderr, "%d literals eliminated\t\t", nlit);
-		fprintf(stderr, "%dK core\n", (((int)lastr+01777)>>10)&077);
+		fprintf(stderr, "%dK core\n", (int) (((size_t)lastr+01777)>>10)&077);
 	}
 	exit(0);
 }
@@ -177,7 +178,7 @@ int input()
 
 	lastp = &first;
 	for (;;) {
-		oper = getline();
+		oper = getlin();
 		switch (oper&0377) {
 
 		case LABEL:
@@ -244,7 +245,7 @@ int input()
 	}
 }
 
-int getline()
+int getlin()
 {
 	register char *lp;
 	register int c;
@@ -390,6 +391,7 @@ struct node *at;
 
 char *
 copy(na, ap, ap2)
+        int na;
 	char *ap, *ap2;
 {
 	register char *p, *np;

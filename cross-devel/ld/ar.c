@@ -79,7 +79,8 @@ putword (w, fd)
 
 	buf[0] = w;
 	buf[1] = w >> 8;
-	write(fd, buf, 2);
+	if (write(fd, buf, 2) < 0)
+                perror("write");
 #endif
 }
 
@@ -95,7 +96,10 @@ getword (fd)
 #else
 	unsigned char buf [2];
 
-	read(fd, buf, 2);
+	if (read(fd, buf, 2) < 0) {
+                perror("read");
+                return 0;
+        }
 	return buf[0] | buf[1] << 8;
 #endif
 }
@@ -147,7 +151,8 @@ putarhdr(hdr, fd)
 	buf[23] = hdr->ar_size >> 24;
 	buf[24] = hdr->ar_size;
 	buf[25] = hdr->ar_size >> 8;
-	write(fd, buf, sizeof(buf));
+	if (write(fd, buf, sizeof(buf)) < 0)
+                perror("write");
 #endif
 }
 
@@ -220,17 +225,23 @@ install()
 		done(1);
 	}
 	lseek(tf, 0L, 0);
-	while ((i = read(tf, buf, 512)) > 0)
-		write(af, buf, i);
+	while ((i = read(tf, buf, 512)) > 0) {
+		if (write(af, buf, i) < 0)
+		        perror("write");
+        }
 	if (tf2 >= 0) {
 		lseek(tf2, 0L, 0);
-		while ((i = read(tf2, buf, 512)) > 0)
-			write(af, buf, i);
+		while ((i = read(tf2, buf, 512)) > 0) {
+			if (write(af, buf, i) < 0)
+                                perror("write");
+                }
 	}
 	if (tf1 >= 0) {
 		lseek(tf1, 0L, 0);
-		while ((i = read(tf1, buf, 512)) > 0)
-			write(af, buf, i);
+		while ((i = read(tf1, buf, 512)) > 0) {
+			if (write(af, buf, i) < 0)
+                                perror("write");
+                }
 	}
 }
 
@@ -261,8 +272,10 @@ copyfil(fi, fo, flag)
 		}
 		if (read(fi, buf, i) != i)
 			pe++;
-		if ((flag & SKIP) == 0)
-			write(fo, buf, o);
+		if ((flag & SKIP) == 0) {
+		        if (write(fo, buf, o) < 0)
+			        perror("write");
+                }
 		arbuf.ar_size -= 512;
 	}
 	if (pe)
@@ -332,6 +345,7 @@ stats()
 
 void
 mesg(c)
+        int c;
 {
 	if (flg['v'-'a'])
 		if (c != 'c' || flg['v'-'a'] > 1)
@@ -598,6 +612,7 @@ usage()
 
 int
 main(argc, argv)
+        int argc;
 	char *argv[];
 {
 	register int i;

@@ -1,4 +1,5 @@
 DESTDIR		= /usr/local
+CC              = gcc -m32 -Werror
 CFLAGS		= -O -Wall -DDESTDIR=\"$(DESTDIR)\"
 
 all:		pdp11-pcc pdp11-cc

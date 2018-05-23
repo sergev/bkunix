@@ -87,6 +87,7 @@ compare(p1, p2)
 int
 names(filename, nameflg)
 	char *filename;
+	int nameflg;
 {
 	struct exec hdr;
 	struct nlist *nlp;
@@ -155,6 +156,7 @@ badsym:		printf("%s: cannot read symbol table\n", filename);
 
 int
 main(argc, argv)
+        int argc;
 	char **argv;
 {
 	if (--argc > 0 && *argv[1] == '-') {

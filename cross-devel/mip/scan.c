@@ -66,7 +66,6 @@ char * lxgcp;
 extern int proflg;
 extern int gdebug;
 extern void fpe();
-struct sigvec fpe_sigvec;
 int oldway;		/* allocate storage so lint will compile as well */
 #ifndef LINT
 extern int lastloc;
@@ -178,8 +177,7 @@ mainp1( argc, argv ) int argc; char *argv[]; {  /* control multiple files */
 	curdim = 16;
 	reached = 1;
 
-	fpe_sigvec.sv_handler = fpe;
-	(void) sigvec(SIGFPE, &fpe_sigvec, (struct sigvec *) NULL);
+	(void) signal(SIGFPE, fpe);
 
 	yyparse();
 	yyaccpt();

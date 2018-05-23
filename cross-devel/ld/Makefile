@@ -1,5 +1,5 @@
-CC		= gcc -g -Wall
-CFLAGS		= -O
+CC		= gcc -m32 -Werror
+CFLAGS		= -O -g -Wall
 DESTDIR		= /usr/local
 PROG		= pdp11-size pdp11-strip pdp11-disasm \
 		  pdp11-nm pdp11-ld pdp11-ar #pdp11-reloc

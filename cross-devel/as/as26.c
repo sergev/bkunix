@@ -326,7 +326,7 @@ void op2b(a1, op)
 	a2 |= a1 | op;
 	outw(0,a2);
 	for(p = &adrbuf[0]; p < padrb; p += 3) {
-		xsymbol = p[2];
+		xsymbol = (void*) (size_t) p[2];
 		outw(p[1],p[0]);
 	}
 	return;
@@ -363,7 +363,7 @@ unsigned address()
 				addrovf();
 			*padrb++ = 0;
 			*padrb++ = 0;
-			*padrb++ = xsymbol;
+			*padrb++ = (size_t) xsymbol;
 			return(v.val.u);
 
 		case '-':
@@ -388,7 +388,7 @@ unsigned address()
 				addrovf();
 			*padrb++ = v.val.u;
 			*padrb++ = v.type.u;
-			*padrb++ = xsymbol;
+			*padrb++ = (size_t) xsymbol;
 			v.val.u = t | AMIMMED;
 			return(v.val.u);
 
@@ -412,7 +412,7 @@ unsigned address()
 			addrovf();
 		*padrb++ = v.val.u;
 		*padrb++ = v.type.u;
-		*padrb++ = xsymbol;
+		*padrb++ = (size_t) xsymbol;
 		v = express();
 		checkreg(&v);
 		checkrp();
@@ -434,7 +434,7 @@ unsigned address()
 		addrovf();
 	*padrb++ = v.val.u;
 	*padrb++ = v.type.u;
-	*padrb++ = xsymbol;
+	*padrb++ = (size_t) xsymbol;
 	return(AMRELATIVE | t);
 }
 
