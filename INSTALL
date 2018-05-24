@@ -67,20 +67,20 @@ This file describes how to build BKUNIX from the source package.
 
     You can explore the contents of disks by typing:
 
-	u6-fsutil -v root.dsk
+	u6-fsutil -v root.bkd
 
-5.  To run the system you will need SIMH emulator "pdp11" installed
+5.  To run the system you will need BK emulator installed
     somewhere in the path. Enter src/ directory and type:
 
 	make run
 
-    On "rx boot:" prompt type "lsx". You will get root shell prompt "# ".
-    To exit from SIMH, type ^E then q and press Enter.
+    On "boot:" prompt type "bkunix". You will get root shell prompt "# ".
+    To exit from the simulator, close the BK window.
 
-    You can download the sources of SIMH from the Computer History
-    Simulation Project page (http://simh.trailing-edge.com).
+    You can download the sources of BK emulator from Github
+    (https://github.com/emestee/bk-emulator).
 
-For more information about BKUNIX project, visit bkunix.sourceforge.net.
+For more information about BKUNIX project, visit: https://github.com/sergev/bkunix
 You are welcome to the world on ancient unix! :-)
 ___
 Best wishes,

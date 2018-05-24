@@ -22,14 +22,14 @@ int add;
 int newfs;
 int check;
 int fix;
-int flat;
+int flat = 1;
 unsigned long bytes;
 char *boot_sector;
 char *boot_sector2;
 
 static const char *program_version =
-	"LSX file system utility, version 1.1\n"
-	"Copyright (C) 2002-2009 Serge Vakulenko";
+	"LSX file system utility, version 1.2\n"
+	"Copyright (C) 2002-2018 Serge Vakulenko";
 
 static const char *program_bug_address = "<serge@vak.ru>";
 
@@ -46,6 +46,7 @@ static struct option program_options[] = {
 	{ "boot",	required_argument,	0,	'b' },
 	{ "boot2",	required_argument,	0,	'B' },
 	{ "flat",	no_argument,		0,	'F' },
+	{ "shuffle",	no_argument,		0,	'S' },
 	{ 0 }
 };
 
@@ -63,18 +64,19 @@ static void print_help (char *progname)
 	printf ("    %s --new --size=bytes filesys.bkd\n", progname);
 	printf ("\n");
 	printf ("Options:\n");
-	printf ("  -a, --add          Add files to filesystem.\n");
-	printf ("  -x, --extract      Extract all files.\n");
-	printf ("  -c, --check        Check filesystem, use -c -f to fix.\n");
-	printf ("  -f, --fix          Fix bugs in filesystem.\n");
-	printf ("  -n, --new          Create new filesystem, -s required.\n");
-	printf ("  -s NUM, --size=NUM Size in bytes for created filesystem.\n");
-	printf ("  -b FILE, --boot=FILE Boot sector, -B required if not -F.\n");
-	printf ("  -B FILE, --boot2=FILE Secondary boot sector, -b required.\n");
-	printf ("  -F, --flat         Flat mode, no sector remapping.\n");
-	printf ("  -v, --verbose      Print verbose information.\n");
-	printf ("  -V, --version      Print version information and then exit.\n");
-	printf ("  -h, --help         Print this message.\n");
+	printf ("  -a, --add          Add files to filesystem\n");
+	printf ("  -x, --extract      Extract all files\n");
+	printf ("  -c, --check        Check filesystem, use -c -f to fix\n");
+	printf ("  -f, --fix          Fix bugs in filesystem\n");
+	printf ("  -n, --new          Create new filesystem, -s required\n");
+	printf ("  -s NUM, --size=NUM Size in bytes for created filesystem\n");
+	printf ("  -b FILE, --boot=FILE Boot sector, -B required if -S\n");
+	printf ("  -B FILE, --boot2=FILE Secondary boot sector, -b required\n");
+	printf ("  -F, --flat         Flat mode, no sector remapping (default)\n");
+	printf ("  -S, --shuffle      Shuffle mode, remap 128-byte sectors\n");
+	printf ("  -v, --verbose      Print verbose information\n");
+	printf ("  -V, --version      Print version information and then exit\n");
+	printf ("  -h, --help         Print this message\n");
 	printf ("\n");
 	printf ("Report bugs to \"%s\".\n", program_bug_address);
 }
@@ -436,6 +438,9 @@ int main (int argc, char **argv)
 			break;
 		case 'F':
 			++flat;
+			break;
+		case 'S':
+			flat = 0;
 			break;
 		case 's':
 			bytes = strtol (optarg, 0, 0);

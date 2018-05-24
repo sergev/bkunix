@@ -41,7 +41,8 @@ remake:
 		$(MAKE) -C etc
 		$(MAKE) -C stand
 
-#		$(FSUTIL) -c $@
+run:            $(DSK)
+		bk -3 -B $(DSK)
 
 $(SYS):
 		$(MAKE) -C sys

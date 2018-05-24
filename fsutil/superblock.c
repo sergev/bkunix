@@ -34,7 +34,7 @@ int u6fs_seek (u6fs_t *fs, unsigned long offset)
 	unsigned long hw_address;
 
 	hw_address = flat ? offset : deskew (offset);
-/*	printf ("seek %ld, block %ld - hw %d\n", offset, offset / 512, hw_address);*/
+/*	printf ("seek %ld, block %ld - hw %ld\n", offset, offset / 512, hw_address);*/
 	if (lseek (fs->fd, hw_address, 0) < 0) {
 		if (verbose)
 			printf ("error seeking %ld, block %ld - hw %ld\n",
