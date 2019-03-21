@@ -413,7 +413,7 @@ int main (int argc, char **argv)
 	u6fs_inode_t inode;
 
 	for (;;) {
-		key = getopt_long (argc, argv, "vaxncfFs:b:B:",
+		key = getopt_long (argc, argv, "vaxncfFSs:b:B:Vh",
 			program_options, 0);
 		if (key == -1)
 			break;
