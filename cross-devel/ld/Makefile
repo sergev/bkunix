@@ -1,4 +1,4 @@
-CC		= gcc -m32 -Werror
+CC		= gcc -Werror
 CFLAGS		= -O -g -Wall
 DESTDIR		= /usr/local
 PROG		= pdp11-size pdp11-strip pdp11-disasm \

@@ -23,6 +23,7 @@ cross-devel/pcc/cgram.c
 cross-devel/pcc/gram.in
 cross-devel/pcc/pcclocal.h
 cross-devel/pcc/pcctokens
+cross-devel/pcc/comm1.c
 fsutil/u6-fsutil
 src/bin/cal
 src/bin/cat

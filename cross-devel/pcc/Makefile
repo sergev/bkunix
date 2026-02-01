@@ -14,7 +14,7 @@
 DESTDIR		= /usr/local
 LDESTDIR	= $(DESTDIR)/lib/pdp11
 M		= ../mip
-CC              = gcc -m32
+CC              = gcc
 CFLAGS		= -O -g -I. -I$(M) -DONEPASS -DFIXSTRUCT="outstruct" \
 		  -DFLEXNAMES
 LDFLAGS 	= -g

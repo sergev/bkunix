@@ -1,5 +1,5 @@
 DESTDIR		= /usr/local/
-CC              = gcc -m32 -Werror
+CC              = gcc -Werror
 CFLAGS		= -O -g -Wall
 LDFLAGS		= -g
 
