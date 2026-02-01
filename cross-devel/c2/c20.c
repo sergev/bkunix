@@ -72,22 +72,18 @@ int	lastseg	= -1;
 
 #define	NSTK	5000
 
-void	opsetup();
-int	input();
-void	refcount();
-void	iterate();
-void	comjump();
-void	output();
-int	getlin();
-int	getnum();
-int	oplook();
-void	reducelit();
-void	xjump();
-void	backjmp();
+void	opsetup(void);
+int	input(void);
+void	refcount(void);
+void	iterate(void);
+void	comjump(void);
+int	getlin(void);
+int	oplook(void);
+void	xjump(struct node *);
+void	backjmp(struct node *, struct node *);
 
-int main(argc, argv)
-int argc;
-char **argv;
+int
+main(int argc, char **argv)
 {
 	register int niter, maxiter, isend;
 	int nflag;
@@ -171,7 +167,8 @@ char **argv;
 	exit(0);
 }
 
-int input()
+int
+input(void)
 {
 	register struct node *p, *lastp;
 	register int oper;
@@ -187,7 +184,7 @@ int input()
 				p->op = DLABEL;
 				p->subop = 0;
 				p->labno = 0;
-				p->code = copy(1, line);
+				p->code = copy(1, line, (char *)0);
 			} else if (line[1] == 'F') {
 				char *s = strchr(line, '=');
 				if (! s)
@@ -196,7 +193,7 @@ int input()
 				p->op = FLABEL;
 				p->refc = getnum(s);
 				p->labno = atoi(line+2);
-				p->code = copy(1, s);
+				p->code = copy(1, s, (char *)0);
 				if (p->refc >= 0 && p->refc < 10)
 					p->subop = p->refc;
 				else
@@ -220,7 +217,7 @@ int input()
 				p->code = 0;
 			else {
 				p->labno = 0;
-				p->code = copy(1, curlp);
+				p->code = copy(1, curlp, (char *)0);
 			}
 			break;
 
@@ -229,7 +226,7 @@ int input()
 			p->op = oper&0377;
 			p->subop = oper>>8;
 			p->labno = 0;
-			p->code = copy(1, curlp);
+			p->code = copy(1, curlp, (char *)0);
 			break;
 
 		}
@@ -245,7 +242,8 @@ int input()
 	}
 }
 
-int getlin()
+int
+getlin(void)
 {
 	register char *lp;
 	register int c;
@@ -274,8 +272,8 @@ int getlin()
 	return(END);
 }
 
-int getnum(ap)
-char *ap;
+int
+getnum(char *ap)
 {
 	register char *p;
 	register int n, c;
@@ -289,7 +287,8 @@ char *ap;
 	return(n);
 }
 
-void output()
+void
+output(void)
 {
 	register struct node *t;
 	register struct optab *oper;
@@ -363,8 +362,8 @@ void output()
  * and replace them with (pc),xx(r)
  *     -- Thanx and a tip of the Hatlo hat to Bliss-11.
  */
-void reducelit(at)
-struct node *at;
+void
+reducelit(struct node *at)
 {
 	register char *c1, *c2;
 	char *c2s;
@@ -385,14 +384,12 @@ struct node *at;
 	while (*c1++ == *c2++);
 	if (*--c1!='(' || *--c2!=',')
 		return;
-	t->code = copy(2, "(pc)", c2s);
+	t->code = copy(2, (char *)"(pc)", c2s);
 	nlit++;
 }
 
 char *
-copy(na, ap, ap2)
-        int na;
-	char *ap, *ap2;
+copy(int na, char *ap, char *ap2)
 {
 	register char *p, *np;
 	char *onp;
@@ -422,7 +419,8 @@ copy(na, ap, ap2)
 	return(onp);
 }
 
-void opsetup()
+void
+opsetup(void)
 {
 	register struct optab *optp, **ophp;
 	register char *p;
@@ -436,7 +434,8 @@ void opsetup()
 	}
 }
 
-int oplook()
+int
+oplook(void)
 {
 	register struct optab *optp;
 	register char *lp, *np;
@@ -479,7 +478,8 @@ int oplook()
 	return(0);
 }
 
-void refcount()
+void
+refcount(void)
 {
 	register struct node *p, *lp;
 	static struct node *labhash[LABHS];
@@ -518,7 +518,8 @@ void refcount()
 			decref(p);
 }
 
-void iterate()
+void
+iterate(void)
 {
 	register struct node *p, *rp, *p1;
 
@@ -596,8 +597,8 @@ void iterate()
 	}
 }
 
-void xjump(p1)
-register struct node *p1;
+void
+xjump(struct node *p1)
 {
 	register struct node *p2, *p3;
 
@@ -621,8 +622,7 @@ register struct node *p1;
 }
 
 struct node *
-insertl(oldp)
-register struct node *oldp;
+insertl(struct node *oldp)
 {
 	register struct node *lp;
 
@@ -651,8 +651,7 @@ register struct node *oldp;
 }
 
 struct node *
-codemove(p)
-struct node *p;
+codemove(struct node *p)
 {
 	register struct node *p1, *p2, *p3;
 	struct node *t, *tl;
@@ -729,7 +728,8 @@ ivloop:
 	return(p3);
 }
 
-void comjump()
+void
+comjump(void)
 {
 	register struct node *p1, *p2, *p3;
 
@@ -740,8 +740,8 @@ void comjump()
 					backjmp(p1, p3);
 }
 
-void backjmp(ap1, ap2)
-struct node *ap1, *ap2;
+void
+backjmp(struct node *ap1, struct node *ap2)
 {
 	register struct node *p1, *p2, *p3;
 

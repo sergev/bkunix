@@ -34,6 +34,7 @@
 %left LB LP STROP
 %{
 # include "pass1.h"
+# include "onepass.h"
 %}
 
 	/* define types */
@@ -793,13 +794,13 @@ funct_idn:	   NAME  LP
 %%
 
 NODE *
-mkty( t, d, s ) unsigned t; int d, s; {
+mkty(unsigned t, int d, int s) {
 	return( block( TYPE, NIL, NIL, t, d, s ) );
 	}
 
 NODE *
-bdty( op, p, v ) NODE *p; int op, v; {
-	register NODE *q;
+bdty(int op, NODE *p, int v) {
+	NODE *q;
 
 	q = block( op, p, NIL, INT, 0, INT );
 
@@ -824,14 +825,16 @@ bdty( op, p, v ) NODE *p; int op, v; {
 	return( q );
 	}
 
-dstash( n ) OFFSZ n;{ /* put n into the dimension table */
+void
+dstash(OFFSZ n) { /* put n into the dimension table */
 	if( curdim >= DIMTABSZ-1 ){
 		cerror("dimension table overflow");
 		}
 	dimtab[ curdim++ ] = n;
 	}
 
-savebc() {
+void
+savebc(void) {
 	if( psavbc > & asavbc[BCSZ-4 ] ){
 		cerror("whiles, fors, etc. too deeply nested");
 		}
@@ -842,7 +845,8 @@ savebc() {
 	flostat = 0;
 	}
 
-resetbc(mask) int mask; {
+void
+resetbc(int mask) {
 
 	swx = *--psavbc;
 	flostat = *--psavbc | (flostat&mask);
@@ -851,7 +855,8 @@ resetbc(mask) int mask; {
 
 	}
 
-addcase(p) NODE *p; { /* add case to switch */
+void
+addcase(NODE *p) { /* add case to switch */
 
 	p = optim( p );  /* change enum to ints */
 	if( p->in.op != ICON ){
@@ -871,7 +876,8 @@ addcase(p) NODE *p; { /* add case to switch */
 	tfree(p);
 	}
 
-adddef(){ /* add default case to switch */
+void
+adddef(void) { /* add default case to switch */
 	if( swtab[swx].slab >= 0 ){
 		uerror("duplicate default in switch");
 		return;
@@ -883,7 +889,8 @@ adddef(){ /* add default case to switch */
 	deflab( swtab[swx].slab = getlab() );
 	}
 
-swstart(){
+void
+swstart(void){
 	/* begin a switch block */
 	if( swp >= &swtab[SWITSZ] ){
 		cerror("switch table overflow");
@@ -893,9 +900,10 @@ swstart(){
 	++swp;
 	}
 
-swend(){ /* end a switch block */
+void
+swend(void){ /* end a switch block */
 
-	register struct sw *swbeg, *p, *q, *r, *r1;
+	struct sw *swbeg, *p, *q, *r, *r1;
 	CONSZ temp;
 	int tempi;
 

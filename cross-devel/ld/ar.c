@@ -68,9 +68,7 @@ char	buf[512];
  * Write 16-bit value to file.
  */
 void
-putword (w, fd)
-	unsigned int w;
-	int fd;
+putword (unsigned int w, int fd)
 {
 #ifdef __pdp11__
 	write(fd, &w, 2);
@@ -88,11 +86,11 @@ putword (w, fd)
  * Read 16-bit value from file.
  */
 unsigned int
-getword (fd)
-	int fd;
+getword (int fd)
 {
 #ifdef __pdp11__
-	read(fd, &w, 2);
+	unsigned int w;
+	return (read(fd, &w, 2) == 2) ? w : 0;
 #else
 	unsigned char buf [2];
 
@@ -105,9 +103,7 @@ getword (fd)
 }
 
 int
-getarhdr(hdr, fd)
-	register struct ar_hdr *hdr;
-	int fd;
+getarhdr(struct ar_hdr *hdr, int fd)
 {
 #ifdef __pdp11__
 	return read(fd, hdr, AR_HDRSIZE) == AR_HDRSIZE;
@@ -129,9 +125,7 @@ getarhdr(hdr, fd)
 }
 
 void
-putarhdr(hdr, fd)
-	register struct ar_hdr *hdr;
-	int fd;
+putarhdr(struct ar_hdr *hdr, int fd)
 {
 #ifdef __pdp11__
 	write(fd, hdr, sizeof(*hdr));
@@ -157,8 +151,7 @@ putarhdr(hdr, fd)
 }
 
 void
-done(exitval)
-	int exitval;
+done(int exitval)
 {
 	unlink(tfnam);
 	unlink(tf1nam);
@@ -167,8 +160,7 @@ done(exitval)
 }
 
 void
-setcom(fun)
-	void (*fun)();
+setcom(void (*fun)(void))
 {
 	if (comfun != 0) {
 		printf("only one of [%s] allowed\n", man);
@@ -178,7 +170,7 @@ setcom(fun)
 }
 
 void
-init()
+init(void)
 {
 	tf = mkstemp(tfnam);
 	if (tf < 0) {
@@ -189,7 +181,7 @@ init()
 }
 
 int
-getaf()
+getaf(void)
 {
 	int magic;
 
@@ -205,16 +197,16 @@ getaf()
 }
 
 void
-noar()
+noar(void)
 {
 	printf("%s does not exist\n", arnam);
 	done(1);
 }
 
 void
-install()
+install(void)
 {
-	register int i;
+	int i;
 
 	for (i=1; i<4; i++)
 		signal(i, SIG_IGN);
@@ -250,10 +242,9 @@ install()
  * size given in arbuf
  */
 void
-copyfil(fi, fo, flag)
-	int fi, fo, flag;
+copyfil(int fi, int fo, int flag)
 {
-	register int i, o;
+	int i, o;
 	int pe;
 
 	if (flag & HEAD)
@@ -283,10 +274,9 @@ copyfil(fi, fo, flag)
 }
 
 char *
-trim(s)
-	char *s;
+trim(char *s)
 {
-	register char *p1, *p2;
+	char *p1, *p2;
 
 	for (p1 = s; *p1; p1++)
 		;
@@ -307,11 +297,10 @@ trim(s)
  * into the temporary file
  */
 void
-movefil(f)
-	int f;
+movefil(int f)
 {
-	register char *cp;
-	register int i;
+	char *cp;
+	int i;
 
 	cp = trim(file);
 	for (i=0; i<14; i++) {
@@ -329,9 +318,9 @@ movefil(f)
 }
 
 int
-stats()
+stats(void)
 {
-	register int f;
+	int f;
 
 	f = open(file, 0);
 	if (f < 0)
@@ -344,8 +333,7 @@ stats()
 }
 
 void
-mesg(c)
-        int c;
+mesg(int c)
 {
 	if (flg['v'-'a'])
 		if (c != 'c' || flg['v'-'a'] > 1)
@@ -353,9 +341,9 @@ mesg(c)
 }
 
 void
-cleanup()
+cleanup(void)
 {
-	register int i, f;
+	int i, f;
 
 	for (i=0; i<namc; i++) {
 		file = namv[i];
@@ -374,9 +362,9 @@ cleanup()
 }
 
 int
-getdir()
+getdir(void)
 {
-	register int i;
+	int i;
 
 	if (! getarhdr(&arbuf, af)) {
 		if (tf1 >= 0) {
@@ -393,9 +381,9 @@ getdir()
 }
 
 int
-match()
+match(void)
 {
-	register int i;
+	int i;
 
 	for (i=0; i<namc; i++) {
 		if (namv[i] == 0)
@@ -410,9 +398,9 @@ match()
 }
 
 void
-bamatch()
+bamatch(void)
 {
-	register int f;
+	int f;
 
 	switch(bastate) {
 	case 1:
@@ -434,9 +422,9 @@ bamatch()
 }
 
 void
-r_cmd()
+r_cmd(void)
 {
-	register int f;
+	int f;
 
 	init();
 	if (getaf()) {
@@ -471,7 +459,7 @@ cp:		mesg('c');
 }
 
 void
-d_cmd()
+d_cmd(void)
 {
 	init();
 	if (getaf())
@@ -489,9 +477,9 @@ d_cmd()
 }
 
 void
-x_cmd()
+x_cmd(void)
 {
-	register int f;
+	int f;
 
 	if (getaf())
 		noar();
@@ -514,7 +502,7 @@ x_cmd()
 }
 
 void
-p_cmd()
+p_cmd(void)
 {
 	if (getaf())
 		noar();
@@ -528,7 +516,7 @@ p_cmd()
 }
 
 void
-m_cmd()
+m_cmd(void)
 {
 	init();
 	if (getaf())
@@ -552,7 +540,7 @@ m_cmd()
 }
 
 void
-pmode()
+pmode(void)
 {
 	static int m1[] = { 1, ROWN, 'r', '-' };
 	static int m2[] = { 1, WOWN, 'w', '-' };
@@ -564,7 +552,7 @@ pmode()
 	static int m8[] = { 1, WOTH, 'w', '-' };
 	static int m9[] = { 2, STXT, 't', XOTH, 'x', '-' };
 	static int *m[] = { m1, m2, m3, m4, m5, m6, m7, m8, m9};
-	register int *ap, n, **mp;
+	int *ap, n, **mp;
 
 	for (mp = &m[0]; mp < &m[9]; mp++) {
 		ap = *mp;
@@ -576,9 +564,9 @@ pmode()
 }
 
 void
-t_cmd()
+t_cmd(void)
 {
-	register char *cp;
+	char *cp;
 
 	if (getaf())
 		noar();
@@ -598,25 +586,24 @@ t_cmd()
 	}
 }
 
-void killed()
+void killed(int sig)
 {
+	(void)sig;
 	done(1);
 }
 
 void
-usage()
+usage(void)
 {
 	printf("usage: ar [%s][%s] archive files ...\n", opt, man);
 	done(1);
 }
 
 int
-main(argc, argv)
-        int argc;
-	char *argv[];
+main(int argc, char *argv[])
 {
-	register int i;
-	register char *cp;
+	int i;
+	char *cp;
 
 	for (i=1; i<4; i++)
 		if (signal(SIGINT, SIG_DFL) == SIG_DFL)

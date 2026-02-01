@@ -23,9 +23,7 @@ usage()
 }
 
 int
-main(argc,argv)
-	int argc;
-	char *argv[];
+main(int argc, char *argv[])
 {
 	int fsym, n, debug = 0;
 	char *av[8];
@@ -94,8 +92,7 @@ main(argc,argv)
 	exit(1);
 }
 
-void write_syms (fd)
-	int fd;
+void write_syms (int fd)
 {
 	struct symtab *s;
 	char buf[4];
@@ -114,8 +111,7 @@ void write_syms (fd)
 /*
 	Routine to "handle" an error on a file
 */
-void filerr(name,msg)
-	char *name, *msg;
+void filerr(char *name, char *msg)
 {
 	fprintf(stderr,"%s %s\n",name,msg);
 	return;
@@ -138,8 +134,7 @@ aexit()
 /*
 	Routine to create one of the temporary files
 */
-int f_create(name)
-	char *name;
+int f_create(char *name)
 {
 	int fd;
 
@@ -154,7 +149,7 @@ int f_create(name)
 /*
 	Routine to build permanent symbol table
 */
-void setup()
+void setup(void)
 {
 	int n;
 	struct symtab *p,*e;

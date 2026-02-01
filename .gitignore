@@ -1,6 +1,7 @@
 *.o
 *.a
 *.dis
+*.dSYM
 cross-devel/as/pdp11-asm
 cross-devel/as/pdp11-asm2
 cross-devel/c2/c2

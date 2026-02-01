@@ -11,14 +11,14 @@
 #include "as.h"
 #include "as2.h"
 
-struct value express()
+struct value express(void)
 {
 	xsymbol = 0;
 	return(expres1());
 }
 
 
-struct value expres1()
+struct value expres1(void)
 {
 	struct value v,rv;
 	int oldop;
@@ -154,9 +154,7 @@ struct value expres1()
 /*
 	Routine to determine type after an operation
 */
-int combine(left, right, table)
-	int left, right;
-	int *table;
+int combine(int left, int right, int *table)
 {
 	int t,t2;
 
@@ -192,8 +190,7 @@ int combine(left, right, table)
 	Routine to map relocation flag and type into reltX2
 	table index, and calculate "max" type
 */
-int maprel(type)
-	int type;
+int maprel(int type)
 {
 	if(type == TYPEEXT)
 		return(5);

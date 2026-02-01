@@ -13,7 +13,7 @@
 /*
 	Main scanner routine
 */
-void readop()
+void readop(void)
 {
 	unsigned char c;
 	int i;
@@ -118,7 +118,7 @@ void readop()
 /*
 	Routine to read a character inside a string ( <...> )
 */
-char rsch()
+char rsch(void)
 {
 	char c;
 	int i;

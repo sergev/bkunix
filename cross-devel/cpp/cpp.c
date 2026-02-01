@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <ctype.h>
@@ -129,8 +130,12 @@ STATIC	int	fins[MAXINC];
 STATIC	int	lineno[MAXINC];
 
 STATIC	char	*dirs[10];	/* -I and <> directories */
-char *strdex(), *copy(), *subst(), *trmdir();
-struct symtab *stsym();
+struct symtab {
+	char	*name;
+	char	*value;
+};
+char *strdex(char *, int), *copy(char *), *subst(char *, struct symtab *), *trmdir(char *);
+struct symtab *stsym(char *), *lastsym, *lookup(char *, int), *slookup(char *, char *, int);
 STATIC	int	fin	= STDIN;
 STATIC	FILE	*fout;
 STATIC	int	nd	= 1;
@@ -150,10 +155,6 @@ STATIC	char **predef = prespc;
 STATIC	char *punspc[NPREDEF];
 STATIC	char **prund = punspc;
 STATIC	int	exfail;
-struct symtab {
-	char	*name;
-	char	*value;
-} *lastsym, *lookup(), *slookup();
 
 #define symsiz 2000		/* std = 500, wnj aug 1979 */
 STATIC	struct symtab stab[symsiz];
@@ -176,8 +177,7 @@ STATIC	int	flslvl;
 extern 	int	yyparse();
 
 void
-sayline(where)
-	int where;
+sayline(int where)
 {
 	if (mflag && where == START)
 		fprintf(mout, "%s: %s\n", infile, fnames[ifno]);
@@ -185,37 +185,45 @@ sayline(where)
 		fprintf(fout,"# %d \"%s\"\n", lineno[ifno], fnames[ifno]);
 }
 
-/* VARARGS1 */
-void
-pperror(s,x,y)
-	char *s;
-	int x, y;
+static void
+vpperror(const char *s, va_list ap)
 {
 	if (fnames[ifno][0])
 		fprintf(stderr, "%s: ", fnames[ifno]);
 	fprintf(stderr, "%d: ", lineno[ifno]);
-	fprintf(stderr, s, x, y);
+	vfprintf(stderr, s, ap);
 	fprintf(stderr, "\n");
+}
+
+void
+pperror(const char *s, ...)
+{
+	va_list ap;
+	va_start(ap, s);
+	vpperror(s, ap);
+	va_end(ap);
 	++exfail;
 }
 
 void
-yyerror(s,a,b)
-	char *s;
-	int a, b;
+yyerror(const char *s, ...)
 {
-	pperror(s, a, b);
+	va_list ap;
+	va_start(ap, s);
+	vpperror(s, ap);
+	va_end(ap);
 }
 
 void
-ppwarn(s,x)
-	char *s;
-	int x;
+ppwarn(const char *s, ...)
 {
 	int fail = exfail;
+	va_list ap;
 
 	exfail = -1;
-	pperror(s, x);
+	va_start(ap, s);
+	vpperror(s, ap);
+	va_end(ap);
 	exfail = fail;
 }
 
@@ -278,10 +286,10 @@ ppwarn(s,x)
  * is 15% of the total time, thus even the 'putc' macro is too slow.
  */
 void
-dump()
+dump(void)
 {
-	register char *p1;
-	register FILE *f;
+	char *p1;
+	FILE *f;
 
 	p1 = outp;
 	if (p1 == inp || flslvl != 0)
@@ -296,11 +304,10 @@ dump()
  * contiguous with p.  update pointers, return new p.
  */
 char *
-refill(p)
-	register char *p;
+refill(char *p)
 {
-	register char *np, *op;
-	register int ninbuf;
+	char *np, *op;
+	int ninbuf;
 
 	dump();
 	np = pbuf - (p-inp);
@@ -378,10 +385,9 @@ refill(p)
 #define LF 1
 
 char *
-cotoken(p)
-	register char *p;
+cotoken(char *p)
 {
-	register int c, i;
+	int c, i;
 	char quoc;
 	static int state = BEG;
 
@@ -637,8 +643,7 @@ nomac:
 
 /* get next non-blank token */
 char *
-skipbl(p)
-	register char *p;
+skipbl(char *p)
 {
 	do {
 		outp = inp = p;
@@ -651,11 +656,10 @@ skipbl(p)
  * slide rest of buffer to the right, update pointers, return new p.
  */
 char *
-unfill(p)
-	register char *p;
+unfill(char *p)
 {
-	register char *np, *op;
-	register int d;
+	char *np, *op;
+	int d;
 
 	if (mactop >= MAXFRE) {
 		pperror("%s: too much pushback", macnam);
@@ -706,11 +710,10 @@ unfill(p)
 }
 
 char *
-doincl(p)
-	register char *p;
+doincl(char *p)
 {
 	int filok, inctype;
-	register char *cp;
+	char *cp;
 	char **dirp, *nfil;
 	char filname[BUFSIZ];
 
@@ -800,10 +803,9 @@ doincl(p)
 }
 
 int
-equfrm(a, p1, p2)
-	register char *a, *p1, *p2;
+equfrm(char *a, char *p1, char *p2)
 {
-	register char c;
+	char c;
 	int flag;
 
 	c = *p2; *p2 = '\0';
@@ -814,10 +816,9 @@ equfrm(a, p1, p2)
 
 /* process '#define' */
 char *
-dodef(p)
-	char *p;
+dodef(char *p)
 {
-	register char *pin, *psav, *cf;
+	char *pin, *psav, *cf;
 	char **pf, **qf;
 	int b, c, params;
 	struct symtab *np;
@@ -974,11 +975,10 @@ dodef(p)
 }
 
 char *
-savestring(start, finish)
-	register char *start, *finish;
+savestring(char *start, char *finish)
 {
 	char *retbuf;
-	register char *cp;
+	char *cp;
 
 	retbuf = (char *) calloc(finish - start + 1, sizeof (char));
 	cp = retbuf;
@@ -993,10 +993,9 @@ savestring(start, finish)
 
 /* find and handle preprocessor control lines */
 char *
-control(p)
-	register char *p;
+control(char *p)
 {
-	register struct symtab *np;
+	struct symtab *np;
 
 	for (;;) {
 		fasscan();
@@ -1115,11 +1114,10 @@ control(p)
 }
 
 struct symtab *
-stsym(s)
-	register char *s;
+stsym(char *s)
 {
 	char buf[BUFSIZ];
-	register char *p;
+	char *p;
 
 	/* make definition look exactly like end of #define line */
 	/* copy to avoid running off end of world when param list is at end */
@@ -1143,10 +1141,9 @@ stsym(s)
 
 /* kluge */
 struct symtab *
-ppsym(s)
-	char *s;
+ppsym(char *s)
 {
-	register struct symtab *sp;
+	struct symtab *sp;
 
 	cinit = SALT;
 	*savch++ = SALT;
@@ -1157,14 +1154,12 @@ ppsym(s)
 }
 
 struct symtab *
-lookup(namep, enterf)
-	char *namep;
-	int enterf;
+lookup(char *namep, int enterf)
 {
-	register char *np, *snp;
-	register int c, i;
+	char *np, *snp;
+	int c, i;
 	int around;
-	register struct symtab *sp;
+	struct symtab *sp;
 
 	/* namep had better not be too long (currently, <=NCPS chars) */
 	np = namep;
@@ -1206,11 +1201,9 @@ lookup(namep, enterf)
 }
 
 struct symtab *
-slookup(p1, p2, enterf)
-	register char *p1,*p2;
-	int enterf;
+slookup(char *p1, char *p2, int enterf)
 {
-	register char *p3;
+	char *p3;
 	char c2,c3;
 	struct symtab *np;
 
@@ -1235,12 +1228,10 @@ slookup(p1, p2, enterf)
 }
 
 char *
-subst(p, sp)
-	register char *p;
-	struct symtab *sp;
+subst(char *p, struct symtab *sp)
 {
 	static char match[] = "%s: argument mismatch";
-	register char *ca, *vp;
+	char *ca, *vp;
 	int params;
 	char *actual[MAXFRM]; /* actual[n] is text of nth actual   */
 	char actused[MAXFRM]; /* for newline processing in actuals */
@@ -1323,7 +1314,7 @@ subst(p, sp)
 		if (params != 0)
 			ppwarn(match, sp->name);
 		while (--params >= 0)
-			*pa++ = "" + 1;	/* null string for missing actuals */
+				*pa++ = &""[1];	/* null string for missing actuals */
 		--flslvl;
 		fasscan();
 	}
@@ -1367,10 +1358,9 @@ subst(p, sp)
 }
 
 char *
-trmdir(s)
-	register char *s;
+trmdir(char *s)
 {
-	register char *p = s;
+	char *p = s;
 
 	while (*p++);
 	--p;
@@ -1382,10 +1372,9 @@ trmdir(s)
 }
 
 STATIC char *
-copy(s)
-	register char *s;
+copy(char *s)
 {
-	register char *old;
+	char *old;
 
 	old = savch;
 	while ((*savch++ = *s++));
@@ -1393,8 +1382,7 @@ copy(s)
 }
 
 char *
-strdex(s, c)
-	char *s, c;
+strdex(char *s, int c)
 {
 	while (*s)
 		if (*s++ == c)
@@ -1403,18 +1391,16 @@ strdex(s, c)
 }
 
 int
-yywrap()
+yywrap(void)
 {
 	return 1;
 }
 
 int
-main(argc, argv)
-        int argc;
-	char **argv;
+main(int argc, char **argv)
 {
-	register int i, c;
-	register char *p;
+	int i, c;
+	char *p;
 	char *tf, **cp2, obuf[BUFSIZ];
 
 	p = "_$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

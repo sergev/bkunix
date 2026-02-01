@@ -297,10 +297,7 @@ struct nlist symbss = { ".bss", N_BSS, 0 };
  * Add a name to symbol table.
  */
 void
-addsym (name, type, val)
-	char *name;
-	int type;
-	unsigned int val;
+addsym (char *name, int type, unsigned int val)
 {
 	if (stabindex >= stablen) {
 		if (! stablen) {
@@ -328,8 +325,7 @@ addsym (name, type, val)
  * Print all text or data symbols located at the address.
  */
 void
-prsym (addr)
-	unsigned int addr;
+prsym (unsigned int addr)
 {
 	struct nlist *p;
 	int printed;
@@ -353,8 +349,7 @@ prsym (addr)
  * If no symbol found, return .text or .data or .bss.
  */
 struct nlist *
-findsym (addr)
-	unsigned int addr;
+findsym (unsigned int addr)
 {
 	struct nlist *p, *last;
 
@@ -384,8 +379,7 @@ findsym (addr)
  * Read 16-bit word at current file position.
  */
 unsigned int
-freadw (fd)
-	FILE *fd;
+freadw (FILE *fd)
 {
 	unsigned int val;
 
@@ -398,8 +392,7 @@ freadw (fd)
  * Print relocation information.
  */
 void
-prrel (r)
-	register unsigned int r;
+prrel (unsigned int r)
 {
 	if (r == A_RABS) {
 		printf ("  ");
@@ -420,8 +413,7 @@ prrel (r)
  * Print integer register name.
  */
 void
-prreg (reg)
-	int reg;
+prreg (int reg)
 {
 	reg &= 7;
 	switch (reg) {
@@ -441,8 +433,7 @@ prreg (reg)
 }
 
 void
-praddr (address, rel)
-	unsigned int address, rel;
+praddr (unsigned int address, unsigned int rel)
 {
 	struct nlist *sym;
 	char *name;
@@ -493,9 +484,7 @@ praddr (address, rel)
  * Return 0 on error.
  */
 void
-prcode (memaddr, opcode)
-	unsigned int *memaddr;
-	unsigned int opcode;
+prcode (unsigned int *memaddr, unsigned int opcode)
 {
 	int i, src, dst, level;
 
@@ -574,9 +563,7 @@ prcode (memaddr, opcode)
  * Return 0 on error.
  */
 void
-properand (memaddr, code, argcode, argrel)
-     unsigned int memaddr, argcode, argrel;
-     int code;
+properand (unsigned int memaddr, int code, unsigned int argcode, unsigned int argrel)
 {
 	int mode = (code >> 3) & 7;
 	int reg = code & 7;
@@ -648,9 +635,7 @@ properand (memaddr, code, argcode, argrel)
 }
 
 void
-prfoperand (memaddr, code, argcode, argrel)
-	unsigned int memaddr, argcode, argrel;
-	int code;
+prfoperand (unsigned int memaddr, int code, unsigned int argcode, unsigned int argrel)
 {
 	if (((code >> 3) & 7) == 0)
 		printf ("fr%d", code & 7);
@@ -659,8 +644,7 @@ prfoperand (memaddr, code, argcode, argrel)
 }
 
 void
-prinsn (memaddr, opcode)
-	unsigned int memaddr, opcode;
+prinsn (unsigned int memaddr, unsigned int opcode)
 {
 	int i, src, dst;
 
@@ -687,7 +671,7 @@ prinsn (memaddr, opcode)
 		printf ("%s"AFTER_INSTRUCTION, op[i].name);
 		if (strcmp (op[i].name, "jmp") == 0)
 			dst |= JUMP;
-		prfoperand (memaddr, dst);
+		prfoperand (memaddr, dst, dstcode, dstrel);
 		break;
 	case OPCODE_REG_OP:
 		printf ("%s"AFTER_INSTRUCTION, op[i].name);
@@ -706,13 +690,13 @@ prinsn (memaddr, opcode)
 	case OPCODE_AC_FOP: {
 		int ac = (opcode & 0xe0) >> 6;
 		printf ("%s"AFTER_INSTRUCTION"fr%d"OPERAND_SEPARATOR, op[i].name, ac);
-		prfoperand (memaddr, dst);
+		prfoperand (memaddr, dst, dstcode, dstrel);
 		break;
 	}
 	case OPCODE_FOP_AC: {
 		int ac = (opcode & 0xe0) >> 6;
 		printf ("%s"AFTER_INSTRUCTION, op[i].name);
-		prfoperand (memaddr, dst);
+		prfoperand (memaddr, dst, dstcode, dstrel);
 		printf (OPERAND_SEPARATOR"fr%d", ac);
 		break;
 	}
@@ -775,8 +759,7 @@ prinsn (memaddr, opcode)
 }
 
 void
-prsection (addr, limit)
-	unsigned int *addr, limit;
+prsection (unsigned int *addr, unsigned int limit)
 {
 	unsigned int opcode;
 
@@ -797,9 +780,7 @@ prsection (addr, limit)
  * Read a.out header. Return 0 on error.
  */
 int
-gethdr(fd, hdr)
-	FILE *fd;
-	register struct exec *hdr;
+gethdr(FILE *fd, struct exec *hdr)
 {
 #ifdef __pdp11__
 	if (fread (hdr, sizeof(struct exec), 1, fd) != 1)
@@ -825,9 +806,7 @@ gethdr(fd, hdr)
  * Read a.out symbol. Return 0 on error.
  */
 int
-getsym(fd, sym)
-	FILE *fd;
-	register struct nlist *sym;
+getsym(FILE *fd, struct nlist *sym)
 {
 #ifdef __pdp11__
 	if (fread(sym, sizeof(struct nlist), 1, fd) != 1)
@@ -846,8 +825,7 @@ getsym(fd, sym)
 }
 
 void
-disasm (fname)
-	register char *fname;
+disasm (char *fname)
 {
 	unsigned int addr;
 	struct nlist sym;
@@ -943,8 +921,7 @@ disasm (fname)
 }
 
 void
-disbin (fname)
-	register char *fname;
+disbin (char *fname)
 {
 	unsigned int addr;
 	struct stat st;
@@ -971,11 +948,9 @@ disbin (fname)
 }
 
 int
-main (argc, argv)
-        int argc;
-	register char **argv;
+main (int argc, char **argv)
 {
-	register char *cp;
+	char *cp;
 
 	while(--argc) {
 		++argv;

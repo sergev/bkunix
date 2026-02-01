@@ -14,8 +14,7 @@
 /*
 	Print an error message
 */
-void aerror(c)
-	int c;
+void aerror(int c)
 {
 	char *msg = 0;
 
@@ -48,7 +47,7 @@ void aerror(c)
 	Put current token to token output, except when
 	inside a .if and it isn't a newline (to keep line count)
 */
-void aputw()
+void aputw(void)
 {
 	char buf[2];
 

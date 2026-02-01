@@ -16,9 +16,7 @@ int base;
  * Read a.out header. Return 0 on error.
  */
 int
-readhdr(fd, hdr)
-	int fd;
-	register struct exec *hdr;
+readhdr(int fd, struct exec *hdr)
 {
 #ifdef __pdp11__
 	if (read(fd, hdr, sizeof(struct exec)) != sizeof(struct exec))
@@ -41,8 +39,7 @@ readhdr(fd, hdr)
 }
 
 void
-size(filename)
-	char *filename;
+size(const char *filename)
 {
 	struct exec hdr;
 	int f;
@@ -74,11 +71,9 @@ size(filename)
 }
 
 int
-main(argc, argv)
-        int argc;
-	char **argv;
+main(int argc, char **argv)
 {
-	register char *cp;
+	char *cp;
 	int nfiles;
 
 	base = 10;

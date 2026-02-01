@@ -26,9 +26,7 @@ usage()
 	Main program.
 */
 int
-main(argc, argv)
-	int argc;
-	char *argv[];
+main(int argc, char *argv[])
 {
 	struct value *sp,*p;			/* Pointer into symbol table*/
 	unsigned t;
@@ -190,8 +188,7 @@ main(argc, argv)
 /*
 	Routine to delete temp files and exit
 */
-void aexit(code)
-	int code;
+void aexit(int code)
 {
 	if (! debug) {
 		unlink(atmp1);
@@ -205,8 +202,7 @@ void aexit(code)
 /*
 	Routine to "handle" a file error
 */
-void filerr(name)
-	char *name;
+void filerr(char *name)
 {
 	printf("filerr: File error in file %s\n",name);
 	aexit(1);
@@ -216,8 +212,7 @@ void filerr(name)
 /*
 	Routine to add appropriate relocation factor to symbol value
 */
-void doreloc(p)
-	struct value *p;
+void doreloc(struct value *p)
 {
 	int t;
 
@@ -233,7 +228,7 @@ void doreloc(p)
 /*
 	Routine to set up for a pass
 */
-void setup()
+void setup(void)
 {
 	int i;
 	int n;
@@ -281,8 +276,7 @@ void setup()
 /*
 	Routine to open an input file
 */
-int ofile(name)
-	char *name;
+int ofile(char *name)
 {
 	int fd;
 

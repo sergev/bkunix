@@ -39,8 +39,7 @@ register int t;
  * if the tree's value is non-zero together with the cond.
  */
 void
-cbranch(t, lbl, cond)
-union tree *t;
+cbranch(union tree *t, int lbl, int cond)
 {
 	treeout(t, 0);
 	outcode("BNNN", CBRANCH, lbl, cond, line);
@@ -70,8 +69,7 @@ register union tree *tp;
 }
 
 void
-treeout(tp, isstruct)
-register union tree *tp;
+treeout(union tree *tp, int isstruct)
 {
 	register struct nmlist *hp;
 	register int nextisstruct;

@@ -14,9 +14,7 @@
 /*
 	Routine to set up a buffered file, with an initial offset
 */
-void oset(p, o)
-	struct out_buf *p;
-	int o;
+void oset(struct out_buf *p, int o)
 {
 	p->slot = p->buf + (o & 0777);
 	p->max = p->buf + sizeof p->buf;
@@ -30,9 +28,7 @@ void oset(p, o)
 /*
 	Routine to write a word to a buffered file
 */
-void aputw(p, v)
-	struct out_buf *p;
-	int v;
+void aputw(struct out_buf *p, int v)
 {
 	char *pi;
 
@@ -56,8 +52,7 @@ void aputw(p, v)
 /*
 	Routine to flush a buferred file
 */
-void flush(p)
-	struct out_buf *p;
+void flush(struct out_buf *p)
 {
 	char *addr;
 	int bytes;
@@ -81,7 +76,7 @@ void flush(p)
 	Routine to read a token from the token file created in
 	the first pass
 */
-void readop()
+void readop(void)
 {
 	tok.i = savop;
 	if(tok.i != 0) {
@@ -105,7 +100,7 @@ void readop()
 /*
 	Routine to read a word from token file created in pass 1
 */
-int agetw()
+int agetw(void)
 {
 	unsigned char buf[2];
 

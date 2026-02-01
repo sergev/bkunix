@@ -11,7 +11,7 @@
 #include "as.h"
 #include "as2.h"
 
-void assem()
+void assem(void)
 {
 	union token ttok;
 
@@ -59,8 +59,7 @@ void assem()
 /*
 	Subroutine to process assignment  (label = value)
 */
-void doequal(t)
-	union token *t;
+void doequal(union token *t)
 {
 	struct value v;
 	int i;
@@ -103,8 +102,7 @@ void doequal(t)
 /*
 	Subroutine to handle a label definition
 */
-void docolon(t)
-	union token *t;
+void docolon(union token *t)
 {
 	unsigned ttype;
 
@@ -144,7 +142,7 @@ void docolon(t)
 /*
 	Routine to check if token marks end of statement
 */
-int checkeos()
+int checkeos(void)
 {
 	return(tok.u == '\n' || tok.u == ';' || tok.u == TOKEOF);
 }
@@ -155,7 +153,7 @@ int checkeos()
 
 	tok has number to work on
 */
-void fbadv()
+void fbadv(void)
 {
 	struct fb_tab *p;
 
@@ -176,7 +174,7 @@ void fbadv()
 /*
 	Routine to track . high water mark for text, data and bss
 */
-void dotmax()
+void dotmax(void)
 {
 	if(passno == 0 && dot > hdr.atxtsiz[dotrel-TYPETXT])
 		hdr.atxtsiz[dotrel-TYPETXT] = dot;

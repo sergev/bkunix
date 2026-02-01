@@ -8,57 +8,65 @@
  * No op the stab stuff for now
 */
 
-psline()
-	{
+int
+psline(void)
+{
 	return(0);
-	}
+}
 
 /* ARGSUSED */
-pstab(p,n)
-	struct symtab *p;
-	int	n;
-	{
+int
+pstab(struct symtab *p, int n)
+{
+	(void)p;
+	(void)n;
 	return(0);
-	}
+}
 
 /* ARGSUSED */
-outstab(p)
-	struct symtab *p;
-	{
+int
+outstab(struct symtab *p)
+{
+	(void)p;
 	return(0);
-	}
+}
 
 /* ARGSUSED */
-fixarg(p)
-	struct symtab *p;
-	{
+int
+fixarg(struct symtab *p)
+{
+	(void)p;
 	return(0);
-	}
+}
 
 /* ARGSUSED */
-outstruct(p)
-	struct symtab *p;
-	{
+int
+outstruct(struct symtab *p)
+{
+	(void)p;
 	return(0);
-	}
+}
 
 /* ARGSUSED */
-pfstab(cp)
-	char	*cp;
-	{
+int
+pfstab(char *cp)
+{
+	(void)cp;
 	return(0);
-	}
+}
 
 /* ARGSUSED */
-plcstab(level)
-	int	level;
-	{
+int
+plcstab(int level)
+{
+	(void)level;
 	return(0);
-	}
+}
 
 /* ARGSUSED */
-prcstab(level)
-	int	level;
-	{
+int
+prcstab(int level)
+{
+	(void)level;
 	return(0);
-	}
+}

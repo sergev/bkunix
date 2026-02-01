@@ -14,7 +14,7 @@
 	Routine to parse and evaluate an expression
 	Returns value as a type/value structure
 */
-struct value express()
+struct value express(void)
 {
 	struct value v,rv;
 	int opfound,ttype;
@@ -148,8 +148,7 @@ struct value express()
 /*
 	Routine to determine type after combining to operands
 */
-int combine(left, right, sflag)
-	int left, right, sflag;
+int combine(int left, int right, int sflag)
 {
 	int ext,t;
 

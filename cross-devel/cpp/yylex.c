@@ -8,13 +8,19 @@
 /*	#if '\377' < 0		it would be nice if this worked properly!!!!! */
 #define COFF 128
 
-extern void pperror();
-extern void yyerror();
+struct symtab {
+	char *name;
+	char *value;
+};
+extern void pperror(const char *, ...);
+extern void yyerror(const char *, ...);
+extern char *skipbl(char *);
+extern struct symtab *lookup(char *, int);
+
+static int tobinary(char *st, int b);
 
 int
-tobinary(st, b)
-	char *st;
-	int b;
+tobinary(char *st, int b)
 {
 	int n, c, t;
 	char *s;
@@ -51,7 +57,7 @@ tobinary(st, b)
 }
 
 int
-yylex()
+yylex(void)
 {
 	static int ifdef = 0;
 	static char *op2[] = {
@@ -65,13 +71,9 @@ yylex()
 	extern char *outp, *inp, *newp;
 	extern int flslvl;
 	register char savc, *s;
-	char *skipbl();
 	int val;
 	register char **p2;
-	struct symtab {
-		char *name;
-		char *value;
-	} *sp, *lookup();
+	struct symtab *sp;
 
 	for (;;) {
 		extern int passcom;		/* this crap makes #if's work */

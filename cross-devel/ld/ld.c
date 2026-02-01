@@ -85,7 +85,7 @@ FILE	*droutb;
 FILE	*soutb;
 
 void
-cleanup()
+cleanup(void)
 {
 	unlink(tdname);
 	unlink(tsname);
@@ -94,17 +94,16 @@ cleanup()
 }
 
 void
-fatal()
+fatal(int sig)
 {
+	(void)sig;
 	cleanup();
 	unlink(outname);
 	exit(4);
 }
 
 void
-error(severe, s)
-        int severe;
-	char *s;
+error(int severe, char *s)
 {
 	if (filname) {
 		printf("%s", filname);
@@ -114,7 +113,7 @@ error(severe, s)
 	}
 	printf("%s\n", s);
 	if (severe)
-		fatal();
+		fatal(0);
 	errlev = 2;
 }
 
@@ -123,12 +122,11 @@ error(severe, s)
  * Return a pointer to a (possibly empty) hash table slot.
  */
 struct nlist **
-lookup(name)
-	char *name;
+lookup(char *name)
 {
 	int hash;
-	register struct nlist **hp;
-	register char *cp;
+	struct nlist **hp;
+	char *cp;
 
 	hash = 0;
 	for (cp=name; cp < name+sizeof(cursym.n_name) && *cp; )
@@ -150,9 +148,9 @@ lookup(name)
  * Return a pointer to the symbol table slot.
  */
 struct nlist *
-enter()
+enter(void)
 {
-	register struct nlist *sp;
+	struct nlist *sp;
 
 	sp = symp;
 	if (sp >= &symtab[NSYM])
@@ -169,8 +167,7 @@ enter()
  * Make file symbol: set cursym to the needed value.
  */
 void
-mkfsym(s)
-	char *s;
+mkfsym(char *s)
 {
 	if (sflag || xflag)
 		return;
@@ -181,12 +178,10 @@ mkfsym(s)
 }
 
 struct nlist *
-lookloc(limit, r)
-	register struct nlocal *limit;
-	int r;
+lookloc(struct nlocal *limit, int r)
 {
-	register struct nlocal *clp;
-	register int sn;
+	struct nlocal *clp;
+	int sn;
 
 	sn = (r >> 4) & 07777;
 	for (clp=local; clp<limit; clp++)
@@ -200,9 +195,7 @@ lookloc(limit, r)
  * Write 16-bit value to file.
  */
 void
-putword (w, fd)
-	unsigned int w;
-	FILE *fd;
+putword (unsigned int w, FILE *fd)
 {
 #ifdef __pdp11__
 	fwrite(&w, 2, 1, fd);
@@ -216,8 +209,7 @@ putword (w, fd)
  * Read 16-bit value from file.
  */
 unsigned int
-getword (fd)
-	FILE *fd;
+getword (FILE *fd)
 {
 	unsigned int w;
 
@@ -234,9 +226,7 @@ getword (fd)
  * Read a.out header. Return 0 on error.
  */
 int
-gethdr(fd, hdr)
-	FILE *fd;
-	register struct exec *hdr;
+gethdr(FILE *fd, struct exec *hdr)
 {
 #ifdef __pdp11__
 	if (fread(hdr, sizeof(struct exec), 1, fd) != 1)
@@ -262,9 +252,7 @@ gethdr(fd, hdr)
  * Write a.out header.
  */
 void
-puthdr(fd, hdr)
-	FILE *fd;
-	register struct exec *hdr;
+puthdr(FILE *fd, struct exec *hdr)
 {
 #ifdef __pdp11__
 	fwrite(hdr, sizeof(struct exec), 1, fd);
@@ -284,9 +272,7 @@ puthdr(fd, hdr)
  * Read archive header. Return 0 on error.
  */
 int
-getarhdr(fd, hdr)
-	FILE *fd;
-	register struct ar_hdr *hdr;
+getarhdr(FILE *fd, struct ar_hdr *hdr)
 {
 #ifdef __pdp11__
 	if (fread(hdr, AR_HDRSIZE, 1, fd) != 1)
@@ -312,9 +298,7 @@ getarhdr(fd, hdr)
  * Read a.out symbol. Return 0 on error.
  */
 int
-getsym(fd, sym)
-	FILE *fd;
-	register struct nlist *sym;
+getsym(FILE *fd, struct nlist *sym)
 {
 #ifdef __pdp11__
 	if (fread(sym, sizeof(struct nlist), 1, fd) != 1)
@@ -332,9 +316,7 @@ getsym(fd, sym)
  * Write a.out symbol.
  */
 void
-putsym(fd, sym)
-	FILE *fd;
-	register struct nlist *sym;
+putsym(FILE *fd, struct nlist *sym)
 {
 #ifdef __pdp11__
 	fwrite(sym, sizeof(struct nlist), 1, fd);
@@ -349,8 +331,7 @@ putsym(fd, sym)
  * Create temporary file.
  */
 FILE *
-tcreat(name)
-	char *name;
+tcreat(char *name)
 {
 	int fd;
 
@@ -364,10 +345,9 @@ tcreat(name)
  * Copy temporary file to output and close it.
  */
 void
-copy(fd)
-	register FILE *fd;
+copy(FILE *fd)
 {
-	register int n;
+	int n;
 	char buf[512];
 
 	fseek(fd, 0L, 0);
@@ -378,10 +358,9 @@ copy(fd)
 }
 
 void
-readhdr(loff)
-	long loff;
+readhdr(long loff)
 {
-	register int st, sd;
+	int st, sd;
 
 	fseek(text, loff, 0);
 	if (! gethdr(text, &filhdr)) {
@@ -402,10 +381,9 @@ readhdr(loff)
 }
 
 int
-getfile(cp)
-	register char *cp;
+getfile(char *cp)
 {
-	register int c;
+	int c;
 	char **dir;
 	static char namebuf[100];
 
@@ -442,7 +420,7 @@ getfile(cp)
 }
 
 void
-symreloc()
+symreloc(void)
 {
 	switch (cursym.n_type) {
 	case N_TEXT:
@@ -468,11 +446,9 @@ symreloc()
 }
 
 int
-load1(libflg, loff)
-        int libflg;
-	long loff;
+load1(int libflg, long loff)
 {
-	register struct nlist *sp, **hp, ***lp;
+	struct nlist *sp, **hp, ***lp;
 	struct nlist *ssymp;
 	int ndef, nloc, n;
 
@@ -540,8 +516,7 @@ load1(libflg, loff)
 }
 
 void
-load1arg(filename)
-	register char *filename;
+load1arg(char *filename)
 {
 	long loff;
 	register int nlinked;
@@ -578,10 +553,10 @@ again:
 }
 
 void
-middle()
+middle(void)
 {
-	register struct nlist *sp;
-	register int t, csize;
+	struct nlist *sp;
+	int t, csize;
 	int nund, corigin;
 
 	p_etext = *lookup("_etext");
@@ -687,7 +662,7 @@ middle()
 }
 
 void
-setupout()
+setupout(void)
 {
 	toutb = fopen(outname, "w");
 	if (! toutb)
@@ -716,14 +691,11 @@ setupout()
 }
 
 void
-load2td(words, lp, creloc, b1, b2)
-	unsigned int words;
-	struct nlocal *lp;
-	int creloc;
-	FILE *b1, *b2;
+load2td(unsigned int words, struct nlocal *lp, int creloc,
+	FILE *b1, FILE *b2)
 {
-	register int r, t;
-	register struct nlist *sp;
+	int r, t;
+	struct nlist *sp;
 
 	while (words-- > 0) {
 		t = getword (text);
@@ -760,12 +732,11 @@ load2td(words, lp, creloc, b1, b2)
 }
 
 void
-load2(loff)
-	long loff;
+load2(long loff)
 {
-	register struct nlist *sp;
-	register struct nlocal *lp;
-	register int symno, n;
+	struct nlist *sp;
+	struct nlocal *lp;
+	int symno, n;
 
 	readhdr(loff);
 	ctrel = torigin;
@@ -823,10 +794,9 @@ load2(loff)
 }
 
 void
-load2arg(filename)
-	register char *filename;
+load2arg(char *filename)
 {
-	register long *lp;
+	long *lp;
 	char *p;
 
 	if (getfile(filename) == 0) {
@@ -859,9 +829,9 @@ load2arg(filename)
 }
 
 void
-finishout()
+finishout(void)
 {
-	register int n;
+	int n;
 	struct nlist *p;
 
 	if (nflag || iflag) {
@@ -888,9 +858,7 @@ finishout()
 }
 
 int
-main(argc, argv)
-        int argc;
-	char **argv;
+main(int argc, char **argv)
 {
 	register int c;
 	register char *ap, **p;

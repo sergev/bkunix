@@ -416,8 +416,7 @@ register union tree *p1, *p2;
  * Generate the appropriate conversion operator.
  */
 union tree *
-convert(p, t, cvn, len)
-union tree *p;
+convert(union tree *p, int t, int cvn, int len)
 {
 	register int op;
 
@@ -613,7 +612,7 @@ register struct nmlist *ds;
  * Generate a block for a constant
  */
 union tree *
-cblock(v)
+cblock(int v)
 {
 	register union tree *p;
 

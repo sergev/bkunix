@@ -19,9 +19,7 @@ int	tf;
  * Read a.out header. Return 0 on error.
  */
 int
-readhdr(fd, hdr)
-	int fd;
-	register struct exec *hdr;
+readhdr(int fd, struct exec *hdr)
 {
 #ifdef __pdp11__
 	if (read(fd, hdr, sizeof(struct exec)) != sizeof(struct exec))
@@ -47,9 +45,7 @@ readhdr(fd, hdr)
  * Write a.out header.
  */
 void
-writehdr(fd, hdr)
-	int fd;
-	register struct exec *hdr;
+writehdr(int fd, struct exec *hdr)
 {
 #ifdef __pdp11__
 	write(fd, hdr, sizeof(struct exec));
@@ -78,12 +74,9 @@ writehdr(fd, hdr)
 }
 
 int
-copy(name, fr, to, size)
-	char *name;
-	int fr, to;
-	long size;
+copy(const char *name, int fr, int to, long size)
 {
-	register int s, n;
+	int s, n;
 	char buf[512];
 
 	while (size != 0) {
@@ -106,10 +99,9 @@ copy(name, fr, to, size)
 }
 
 int
-strip(name)
-	char *name;
+strip(const char *name)
 {
-	register int f;
+	int f;
 	long size;
 	int status;
 	struct exec head;
@@ -157,11 +149,9 @@ out:
 }
 
 int
-main(argc, argv)
-        int argc;
-	char **argv;
+main(int argc, char **argv)
 {
-	register int i;
+	int i;
 	int status;
 
 	status = 0;

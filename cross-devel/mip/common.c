@@ -13,6 +13,8 @@
 #include <sys/file.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 #ifdef FORT
 #undef BUFSTDERR
@@ -52,32 +54,35 @@ OFFSZ caloff(){
 
 NODE *lastfree;  /* pointer to last free node; (for allocator) */
 
-	/* VARARGS1 */
-uerror(msg, a )
-	char *msg;
-	void *a;
-	{ /* nonfatal error message */
+void
+uerror(const char *msg, ...)
+{ /* nonfatal error message */
+	va_list ap;
 	/* the routine 'where' is different for pass 1 and pass 2;
-	/*  it tells where the error took place */
+	   it tells where the error took place */
 
 	++nerrors;
 	where('u');
-	fprintf(stderr, msg, a );
+	va_start(ap, msg);
+	vfprintf(stderr, msg, ap);
+	va_end(ap);
 	fprintf(stderr, "\n" );
 #ifdef BUFSTDERR
 	fflush(stderr);
 #endif
 	if (nerrors > 30) cerror("too many errors");
+	return;
 	}
 
-	/* VARARGS1 */
-cerror(msg, a, b, c )
-	char *msg;
-	void *a, *b, *c;
-	{ /* compiler error: die */
+void
+cerror(const char *msg, ...)
+{ /* compiler error: die */
+	va_list ap;
 	where('c');
 	fprintf(stderr, "compiler error: " );
-	fprintf(stderr, msg, a, b, c );
+	va_start(ap, msg);
+	vfprintf(stderr, msg, ap);
+	va_end(ap);
 	fprintf(stderr, "\n" );
 /* give the compiler the benefit of the doubt */
 	if (nerrors && nerrors <= 30)
@@ -90,29 +95,30 @@ cerror(msg, a, b, c )
 
 int Wflag = 0; /* Non-zero means do not print warnings */
 
-	/* VARARGS1 */
-werror(msg, a, b )
-	char *msg;
-	void *a, *b;
-	{  /* warning */
+void
+werror(const char *msg, ...)
+{  /* warning */
+	va_list ap;
 	if (Wflag) return;
 	where('w');
 	fprintf(stderr, "warning: " );
-	fprintf(stderr, msg, a, b );
+	va_start(ap, msg);
+	vfprintf(stderr, msg, ap);
+	va_end(ap);
 	fprintf(stderr, "\n" );
 #ifdef BUFSTDERR
 	fflush(stderr);
 #endif
-	}
+}
 
-tinit(){ /* initialize expression tree search */
-
+void
+tinit(void)
+{ /* initialize expression tree search */
 	register NODE *p;
 
 	for( p=node; p<= &node[TREESZ-1]; ++p ) p->in.op = FREE;
 	lastfree = node;
-
-	}
+}
 
 # define TNEXT(p) (p== &node[TREESZ-1]?node:p+1)
 
@@ -126,10 +132,12 @@ talloc(){
 
 	cerror("out of tree space; simplify expression");
 	/* NOTREACHED */
+	return (NODE *)0;
 	}
 
-tcheck(){ /* ensure that all nodes have been freed */
-
+void
+tcheck(void)
+{ /* ensure that all nodes have been freed */
 	register NODE *p;
 
 	if( !nerrors )
@@ -139,19 +147,22 @@ tcheck(){ /* ensure that all nodes have been freed */
 #ifdef FLEXNAMES
 	freetstr();
 #endif
-	}
-tfree( p )  NODE *p; {
-	/* free the tree p */
-	extern tfree1();
+}
 
+static void tfree1(NODE *p);
+
+void
+tfree(NODE *p)
+{	/* free the tree p */
 	if( p->in.op != FREE ) walkf( p, tfree1 );
+}
 
-	}
-
-tfree1(p)  NODE *p; {
+static void
+tfree1(NODE *p)
+{
 	if( p == 0 ) cerror("freeing blank tree!");
 	else p->in.op = FREE;
-	}
+}
 
 fwalk( t, f, down ) register NODE *t; int (*f)(); {
 

@@ -14,8 +14,7 @@
 /*
 	Routine to output a word to output, with relocation
 */
-void outw(type, val)
-	int type, val;
+void outw(int type, int val)
 {
 	unsigned t;
 
@@ -69,8 +68,7 @@ void outw(type, val)
 /*
 	Routine to output a byte value
 */
-void outb(type, val)
-	int type, val;
+void outb(int type, int val)
 {
 	if(dotrel == TYPEBSS) {
 		aerror('x');
@@ -96,8 +94,7 @@ void outb(type, val)
 /*
 	Display file, line and error code for errors
 */
-void aerror(c)
-	int c;
+void aerror(int c)
 {
 	char *msg = 0;
 

@@ -878,8 +878,7 @@ union tree **p, **maxp;
 }
 
 void
-pconst(op, vp, v, type)
-register int *vp, v;
+pconst(int op, int *vp, int v, int type)
 {
 	switch (op) {
 
@@ -978,8 +977,7 @@ register int *vp, v;
 }
 
 union tree *
-lconst(op, lp, rp)
-register union tree *lp, *rp;
+lconst(int op, union tree *lp, union tree *rp)
 {
 	long l, r;
 
@@ -1071,9 +1069,7 @@ register union tree *lp, *rp;
 }
 
 void
-insert(op, tree, list)
-register union tree *tree;
-register struct acl *list;
+insert(int op, union tree *tree, struct acl *list)
 {
 	register int d;
 	int d1, i;
@@ -1119,8 +1115,7 @@ ins:
 }
 
 union tree *
-tnode(op, type, tr1, tr2)
-union tree *tr1, *tr2;
+tnode(int op, int type, union tree *tr1, union tree *tr2)
 {
 	register union tree *p;
 
@@ -1134,7 +1129,7 @@ union tree *tr1, *tr2;
 }
 
 union tree *
-tconst(val, type)
+tconst(long val, int type)
 {
 	register union tree *p;
 
@@ -1146,7 +1141,7 @@ tconst(val, type)
 }
 
 union tree *
-getblk(size)
+getblk(int size)
 {
 	register union tree *p;
 
@@ -1164,7 +1159,7 @@ getblk(size)
 }
 
 int
-islong(t)
+islong(int t)
 {
 	if (t==LONG || t==UNLONG)
 		return(2);
@@ -1172,8 +1167,7 @@ islong(t)
 }
 
 union tree *
-isconstant(t)
-register union tree *t;
+isconstant(union tree *t)
 {
 	if (t->t.op==CON || t->t.op==SFCON)
 		return(t);
@@ -1183,8 +1177,7 @@ register union tree *t;
 }
 
 union tree *
-hardlongs(t)
-register union tree *t;
+hardlongs(union tree *t)
 {
 	switch(t->t.op) {
 
@@ -1217,8 +1210,7 @@ register union tree *t;
  * Is tree of unsigned type?
  */
 int
-uns(tp)
-union tree *tp;
+uns(union tree *tp)
 {
 	register int t;
 

@@ -7,30 +7,31 @@
  */
 #include "c2.h"
 
-void	dualop();
-int	findrand();
-int	isreg();
-int	equstr();
-int	equval();
-void	repladdr();
-void	dest();
-void	savereg();
-void	setcon();
-int	source();
-void	setcc();
-int	xnatural();
-int	natural();
-void	singop();
-int	not_sp();
-int	compare();
-void	fixupbr();
-void	redunbr();
-int	toofar();
-int	ilen();
-int	adrlen();
-int	lfvalue();
+void	dualop(struct node *);
+int	findrand(char *, int);
+int	isreg(char *);
+int	equstr(char *, char *);
+int	equval(char *, int);
+void	repladdr(struct node *, int, int);
+void	dest(char *, int);
+void	savereg(int, char *);
+void	setcon(char *, char *);
+int	source(char *);
+void	setcc(char *);
+int	xnatural(char *);
+int	natural(char *);
+void	singop(struct node *);
+int	not_sp(char *);
+int	compare(int, char *, char *);
+void	fixupbr(struct node *);
+void	redunbr(struct node *);
+int	toofar(struct node *);
+int	ilen(struct node *);
+int	adrlen(char *);
+int	lfvalue(int);
 
-void rmove()
+void
+rmove(void)
 {
 	register struct node *p;
 	register int r;
@@ -64,7 +65,7 @@ void rmove()
 				p->op = CLR;
 				strcpy(regs[RT1], regs[RT2]);
 				regs[RT2][0] = 0;
-				p->code = copy(1, regs[RT1]);
+				p->code = copy(1, regs[RT1], (char *)0);
 				nchange++;
 				goto sngl;
 			}
@@ -115,12 +116,12 @@ dble:
 					continue;
 				case 2:
 					p->op = TST;
-					p->code = copy(1, "-(sp)");
+					p->code = copy(1, "-(sp)", (char *)0);
 					nchange++;
 					continue;
 				case 4:
 					p->op = CMP;
-					p->code = copy(1, "-(sp),-(sp)");
+					p->code = copy(1, "-(sp),-(sp)", (char *)0);
 					nchange++;
 					continue;
 				}
@@ -129,7 +130,7 @@ dble:
 				p->op = CLR;
 				strcpy(regs[RT1], regs[RT2]);
 				regs[RT2][0] = 0;
-				p->code = copy(1, regs[RT1]);
+				p->code = copy(1, regs[RT1], (char *)0);
 				nchange++;
 				goto sngl;
 			}
@@ -168,9 +169,9 @@ dble:
 						regs[RT2][0] = 0;
 						p->back->op = CLR;
 						p->back->subop = BYTE;
-						p->back->code = copy(1, regs[RT1]);
+						p->back->code = copy(1, regs[RT1], (char *)0);
 						p->op = SWAB;
-						p->code = copy(1, regs[RT1]);
+						p->code = copy(1, regs[RT1], (char *)0);
 						nchange++;
 						goto sngl;
 					}
@@ -201,7 +202,7 @@ dble:
 					    dest(regs[RT1], flt);
 					    p->back->op = CLR;
 					    p->back->subop = 0;
-					    p->back->code = copy(1, regs[RT2]);
+					    p->back->code = copy(1, regs[RT2], (char *)0);
 					    p->op = BIS;
 					    p->subop = BYTE;
 					    strcat(regs[RT1], ",");
@@ -320,27 +321,27 @@ out:				dualop(p);	/* restore banged up parsed operands */
 					p->op = TST;
 					strcpy(regs[RT1], regs[RT2]);
 					regs[RT2][0] = 0;
-					p->code = copy(1, regs[RT1]);
+					p->code = copy(1, regs[RT1], (char *)0);
 					nchange++;
 					nsaddr++;
 				} else if (equval(regs[RT2], -1)) {
 					p->op = TST;
 					regs[RT2][0] = 0;
-					p->code = copy(1, regs[RT1]);
+					p->code = copy(1, regs[RT1], (char *)0);
 					nchange++;
 					nsaddr++;
 				}
 				if (equstr(regs[RT1], "$0")) {
 					p->op = TST;
 					regs[RT2][0] = 0;
-					p->code = copy(1, regs[RT1]);
+					p->code = copy(1, regs[RT1], (char *)0);
 					nchange++;
 					nsaddr++;
 				} else if (equstr(regs[RT2], "$0")) {
 					p->op = TST;
 					strcpy(regs[RT1], regs[RT2]);
 					regs[RT2][0] = 0;
-					p->code = copy(1, regs[RT1]);
+					p->code = copy(1, regs[RT1], (char *)0);
 					nchange++;
 					nsaddr++;
 				}
@@ -455,8 +456,8 @@ char	brtable[12][12] = {
 /* jmi */ {JLE ,JNE ,JLE ,JBR ,JLT ,JNE ,JLT ,JNE ,JLE ,JLT ,JBR ,JLT}
   };
 
-void fixupbr(p)
-register struct node *p;
+void
+fixupbr(struct node *p)
 {
 	register struct node *p1, *p2;
 
@@ -479,8 +480,8 @@ ok:	p->subop = brtable [(int) p->subop] [(int) p1->subop];
 /*
  * Get LF label value.
  */
-int lfvalue(lfno)
-int lfno;
+int
+lfvalue(int lfno)
 {
 	register struct node *p;
 
@@ -521,7 +522,8 @@ int jumpsw()
 	return(nj);
 }
 
-void addsob()
+void
+addsob(void)
 {
 	register struct node *p, *p1;
 
@@ -542,8 +544,8 @@ void addsob()
 	}
 }
 
-int toofar(p)
-struct node *p;
+int
+toofar(struct node *p)
 {
 	register struct node *p1;
 	int len;
@@ -556,8 +558,8 @@ struct node *p;
 	return(1);
 }
 
-int ilen(p)
-register struct node *p;
+int
+ilen(struct node *p)
 {
 	switch (p->op) {
 	case LABEL:
@@ -577,8 +579,8 @@ register struct node *p;
 	}
 }
 
-int adrlen(s)
-register char *s;
+int
+adrlen(char *s)
 {
 	if (*s == 0)
 		return(0);
@@ -591,14 +593,8 @@ register char *s;
 	return(2);
 }
 
-int abs(x)
-register int x;
-{
-	return(x<0? -x: x);
-}
-
-int equop(ap1, p2)
-struct node *ap1, *p2;
+int
+equop(struct node *ap1, struct node *p2)
 {
 	register char *cp1, *cp2;
 	register struct node *p1;
@@ -620,8 +616,8 @@ struct node *ap1, *p2;
 	return(0);
 }
 
-void decref(p)
-register struct node *p;
+void
+decref(struct node *p)
 {
 	if (--p->refc <= 0) {
 		nrlab++;
@@ -631,8 +627,7 @@ register struct node *p;
 }
 
 struct node *
-nonlab(p)
-register struct node *p;
+nonlab(struct node *p)
 {
 	CHECK(10);
 	while (p && p->op==LABEL)
@@ -641,8 +636,7 @@ register struct node *p;
 }
 
 char *
-alloc(n)
-register int n;
+alloc(int n)
 {
 	register char *p;
 
@@ -665,7 +659,8 @@ register int n;
 	return(p);
 }
 
-void clearreg()
+void
+clearreg(void)
 {
 	register int i;
 
@@ -675,9 +670,8 @@ void clearreg()
 	ccloc[0] = 0;
 }
 
-void savereg(ai, as)
-int ai;
-char *as;
+void
+savereg(int ai, char *as)
 {
 	register char *p, *s, *sp;
 
@@ -696,9 +690,8 @@ char *as;
 	*--p = '\0';
 }
 
-void dest(as, flt)
-char *as;
-int flt;
+void
+dest(char *as, int flt)
 {
 	register char *s;
 	register int i;
@@ -732,8 +725,8 @@ int flt;
 	}
 }
 
-void singop(ap)
-struct node *ap;
+void
+singop(struct node *ap)
 {
 	register char *p1, *p2;
 
@@ -744,8 +737,8 @@ struct node *ap;
 }
 
 
-void dualop(ap)
-struct node *ap;
+void
+dualop(struct node *ap)
 {
 	register char *p1, *p2;
 	register struct node *p;
@@ -769,9 +762,8 @@ struct node *ap;
 		;
 }
 
-int findrand(as, flt)
-char *as;
-int flt;
+int
+findrand(char *as, int flt)
 {
 	register int i;
 	for (i = flt; i<NREG+flt; i++) {
@@ -781,8 +773,8 @@ int flt;
 	return(-1);
 }
 
-int isreg(as)
-char *as;
+int
+isreg(char *as)
 {
 	register char *s;
 
@@ -808,8 +800,8 @@ void check()
 	}
 }
 
-int source(ap)
-char *ap;
+int
+source(char *ap)
 {
 	register char *p1, *p2;
 
@@ -829,9 +821,8 @@ char *ap;
 	return(0);
 }
 
-void repladdr(p, f, flt)
-struct node *p;
-int f, flt;
+void
+repladdr(struct node *p, int f, int flt)
 {
 	register int r;
 	int r1;
@@ -874,7 +865,8 @@ int f, flt;
 	}
 }
 
-void movedat()
+void
+movedat(void)
 {
 	register struct node *p1, *p2;
 	struct node *p3;
@@ -936,8 +928,8 @@ void movedat()
 	}
 }
 
-void redunbr(p)
-register struct node *p;
+void
+redunbr(struct node *p)
 {
 	register struct node *p1;
 	register char *ap1;
@@ -969,8 +961,7 @@ register struct node *p;
 }
 
 char *
-findcon(i)
-int i;
+findcon(int i)
 {
 	register char *p;
 	register int r;
@@ -985,9 +976,8 @@ int i;
 	return(p);
 }
 
-int compare(oper, cp1, cp2)
-int oper;
-register char *cp1, *cp2;
+int
+compare(int oper, char *cp1, char *cp2)
 {
 	register unsigned n1, n2;
 
@@ -1038,8 +1028,8 @@ register char *cp1, *cp2;
 	return(-1);
 }
 
-void setcon(ar1, ar2)
-char *ar1, *ar2;
+void
+setcon(char *ar1, char *ar2)
 {
 	register char *cl, *cv, *p;
 
@@ -1055,8 +1045,8 @@ char *ar1, *ar2;
 	while ((*p++ = *cv++) != 0);
 }
 
-int equstr(ap1, ap2)
-char *ap1, *ap2;
+int
+equstr(char *ap1, char *ap2)
 {
 	register char *p1, *p2;
 
@@ -1073,9 +1063,8 @@ char *ap1, *ap2;
  * returns true if 's' is of the form $N where N represents
  * a signed 16-bit int that is equal to 'val'.
  */
-int equval(s, val)
-char *s;
-int val;
+int
+equval(char *s, int val)
 {
 	int got, len;
 	if (sscanf(s, "$%i%n", &got, &len) < 1 ||
@@ -1085,8 +1074,8 @@ int val;
 	return 1;
 }
 
-void setcc(ap)
-char *ap;
+void
+setcc(char *ap)
 {
 	register char *p, *p1;
 
@@ -1099,8 +1088,8 @@ char *ap;
 	while ((*p1++ = *p++) != 0);
 }
 
-int natural(ap)
-char *ap;
+int
+natural(char *ap)
 {
 	register char *p;
 
@@ -1114,16 +1103,16 @@ char *ap;
 	return(1);
 }
 
-int xnatural(ap)
-char *ap;
+int
+xnatural(char *ap)
 {
 	if (natural(ap))
 		return(1);
 	return(equstr("(sp)", ap));
 }
 
-int not_sp(ap)
-register char *ap;
+int
+not_sp(char *ap)
 {
 	char c;
 

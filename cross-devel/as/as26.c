@@ -11,7 +11,7 @@
 #include "as.h"
 #include "as2.h"
 
-void opline()
+void opline(void)
 {
 	struct value v;
 	unsigned topcode, ttype, tb, a1;
@@ -293,8 +293,7 @@ void opline()
 /*
 	Routine to do a 2 operand op code
 */
-void op2a(op)
-	unsigned op;
+void op2a(unsigned op)
 {
 	unsigned a1;
 
@@ -307,8 +306,7 @@ void op2a(op)
 /*
 	routine to do second (or only) operand
 */
-void op2b(a1, op)
-	unsigned a1, op;
+void op2b(unsigned a1, unsigned op)
 {
 	unsigned a2,t;
 	unsigned *p;
@@ -336,7 +334,7 @@ void op2b(a1, op)
 /*
 	Routine to process an address operand
 */
-unsigned address()
+unsigned address(void)
 {
 	struct value v;
 	int t;
@@ -444,7 +442,7 @@ unsigned address()
 	Routine to "handle" attempt to load more than two adresses
 	in adrbuf
 */
-void addrovf()
+void addrovf(void)
 {
 	printf("addrovf: address over flow, line %d\n",line);
 	aexit(1);
@@ -455,8 +453,7 @@ void addrovf()
 /*
 	Routine to check that a value is a valid register
 */
-void checkreg(v)
-	struct value *v;
+void checkreg(struct value *v)
 {
 	if(v->val.u > 7 ||
 	   (v->type.u > TYPEABS && v->type.u < TYPEOPFD)) {
@@ -470,7 +467,7 @@ void checkreg(v)
 /*
 	Routine to check for an expected right paren
 */
-void checkrp()
+void checkrp(void)
 {
 	if(tok.i != ')') {
 		aerror(')');
@@ -486,8 +483,7 @@ void checkrp()
 	the number of types used in the instruction.  A 1 bit
 	means that a branch over a jmp must be used.
 */
-int setbr(v)
-	int v;
+int setbr(int v)
 {
 	if(brtabp > BRLEN)	/* no more room in table... */
 		return(2);
@@ -505,7 +501,7 @@ int setbr(v)
 	Routine to check the current entry in jmp/br table.
 	Return of 0 means that a br can be used.
 */
-int getbr()
+int getbr(void)
 {
 	int t;
 

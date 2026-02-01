@@ -1,6 +1,6 @@
 DESTDIR		= /usr/local
 CC              = gcc
-CFLAGS		= -O -g -Wall -DDESTDIR=\"$(DESTDIR)\"
+CFLAGS		= -O -g -Wall -Wno-implicit-int -Wno-deprecated-non-prototype -DDESTDIR=\"$(DESTDIR)\"
 
 all:		c0 c1
 

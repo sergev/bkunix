@@ -11,7 +11,7 @@
 #include "as.h"
 #include "as1.h"
 
-void assem()
+void assem(void)
 {
 	struct value v;
 	union token savtok;
@@ -104,9 +104,7 @@ ealoop:
 	}
 }
 
-void write_fb(f, b)
-	int f;
-	struct fb_tab *b;
+void write_fb(int f, struct fb_tab *b)
 {
 	char buf[4];
 
@@ -123,8 +121,7 @@ void write_fb(f, b)
 	Routine to check a number to see if it is in range for
 	a temporary label
 */
-unsigned fbcheck(u)
-	unsigned u;
+unsigned fbcheck(unsigned u)
 {
 	if(u > 9) {
 		aerror('f');
@@ -138,7 +135,7 @@ unsigned fbcheck(u)
 	Routine to check current token to see if we are at the end of
 	a statement
 */
-int checkeos()
+int checkeos(void)
 {
 	return(tok.i == '\n' || tok.i == ';' || tok.i == '#' || tok.i == TOKEOF);
 }

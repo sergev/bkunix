@@ -171,8 +171,10 @@ extern	int retstat;
 extern	int asavbc[], *psavbc;
 
 /* declarations of various functions */
+extern	NODE	*buildtree(int, NODE *, NODE *);
+extern	NODE	*block(int, NODE *, NODE *, TWORD, int, int);
+extern	NODE	*optim(NODE *);
 extern	NODE
-	*buildtree(),
 	*bdty(),
 	*mkty(),
 	*rstruct(),
@@ -189,17 +191,19 @@ extern	NODE
 	*ptmatch(),
 	*tymatch(),
 	*makety(),
-	*block(),
 	*doszof(),
 	*talloc(),
-	*optim(),
 	*fixargs(),
 	*clocal();
 OFFSZ	tsize(),
 	psize();
 TWORD	types();
-double	atof();
+double	atof(const char *);
 char	*exname(), *exdcon();
+
+void	cerror(const char *, ...);
+void	uerror(const char *, ...);
+void	tfree(NODE *);
 
 #define checkst(x)
 

@@ -37,10 +37,9 @@ char	*savetab;
 int	saveleft;
 
 char *
-savestr(cp)
-	register char *cp;
+savestr(char *cp)
 {
-	register int len;
+	int len;
 
 	len = strlen(cp) + 1;
 	if (len > saveleft) {
@@ -61,8 +60,7 @@ savestr(cp)
 }
 
 char *
-strspl(left, right)
-	char *left, *right;
+strspl(char *left, char *right)
 {
 	char buf[BUFSIZ];
 
@@ -72,12 +70,11 @@ strspl(left, right)
 }
 
 int
-getsuf(as)
-	char as[];
+getsuf(char *as)
 {
-	register int c;
-	register char *s;
-	register int t;
+	int c;
+	char *s;
+	int t;
 
 	s = as;
 	c = 0;
@@ -93,11 +90,9 @@ getsuf(as)
 }
 
 char *
-setsuf(as, ch)
-	char *as;
-	int ch;
+setsuf(char *as, int ch)
 {
-	register char *s, *s1;
+	char *s, *s1;
 
 	s = s1 = savestr(as);
 	while (*s)
@@ -108,11 +103,10 @@ setsuf(as, ch)
 }
 
 int
-inlist(l, os)
-	char **l, *os;
+inlist(char **l, char *os)
 {
-	register char *t, *s;
-	register int c;
+	char *t, *s;
+	int c;
 
 	s = os;
 	while ((t = *l++) != 0) {
@@ -127,7 +121,7 @@ inlist(l, os)
 }
 
 void
-cleanup()
+cleanup(void)
 {
 	if (! Pflag) {
 		if (Sflag==0 && tmp_asm)
@@ -140,15 +134,15 @@ cleanup()
 }
 
 void
-killed()
+killed(int sig)
 {
+	(void)sig;
 	cleanup();
 	exit(100);
 }
 
 int
-callsys(f, v)
-	char *f, **v;
+callsys(char *f, char **v)
 {
 	int t, status;
 	char **cpp;
@@ -159,7 +153,7 @@ callsys(f, v)
 			printf(" %s", *cpp);
 		printf("\n");
 	}
-	t = vfork();
+	t = fork();
 	if (t == -1) {
 		printf("No more processes\n");
 		return (100);
@@ -184,9 +178,7 @@ callsys(f, v)
 }
 
 int
- main(argc, argv)
-        int argc;
-	char **argv;
+main(int argc, char **argv)
 {
 	char *t;
 	char *assource;

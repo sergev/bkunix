@@ -16,8 +16,7 @@
 	Routine to read a name whose 1st character is
 	contained in variable c
 */
-void rname(c)
-	unsigned char c;
+void rname(unsigned char c)
 {
 	char *sp;
 	unsigned char tc;
@@ -80,7 +79,7 @@ void rname(c)
 	Routine to handle numbers and temporary labels
 	Numbers starting from 0 are treated as octal.
 */
-char number()
+char number(void)
 {
 	int num, base;
 	unsigned char c;
@@ -126,7 +125,7 @@ char number()
 	Routine to read next character
 	Uses character routines so that MSDOS crlf turns into lf
 */
-unsigned char rch()
+unsigned char rch(void)
 {
 	int c;
 	int savtok;
@@ -172,8 +171,7 @@ unsigned char rch()
 /*
 	Routine to hash a symbol and enter into hash table
 */
-void hash_enter(p)
-	struct symtab *p;
+void hash_enter(struct symtab *p)
 {
 	unsigned short hv, next;
 	int probe;
@@ -198,8 +196,7 @@ void hash_enter(p)
 /*
 	Routine to hash a symbol
 */
-unsigned short hash(p)
-	char *p;
+unsigned short hash(char *p)
 {
 	int i;
 
@@ -216,9 +213,7 @@ unsigned short hash(p)
 	Routine to add a symbol to the symbol table and bump
 	the symbol table pointer
 */
-void add_symbol(p, s)
-	struct symtab *p;
-	char *s;
+void add_symbol(struct symtab *p, char *s)
 {
 	strncpy(p->name, s, 8);
 	if(++symend - usymtab > USERSYMBOLS) {

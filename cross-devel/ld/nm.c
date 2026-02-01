@@ -23,9 +23,7 @@ int pflg;
  * Read a.out header. Return 0 on error.
  */
 int
-readhdr(fd, hdr)
-	int fd;
-	register struct exec *hdr;
+readhdr(int fd, struct exec *hdr)
 {
 #ifdef __pdp11__
 	if (read(fd, hdr, sizeof(struct exec)) != sizeof(struct exec))
@@ -51,9 +49,7 @@ readhdr(fd, hdr)
  * Read a.out symbol. Return 0 on error.
  */
 int
-readsym(fd, sym)
-	int fd;
-	register struct nlist *sym;
+readsym(int fd, struct nlist *sym)
 {
 #ifdef __pdp11__
 	if (read(fd, sym, sizeof(struct nlist)) != sizeof(struct nlist))
@@ -72,22 +68,20 @@ readsym(fd, sym)
 }
 
 int
-compare(p1, p2)
-	struct nlist *p1, *p2;
+compare(const void *p1, const void *p2)
 {
+	const struct nlist *n1 = p1, *n2 = p2;
 	if (nflg) {
-		if (p1->n_value > p2->n_value)
+		if (n1->n_value > n2->n_value)
 			return rflg;
-		if (p1->n_value < p2->n_value)
+		if (n1->n_value < n2->n_value)
 			return -rflg;
 	}
-	return rflg * strncmp (p1->n_name, p2->n_name, sizeof(p1->n_name));
+	return rflg * strncmp (n1->n_name, n2->n_name, sizeof(n1->n_name));
 }
 
-int
-names(filename, nameflg)
-	char *filename;
-	int nameflg;
+static int
+names(const char *filename, int nameflg)
 {
 	struct exec hdr;
 	struct nlist *nlp;
@@ -130,7 +124,7 @@ badsym:		printf("%s: cannot read symbol table\n", filename);
 		if (cflg) {
 			if (nlp->n_name[0] != '_')
 				continue;
-			for (j=0; j<sizeof(nlp->n_name)-1; j++)
+			for (j=0; j<(int)sizeof(nlp->n_name)-1; j++)
 				nlp->n_name[j] = nlp->n_name[j+1];
 			nlp->n_name[sizeof(nlp->n_name)-1] = '\0';
 		}
@@ -155,9 +149,7 @@ badsym:		printf("%s: cannot read symbol table\n", filename);
 }
 
 int
-main(argc, argv)
-        int argc;
-	char **argv;
+main(int argc, char **argv)
 {
 	if (--argc > 0 && *argv[1] == '-') {
 		argv++;

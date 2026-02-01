@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define	MAXCPS	32
 
@@ -143,18 +144,20 @@ char	ccloc[MAXCPS + 1];
 #define	OPHS	57
 
 struct optab *ophash[OPHS];
-struct	node *nonlab();
-char	*copy();
-char	*sbrk();
-char	*findcon();
-struct	node *insertl();
-struct	node *codemove();
-char	*sbrk();
-char	*alloc();
-void	movedat();
-void	clearreg();
-void	rmove();
-int	jumpsw();
-void	addsob();
-void	decref();
-int	equop();
+struct	node *nonlab(struct node *);
+char	*copy(int, char *, char *);
+char	*findcon(int);
+struct	node *insertl(struct node *);
+struct	node *codemove(struct node *);
+char	*alloc(int);
+void	movedat(void);
+void	clearreg(void);
+void	rmove(void);
+int	jumpsw(void);
+void	addsob(void);
+void	decref(struct node *);
+int	equop(struct node *, struct node *);
+int	getnum(char *);
+void	reducelit(struct node *);
+void	output(void);
+int	main(int, char **);

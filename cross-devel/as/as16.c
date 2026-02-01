@@ -14,7 +14,7 @@
 /*
 	Routine to process one statement
 */
-void opline()
+void opline(void)
 {
 	struct value v;
 	int t;
@@ -185,7 +185,7 @@ void opline()
 /*
 	Routine to parse an address and return bytes needed
 */
-int address()
+int address(void)
 {
 	int i;
 	struct value v;
@@ -255,8 +255,7 @@ int address()
 /*
 	Routine to check that a value is in range for a register
 */
-void checkreg(v)
-	struct value v;
+void checkreg(struct value v)
 {
 	if(v.val.u > 7 || (v.type.u != TYPEABS && v.type.u <= TYPEBSS))
 		aerror('a');
@@ -266,7 +265,7 @@ void checkreg(v)
 /*
 	Routine to check for an expected right paren
 */
-void checkrp()
+void checkrp(void)
 {
 	if(tok.i != ')') {
 		aerror(')');
