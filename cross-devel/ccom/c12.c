@@ -9,8 +9,7 @@
 #include <sys/param.h>		/* for MAX */
 
 union tree *
-optim(tree)
-register union tree *tree;
+optim(union tree *tree)
 {
 	register int op, dope;
 	int d1, d2;
@@ -299,8 +298,7 @@ register union tree *tree;
 }
 
 union tree *
-unoptim(tree)
-register union tree *tree;
+unoptim(union tree *tree)
 {
 	register union tree *subtre, *p;
 
@@ -602,8 +600,7 @@ register union tree *tree;
  */
 
 union tree *
-lvfield(t)
-register union tree *t;
+lvfield(union tree *t)
 {
 	register union tree *t1, *t2;
 
@@ -652,8 +649,7 @@ struct acl {
 };
 
 union tree *
-acommute(tree)
-register union tree *tree;
+acommute(union tree *tree)
 {
 	struct acl acl;
 	int d, i, op, flt, d1, type;
@@ -765,8 +761,7 @@ register union tree *tree;
 }
 
 int
-sideeffects(tp)
-register union tree *tp;
+sideeffects(union tree *tp)
 {
 	register int dope;
 
@@ -794,8 +789,7 @@ register union tree *tp;
 }
 
 void
-distrib(list)
-struct acl *list;
+distrib(struct acl *list)
 {
 /*
  * Find a list member of the form c1c2*x such
@@ -868,8 +862,7 @@ struct acl *list;
 }
 
 void
-squash(p, maxp)
-union tree **p, **maxp;
+squash(union tree **p, union tree **maxp)
 {
 	register union tree **np;
 

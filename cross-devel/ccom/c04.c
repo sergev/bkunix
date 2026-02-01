@@ -13,8 +13,7 @@
  * e.g. turn "ptr-to-int" into "int".
  */
 int
-decref(t)
-register int t;
+decref(int t)
 {
 	if ((t & ~TYPE) == 0) {
 		error("Illegal indirection");
@@ -28,8 +27,7 @@ register int t;
  * one; e.g. turn "int" to "ptr-to-int".
  */
 int
-incref(t)
-register int t;
+incref(int t)
 {
 	return(((t&~TYPE)<<TYLEN) | (t&TYPE) | PTR);
 }
@@ -49,8 +47,7 @@ cbranch(union tree *t, int lbl, int cond)
  * Write out a tree.
  */
 void
-rcexpr(tp)
-register union tree *tp;
+rcexpr(union tree *tp)
 {
 	/*
 	 * Special optimization
@@ -146,7 +143,7 @@ treeout(union tree *tp, int isstruct)
  * Generate a branch
  */
 void
-branch(lab)
+branch(int lab)
 {
 	outcode("BN", BRANCH, lab);
 }
@@ -155,7 +152,7 @@ branch(lab)
  * Generate a label
  */
 void
-label(l)
+label(int l)
 {
 	outcode("BN", LABEL, l);
 }
@@ -166,8 +163,7 @@ label(l)
  * to which the pointer points.
  */
 int
-plength(p)
-register union tree *p;
+plength(union tree *p)
 {
 	register int t, l;
 
@@ -184,8 +180,7 @@ register union tree *p;
  * whose tree node is acs.
  */
 int
-length(cs)
-union tree *cs;
+length(union tree *cs)
 {
 	register int t, elsz;
 	long n;
@@ -249,8 +244,7 @@ union tree *cs;
  * The number of bytes in an object, rounded up to a word.
  */
 int
-rlength(cs)
-union tree *cs;
+rlength(union tree *cs)
 {
 	return((length(cs)+ALIGN) & ~ALIGN);
 }
@@ -260,7 +254,7 @@ union tree *cs;
  * is to a simple label.
  */
 int
-simplegoto()
+simplegoto(void)
 {
 	register struct nmlist *csp;
 
@@ -287,7 +281,7 @@ simplegoto()
  * Return the next non-white-space character
  */
 int
-nextchar()
+nextchar(void)
 {
 	while (spnextchar()==' ')
 		peekc = 0;
@@ -299,7 +293,7 @@ nextchar()
  * to blank and handling line-ends.
  */
 int
-spnextchar()
+spnextchar(void)
 {
 	register int c;
 
@@ -319,8 +313,7 @@ spnextchar()
  * is a break or continue legal?
  */
 void
-chconbrk(l)
-int l;
+chconbrk(int l)
 {
 	if (l==0)
 		error("Break/continue error");
@@ -330,7 +323,7 @@ int l;
  * The goto statement.
  */
 void
-dogoto()
+dogoto(void)
 {
 	register union tree *np;
 	register char *st;
@@ -348,7 +341,7 @@ dogoto()
  * the returned object to the function's type.
  */
 void
-doret()
+doret(void)
 {
 	if (nextchar() != ';') {
 		register char *st;
@@ -442,8 +435,7 @@ outcode(char *s, ...)
 }
 
 unsigned int
-hash(sp)
-register char *sp;
+hash(char *sp)
 {
 	register unsigned int h;
 

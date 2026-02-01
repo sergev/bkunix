@@ -11,12 +11,12 @@ FILE	*oobuf;
 char lbuf[BUFSIZ];
 char *lbufp = lbuf;
 
-void put(), comment();
-int flag();
+static void emitchar(int);
+static void comment(int);
+static int flag(void);
 
 int
-main(argc, argv)
-char **argv;
+main(int argc, char **argv)
 {
 /*
 	A1 -> A
@@ -95,10 +95,10 @@ loop:
 
 	case 'A':
 		if ((c=getchar())=='1' || c=='2') {
-			put(c+'A'-'1');
+			emitchar(c+'A'-'1');
 			goto loop;
 		}
-		put('O');
+		emitchar('O');
 		ungetc(c, stdin);
 		goto loop;
 
@@ -106,50 +106,50 @@ loop:
 		switch (getchar()) {
 
 		case '1':
-			put('C');
+			emitchar('C');
 			goto loop;
 
 		case '2':
-			put('D');
+			emitchar('D');
 			goto loop;
 
 		case 'E':
-			put('L');
+			emitchar('L');
 			goto loop;
 
 		case 'F':
-			put('P');
+			emitchar('P');
 			goto loop;
 		}
-		put('?');
+		emitchar('?');
 		goto loop;
 
 	case 'C':
-		put(getchar()+'E'-'1');
+		emitchar(getchar()+'E'-'1');
 		goto loop;
 
 	case 'F':
-		put('G');
+		emitchar('G');
 		goto subtre;
 
 	case 'R':
 		if ((c=getchar()) == '1')
-		put('J'); else {
-			put('I');
+		emitchar('J'); else {
+			emitchar('I');
 			ungetc(c, stdin);
 		}
 		goto loop;
 
 	case 'H':
-		put('H');
+		emitchar('H');
 		goto subtre;
 
 	case 'I':
-		put('M');
+		emitchar('M');
 		goto loop;
 
 	case 'S':
-		put('K');
+		emitchar('K');
 subtre:
 		snlflg = 1;
 		t = 'A';
@@ -177,13 +177,13 @@ l1:
 			goto l1;
 		}
 		ungetc(c, stdin);
-		put(t);
+		emitchar(t);
 		goto loop;
 
 	case '#':
 		if(getchar()=='1')
-			put('#'); else
-			put('"');
+			emitchar('#'); else
+			emitchar('"');
 		goto loop;
 
 	case '%':
@@ -288,7 +288,7 @@ pf:
 			comment(c); goto loop1;
 
 		}
-		put(c);
+		emitchar(c);
 		goto loop1;
 
 	case '\t':
@@ -300,13 +300,13 @@ pf:
 			tabflg++;
 			goto loop;
 		}
-		put('\t');
+		emitchar('\t');
 		goto loop;
 
 	case '\n':
 		lbufp=lbuf;
 		if (!smode)  {
-			put('\n');
+			emitchar('\n');
 			goto loop;
 		}
 		if (nlflg) {
@@ -342,12 +342,12 @@ pf:
 
 	}
 	*lbufp++=c;
-	put(c);
+	emitchar(c);
 	goto loop;
 }
 
-int
-flag() {
+static int
+flag(void) {
 	register int c, f;
 
 	f = 0;
@@ -405,8 +405,8 @@ l1:
 	return(f);
 }
 
-void
-put(c)
+static void
+emitchar(int c)
 {
 	if (tabflg) {
 		tabflg = 0;
@@ -417,9 +417,8 @@ put(c)
 	}
 }
 
-void
-comment(c)
-register char c;
+static void
+comment(int c)
 {
 	putc(c,curbuf);
 	if ((c=getchar())=='*') for (;;) {

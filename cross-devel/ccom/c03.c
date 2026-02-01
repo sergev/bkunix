@@ -14,7 +14,7 @@
  * Process a sequence of declaration statements
  */
 int
-declist(sclass)
+declist(int sclass)
 {
 	register int sc, offset;
 	struct nmlist typer;
@@ -34,9 +34,7 @@ declist(sclass)
  * entry, which looks like a hash table entry.
  */
 int
-getkeywords(scptr, tptr)
-int *scptr;
-struct nmlist *tptr;
+getkeywords(int *scptr, struct nmlist *tptr)
 {
 	register int skw, tkw, longf;
 	int o, isadecl, ismos, unsignf;
@@ -150,7 +148,7 @@ struct nmlist *tptr;
  * of getkeywords.
  */
 union str *
-strdec(mosf, kind)
+strdec(int mosf, int kind)
 {
 	register int elsize = 0, o;
 	register struct nmlist *ssym;
@@ -246,8 +244,7 @@ strdec(mosf, kind)
  * Process a comma-separated list of declarators
  */
 int
-declare(askw, tptr, offset)
-struct nmlist *tptr;
+declare(int askw, struct nmlist *tptr, int offset)
 {
 	register unsigned o;
 	register int skw, isunion;
@@ -305,8 +302,7 @@ struct nmlist *tptr;
  * Process a single declarator
  */
 int
-decl1(askw, atptr, offset, absname)
-struct nmlist *atptr, *absname;
+decl1(int askw, struct nmlist *atptr, int offset, struct nmlist *absname)
 {
 	int t1, a, elsize = 0;
 	register int skw;
@@ -542,8 +538,7 @@ syntax:
  * after redeclaration in an inner block.
  */
 struct nmlist *
-pushdecl(sp)
-register struct nmlist *sp;
+pushdecl(struct nmlist *sp)
 {
 	register struct nmlist *nsp, **hsp;
 
@@ -567,9 +562,7 @@ register struct nmlist *sp;
  * Read a declarator and get the implied type
  */
 int
-getype(dimp, absname)
-register struct tdim *dimp;
-struct nmlist *absname;
+getype(struct tdim *dimp, struct nmlist *absname)
 {
 	static struct nmlist argtype;
 	int type;
@@ -665,7 +658,7 @@ syntax:
  * More bits required for type than allowed.
  */
 void
-typov()
+typov(void)
 {
 	error("Type is too complicated");
 }
@@ -675,7 +668,7 @@ typov()
  * including bit-field considerations.
  */
 int
-align(type, offset, aflen)
+align(int type, int offset, int aflen)
 {
 	register int a, t, flen;
 	char *ftl;
@@ -720,7 +713,7 @@ align(type, offset, aflen)
  * Complain about syntax error in declaration
  */
 void
-decsyn(o)
+decsyn(int o)
 {
 	error("Declaration syntax");
 	errflush(o);
@@ -730,7 +723,7 @@ decsyn(o)
  * Complain about a redeclaration
  */
 void
-redec()
+redec(void)
 {
 	error("%s redeclared", defsym->name);
 }
@@ -740,8 +733,7 @@ redec()
  * a register; if so return the register number
  */
 int
-goodreg(hp)
-struct nmlist *hp;
+goodreg(struct nmlist *hp)
 {
 	int type;
 

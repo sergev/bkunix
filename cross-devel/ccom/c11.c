@@ -9,8 +9,7 @@
 #include <stdarg.h>
 
 int
-degree(t)
-register union tree *t;
+degree(union tree *t)
 {
 	register union tree *t1;
 
@@ -35,8 +34,7 @@ register union tree *t;
 }
 
 void
-pname(p, flag)
-register union tree *p;
+pname(union tree *p, int flag)
 {
 	register int i;
 
@@ -117,8 +115,7 @@ loop:
 }
 
 void
-pbase(p)
-register union tree *p;
+pbase(union tree *p)
 {
 
 	if (p->n.class==SOFFS || p->n.class==STATIC)
@@ -128,8 +125,7 @@ register union tree *p;
 }
 
 int
-xdcalc(p, nrleft)
-register union tree *p;
+xdcalc(union tree *p, int nrleft)
 {
 	register int d;
 
@@ -146,9 +142,7 @@ register union tree *p;
 }
 
 int
-dcalc(p, nrleft)
-register union tree *p;
-int nrleft;
+dcalc(union tree *p, int nrleft)
 {
 	register union tree *p1;
 
@@ -189,9 +183,7 @@ int nrleft;
 }
 
 int
-notcompat(p, ast, deg, op)
-register union tree *p;
-int ast, deg, op;
+notcompat(union tree *p, int ast, int deg, int op)
 {
 	unsigned register at, st;
 
@@ -222,8 +214,7 @@ int ast, deg, op;
 }
 
 int
-prins(op, c, itable, lbl)
-struct instab *itable;
+prins(int op, int c, struct instab *itable, int lbl)
 {
 	extern char	jmijne[];
 	register struct instab	*insp;
@@ -251,8 +242,7 @@ struct instab *itable;
 }
 
 int
-collcon(p)
-register union tree *p;
+collcon(union tree *p)
 {
 	register int op;
 
@@ -272,8 +262,7 @@ register union tree *p;
 }
 
 int
-isfloat(t)
-register union tree *t;
+isfloat(union tree *t)
 {
 
 	if ((opdope[t->t.op]&RELAT)!=0)
@@ -286,9 +275,7 @@ register union tree *t;
 }
 
 int
-oddreg(t, reg)
-register union tree *t;
-register int reg;
+oddreg(union tree *t, int reg)
 {
 
 	if (!isfloat(t)) {
@@ -322,7 +309,7 @@ register int reg;
 }
 
 int
-arlength(t)
+arlength(int t)
 {
 	if (t>=PTR)
 		return(2);
@@ -381,9 +368,7 @@ L%d:\
  */
 
 void
-pswitch(afp, alp, deflab)
-struct swtab *afp, *alp;
-int deflab;
+pswitch(struct swtab *afp, struct swtab *alp, int deflab)
 {
 	int ncase, i, j, tabs = 0, worst, best, range;
 	register struct swtab *swp, *fp, *lp;
@@ -464,7 +449,7 @@ int deflab;
 }
 
 void
-breq(v, l)
+breq(int v, int l)
 {
 	if (v==0)
 		printf("tst	r0\n");
@@ -474,8 +459,7 @@ breq(v, l)
 }
 
 int
-sort(afp, alp)
-struct swtab *afp, *alp;
+sort(struct swtab *afp, struct swtab *alp)
 {
 	register struct swtab *cp, *fp, *lp;
 	int intch, t;
@@ -506,8 +490,7 @@ struct swtab *afp, *alp;
 }
 
 int
-ispow2(tree)
-register union tree *tree;
+ispow2(union tree *tree)
 {
 	register int d;
 
@@ -520,8 +503,7 @@ register union tree *tree;
 }
 
 union tree *
-pow2(tree)
-register union tree *tree;
+pow2(union tree *tree)
 {
 	register int d, i;
 
@@ -580,9 +562,7 @@ register union tree *tree;
 }
 
 void
-cbranch(atree, lbl, cond, reg)
-union tree *atree;
-register int lbl, reg, cond;
+cbranch(union tree *atree, int lbl, int cond, int reg)
 {
 	int l1, op;
 	register union tree *tree;
@@ -671,7 +651,7 @@ again:
 }
 
 void
-branch(lbl, aop, c)
+branch(int lbl, int aop, int c)
 {
 	register int	op,
 			skip;
@@ -689,9 +669,7 @@ branch(lbl, aop, c)
 }
 
 void
-longrel(atree, lbl, cond, reg)
-union tree *atree;
-int lbl, cond, reg;
+longrel(union tree *atree, int lbl, int cond, int reg)
 {
 	int xl1, xl2, xo, xz;
 	register int op, isrel;
@@ -771,7 +749,7 @@ char	lrtab[2][3][10] = {
 };
 
 int
-xlongrel(f)
+xlongrel(int f)
 {
 	register int op, bno;
 
@@ -794,13 +772,13 @@ xlongrel(f)
 }
 
 void
-label(l)
+label(int l)
 {
 	printf("L%d:", l);
 }
 
 void
-popstk(a)
+popstk(int a)
 {
 	switch(a) {
 
@@ -819,8 +797,7 @@ popstk(a)
 }
 
 void
-werror(s)
-char *s;
+werror(char *s)
 {
 
 	fprintf(stderr, "%d: %s\n",line,s);
@@ -839,7 +816,7 @@ error(const char *s, ...)
 }
 
 void
-psoct(an)
+psoct(int an)
 {
 	register int n;
 	register char *sign;
@@ -853,8 +830,7 @@ psoct(an)
 }
 
 static void
-outname(s)
-register char *s;
+outname(char *s)
 {
 	register int c;
 
@@ -868,7 +844,7 @@ register char *s;
  */
 #define	STKS	100
 void
-getree()
+getree(void)
 {
 	union tree *expstack[STKS], **sp;
 	register union tree *tp;
@@ -877,7 +853,7 @@ getree()
 	struct swtab *swp;
 	long outloc = 0;
 	int lbl, cond = 0, lbl2 = 0, lbl3 = 0;
-	double atof();
+	/* atof from stdlib.h */
 
 	curbase = funcbase;
 	sp = expstack;
@@ -1157,7 +1133,7 @@ getree()
 }
 
 int
-geti()
+geti(void)
 {
 	register short i;
 
@@ -1167,8 +1143,7 @@ geti()
 }
 
 void
-strasg(atp)
-union tree *atp;
+strasg(union tree *atp)
 {
 	register union tree *tp;
 	register int nwords, i;
@@ -1237,8 +1212,7 @@ union tree *atp;
  * e.g. turn "ptr-to-int" into "int".
  */
 int
-decref(t)
-register int t;
+decref(int t)
 {
 	if ((t & ~TYPE) == 0) {
 		error("Illegal indirection");
@@ -1252,7 +1226,7 @@ register int t;
  * one; e.g. turn "int" to "ptr-to-int".
  */
 int
-incref(t)
+incref(int t)
 {
 	return(((t&~TYPE)<<TYLEN) | (t&TYPE) | PTR);
 }

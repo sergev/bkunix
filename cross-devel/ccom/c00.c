@@ -60,9 +60,7 @@ union	tree **cp = cmst;
 int	Wflag;			/* print warning messages */
 
 int
-main(argc, argv)
-int	argc;
-char	*argv[];
+main(int argc, char *argv[])
 {
 	register unsigned i;
 	register struct kwtab *ip;
@@ -137,7 +135,7 @@ char	*argv[];
  * Return is a ptr to the symbol table entry.
  */
 int
-lookup()
+lookup(void)
 {
 	unsigned ihash;
 	register struct nmlist *rp;
@@ -178,7 +176,7 @@ lookup()
  * Search the keyword table.
  */
 int
-findkw()
+findkw(void)
 {
 	register struct kwtab *kp;
 
@@ -200,7 +198,7 @@ findkw()
  * is a member of structure or a structure tag or an enum tag
  */
 int
-symbol()
+symbol(void)
 {
 	register int c;
 	register char *sp;
@@ -357,7 +355,7 @@ loop:
  * Read a number.  Return kind.
  */
 int
-getnum()
+getnum(void)
 {
 	register char *np;
 	register int c, base;
@@ -448,7 +446,7 @@ getnum()
  * Otherwise push back the character and return a.
  */
 int
-subseq(c,a,b)
+subseq(int c, int a, int b)
 {
 	if (spnextchar() != c)
 		return(a);
@@ -462,8 +460,7 @@ subseq(c,a,b)
  * lab.
  */
 void
-putstr(lab, max)
-register int max;
+putstr(int lab, int max)
 {
 	register int c;
 
@@ -491,7 +488,7 @@ register int max;
 }
 
 void
-cntstr()
+cntstr(void)
 {
 	register int c;
 
@@ -507,7 +504,7 @@ cntstr()
  * characters in a word.
  */
 int
-getcc()
+getcc(void)
 {
 	register int c, cc;
 	register char *ccp;
@@ -534,7 +531,7 @@ getcc()
  * It implements the escape sequences.
  */
 int
-mapch(ac)
+mapch(int ac)
 {
 	register int a, c, n;
 	static int mpeek;
@@ -605,7 +602,7 @@ loop:
  * in initializer (and some other) expressions.
  */
 union tree *
-tree(eflag)
+tree(int eflag)
 {
 	int *op, opst[SSIZE], *pp, prst[SSIZE];
 	register int andflg, o;
@@ -890,7 +887,7 @@ syntax:
 }
 
 union tree *
-xprtype()
+xprtype(void)
 {
 	struct nmlist typer, absname;
 	int sc;
@@ -911,7 +908,7 @@ xprtype()
 }
 
 char *
-copnum(len)
+copnum(int len)
 {
 	register char *s1;
 

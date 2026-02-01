@@ -38,9 +38,7 @@ int	nreg	= 3;
 int	isn	= 10000;
 
 int
-main(argc, argv)
-int	argc;
-char	*argv[];
+main(int argc, char **argv)
 {
 	char	buf1[BUFSIZ],
 		buf2[BUFSIZ];
@@ -94,9 +92,7 @@ char	*argv[];
  * Return a ptr to the table entry or 0 if none found.
  */
 struct optab *
-match(tree, table, nrleft, nocvt)
-union tree *tree;
-struct table *table;
+match(union tree *tree, struct table *table, int nrleft, int nocvt)
 {
 #define	NOCVL	1
 #define	NOCVR	2
@@ -186,9 +182,7 @@ struct table *table;
  * there is an interaction with the optimizer routines.
  */
 int
-rcexpr(atree, atable, reg)
-union tree *atree;
-struct table *atable;
+rcexpr(union tree *atree, struct table *atable, int reg)
 {
 	register int r;
 	int modf, nargs, recurf;
@@ -464,10 +458,7 @@ again:
  * code table.
  */
 int
-cexpr(tree, table, areg)
-register union tree *tree;
-struct table *table;
-int areg;
+cexpr(union tree *tree, struct table *table, int areg)
 {
 	int c, r;
 	register union tree *p, *p1;
@@ -914,9 +905,7 @@ loop:
  * It returns non-zero if anything changed.
  */
 int
-reorder(treep, table, reg)
-union tree **treep;
-struct table *table;
+reorder(union tree **treep, struct table *table, int reg)
 {
 	register int r, o;
 	register union tree *p;
@@ -949,9 +938,7 @@ struct table *table;
  * "reg = x; reg += y" (so long as "reg" and "y" are not the same!).
  */
 int
-sreorder(treep, table, reg, recurf)
-union tree **treep;
-struct table *table;
+sreorder(union tree **treep, struct table *table, int reg, int recurf)
 {
 	register union tree *p, *p1;
 
@@ -1047,10 +1034,7 @@ struct table *table;
  * among the operands.
  */
 int
-delay(treep, table, reg)
-union tree **treep;
-struct table *table;
-int reg;
+delay(union tree **treep, struct table *table, int reg)
 {
 	register union tree *p, *p1;
 	register int r;
@@ -1095,8 +1079,7 @@ int reg;
 }
 
 union tree *
-sdelay(ap)
-union tree **ap;
+sdelay(union tree **ap)
 {
 	register union tree *p, *p1;
 
@@ -1118,9 +1101,7 @@ union tree **ap;
  * Propagate possible implicit type-changing operation
  */
 union tree *
-paint(tp, type)
-register union tree *tp;
-register int type;
+paint(union tree *tp, int type)
 {
 
 	if (tp->t.type==type)
@@ -1149,8 +1130,7 @@ register int type;
  * modifying the reg--.
  */
 union tree *
-ncopy(p)
-register union tree *p;
+ncopy(union tree *p)
 {
 	register union tree *q;
 
@@ -1172,9 +1152,7 @@ register union tree *p;
  * produce code to do so and return success.
  */
 int
-chkleaf(tree, table, reg)
-register union tree *tree;
-struct table *table;
+chkleaf(union tree *tree, struct table *table, int reg)
 {
 	struct tnode lbuf;
 
@@ -1196,9 +1174,7 @@ struct table *table;
  * for future popping.
  */
 int
-comarg(tree, flagp)
-register union tree *tree;
-int *flagp;
+comarg(union tree *tree, int *flagp)
 {
 	register int retval;
 	int i;
@@ -1251,8 +1227,7 @@ normal:
 }
 
 union tree *
-strfunc(tp)
-register union tree *tp;
+strfunc(union tree *tp)
 {
 	if (tp->t.op != CALL)
 		return(tp);
@@ -1264,9 +1239,7 @@ register union tree *tp;
  * Compile an initializing expression
  */
 void
-doinit(type, tree)
-register int type;
-register union tree *tree;
+doinit(int type, union tree *tree)
 {
 	float sfval;
 	double fval;
@@ -1364,8 +1337,7 @@ illinit:
 }
 
 void
-movreg(r0, r1, tree)
-union tree *tree;
+movreg(int r0, int r1, union tree *tree)
 {
 	register char *s;
 	char c;

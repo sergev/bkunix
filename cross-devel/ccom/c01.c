@@ -16,7 +16,7 @@
  * appropriate conversions.
  */
 void
-build(op)
+build(int op)
 {
 	register int t1;
 	int t2, t;
@@ -193,7 +193,7 @@ build(op)
 		build(STAR);
 		if (p2->t.tr1->n.hflag&FFIELD)
 			cp[-1] = block(FSEL, UNSIGN, (int *)NULL, (union str *)NULL,
-			    cp[-1], p2->t.tr1->n.hstrp);
+			    cp[-1], (union tree *)p2->t.tr1->n.hstrp);
 		/* was *cp++ = block( ..., *--cp, ...); */
 		return;
 	}
@@ -378,8 +378,7 @@ build(op)
 }
 
 union tree *
-structident(p1, p2)
-register union tree *p1, *p2;
+structident(union tree *p1, union tree *p2)
 {
 	register struct nmlist *np;
 	int vartypes = 0, namesame = 1;
@@ -440,9 +439,7 @@ convert(union tree *p, int t, int cvn, int len)
  * Used with structure references.
  */
 void
-setype(p, t, newp)
-register union tree *p, *newp;
-register int t;
+setype(union tree *p, int t, union tree *newp)
 {
 	for (;; p = p->t.tr1) {
 		p->t.subsp = newp->t.subsp;
@@ -462,8 +459,7 @@ register int t;
  * a pointer to that function.
  */
 union tree *
-chkfun(p)
-register union tree *p;
+chkfun(union tree *p)
 {
 	register int t;
 
@@ -477,8 +473,7 @@ register union tree *p;
  * a pointer to the base of the array.
  */
 union tree *
-disarray(p)
-register union tree *p;
+disarray(union tree *p)
 {
 	register int t;
 
@@ -503,8 +498,7 @@ register union tree *p;
  * (e.g. for <<).
  */
 void
-chkw(p, okt)
-union tree *p;
+chkw(union tree *p, int okt)
 {
 	register int t = p->t.type;
 
@@ -520,7 +514,7 @@ union tree *p;
  * conversion table
  */
 int
-lintyp(t)
+lintyp(int t)
 {
 	switch(t) {
 
@@ -551,15 +545,17 @@ int Wflag = 0;	/* Non-zero means do not print warnings */
 
 /* VARARGS1 */
 void
-werror(s, p1, p2, p3, p4, p5, p6)
-char *s;
+werror(char *s, ...)
 {
+	va_list ap;
 	if (Wflag)
 		return;
 	if (filename[0])
 		fprintf(stderr, "%s:", filename);
 	fprintf(stderr, "%d: warning: ", line);
-	fprintf(stderr, s, p1, p2, p3, p4, p5, p6);
+	va_start(ap, s);
+	vfprintf(stderr, s, ap);
+	va_end(ap);
 	fprintf(stderr, "\n");
 }
 
@@ -583,10 +579,7 @@ error(const char *s, ...)
  * and the operands.
  */
 union tree *
-block(op, t, subs, str, p1,p2)
-int *subs;
-union str *str;
-union tree *p1, *p2;
+block(int op, int t, int *subs, union str *str, union tree *p1, union tree *p2)
 {
 	register union tree *p;
 
@@ -604,8 +597,7 @@ union tree *p1, *p2;
 }
 
 union tree *
-nblock(ds)
-register struct nmlist *ds;
+nblock(struct nmlist *ds)
 {
 	return(block(NAME, ds->htype, ds->hsubsp, ds->hstrp, (union tree *)ds, TNULL));
 }
@@ -631,8 +623,7 @@ cblock(int v)
  * A block for a float constant
  */
 union tree *
-fblock(t, string)
-char *string;
+fblock(int t, char *string)
 {
 	register union tree *p;
 
@@ -650,7 +641,7 @@ char *string;
  * expression tree.
  */
 char *
-Tblock(n)
+Tblock(int n)
 {
 	register char *p;
 
@@ -670,7 +661,7 @@ Tblock(n)
 }
 
 char *
-starttree()
+starttree(void)
 {
 	register char *st;
 
@@ -681,8 +672,7 @@ starttree()
 }
 
 void
-endtree(tp)
-char *tp;
+endtree(char *tp)
 {
 	treebase = tp;
 	if (tp==NULL)
@@ -693,7 +683,7 @@ char *tp;
  * Assign a block for use in a declaration
  */
 char *
-Dblock(n)
+Dblock(int n)
 {
 	register char *p;
 
@@ -717,8 +707,7 @@ Dblock(n)
  * Check that a tree can be used as an lvalue.
  */
 void
-chklval(p)
-register union tree *p;
+chklval(union tree *p)
 {
 	if (p->t.op==FSEL)
 		p = p->t.tr1;
@@ -733,9 +722,7 @@ register union tree *p;
  * to be used in switches and array bounds.
  */
 int
-fold(op, p1, p2)
-register union tree *p1;
-union tree *p2;
+fold(int op, union tree *p1, union tree *p2)
 {
 	register int v1, v2 = 0;
 	int unsignf;
@@ -900,7 +887,7 @@ union tree *p2;
  * for example an array bound or a case value.
  */
 int
-conexp()
+conexp(void)
 {
 	register union tree *t;
 
@@ -916,8 +903,7 @@ conexp()
  * Handle peculiar assignment ops that need a temporary.
  */
 void
-assignop(op, p1, p2)
-register union tree *p1, *p2;
+assignop(int op, union tree *p1, union tree *p2)
 {
 	register struct nmlist *np;
 
@@ -950,7 +936,7 @@ register union tree *p1, *p2;
  * use in certain assignment ops
  */
 struct nmlist *
-gentemp(type)
+gentemp(int type)
 {
 	register struct nmlist *tp;
 
