@@ -37,12 +37,14 @@ int stocook;
 OFFSZ baseoff = 0;
 OFFSZ maxtemp = 0;
 
-p2init( argc, argv ) char *argv[];{
+int
+p2init(int argc, char *argv[])
+{
 	/* set the values of the pass 2 arguments */
 
 	register int c;
 	register char *cp;
-	register files;
+	register int files;
 
 	allo0();  /* free all regs */
 	files = 0;
@@ -125,12 +127,13 @@ p2init( argc, argv ) char *argv[];{
 
 # ifndef NOMAIN
 
-OFFSZ caloff();
 OFFSZ offsz;
-mainp2( argc, argv ) char *argv[]; {
-	register files;
-	register temp;
-	register c;
+int
+mainp2(int argc, char *argv[])
+{
+	register int files;
+	register int temp;
+	register int c;
 	register char *cp;
 	register NODE *p;
 
@@ -227,7 +230,9 @@ mainp2( argc, argv ) char *argv[]; {
 
 # ifdef ONEPASS
 
-p2compile( p ) NODE *p; {
+void
+p2compile(NODE *p)
+{
 
 	if( lflag ) lineid( lineno, filename );
 	tmpoff = baseoff;  /* expression at top level reuses temps */
@@ -247,7 +252,9 @@ p2compile( p ) NODE *p; {
 	/* first pass will do it... */
 	}
 
-p2bbeg( aoff, myreg ) {
+void
+p2bbeg(OFFSZ aoff, int myreg)
+{
 	static int myftn = -1;
 
 	tmpoff = baseoff = (unsigned int) aoff;
@@ -264,7 +271,9 @@ p2bbeg( aoff, myreg ) {
 	setregs();
 	}
 
-p2bend(){
+void
+p2bend(void)
+{
 	SETOFF( maxoff, ALSTACK );
 	eobl2();
 	}
@@ -274,11 +283,13 @@ p2bend(){
 NODE *deltrees[DELAYS];
 int deli;
 
-delay( p ) register NODE *p; {
+void
+delay(NODE *p)
+{
 	/* look in all legal places for COMOP's and ++ and -- ops to delay */
 	/* note; don't delay ++ and -- within calls or things like
 	   getchar (in their macro forms) will start behaving strangely */
-	register i;
+	register int i;
 
 	/* look for visible COMOPS, and rewrite repeatedly */
 
@@ -292,8 +303,10 @@ delay( p ) register NODE *p; {
 	for( i = 0; i<deli; ++i ) codgen( deltrees[i], FOREFF );  /* do the rest */
 	}
 
-delay1( p ) register NODE *p; {  /* look for COMOPS */
-	register o, ty;
+int
+delay1(NODE *p)
+{  /* look for COMOPS */
+	register int o, ty;
 
 	o = p->in.op;
 	ty = optype( o );
@@ -322,11 +335,13 @@ delay1( p ) register NODE *p; {  /* look for COMOPS */
 	return( delay1(p->in.left) || delay1(p->in.right ) );
 	}
 
-delay2( p ) register NODE *p; {
+void
+delay2(NODE *p)
+{
 
 	/* look for delayable ++ and -- operators */
 
-	register o, ty;
+	register int o, ty;
 	o = p->in.op;
 	ty = optype( o );
 
@@ -373,7 +388,9 @@ delay2( p ) register NODE *p; {
 	if( ty != LTYPE ) delay2( p->in.left );
 	}
 
-codgen( p, cookie ) NODE *p; {
+void
+codgen(NODE *p, int cookie)
+{
 
 	/* generate the code for p;
 	   order may call codgen recursively */
@@ -428,7 +445,9 @@ char *cnames[] = {
 	0,
 	};
 
-prcook( cookie ){
+void
+prcook(int cookie)
+{
 
 	/* print a nice-looking description of cookie */
 
@@ -459,9 +478,11 @@ prcook( cookie ){
 
 int odebug = 0;
 
-order(p,cook) NODE *p; {
+void
+order(NODE *p, int cook)
+{
 
-	register o, ty, m;
+	register int o, ty, m;
 	int m1;
 	int cookie;
 	NODE *p1, *p2;
@@ -757,11 +778,13 @@ order(p,cook) NODE *p; {
 int callflag;
 int fregs;
 
-store( p ) register NODE *p; {
+void
+store(NODE *p)
+{
 
 	/* find a subtree of p which should be stored */
 
-	register o, ty;
+	register int o, ty;
 
 	o = p->in.op;
 	ty = optype(o);
@@ -822,7 +845,9 @@ store( p ) register NODE *p; {
 	store( p->in.left );
 	}
 
-constore( p ) register NODE *p; {
+void
+constore(NODE *p)
+{
 
 	/* store conditional expressions */
 	/* the point is, avoid storing expressions in conditional
@@ -843,7 +868,9 @@ constore( p ) register NODE *p; {
 	store( p );
 	}
 
-markcall( p ) register NODE *p; {  /* mark off calls below the current node */
+void
+markcall(NODE *p)
+{  /* mark off calls below the current node */
 
 	again:
 	switch( p->in.op ){
@@ -873,7 +900,9 @@ markcall( p ) register NODE *p; {  /* mark off calls below the current node */
 
 	}
 
-stoarg( p, calltype ) register NODE *p; {
+void
+stoarg(NODE *p, int calltype)
+{
 	/* arrange to store the args */
 
 	if( p->in.op == CM ){
@@ -901,11 +930,13 @@ stoarg( p, calltype ) register NODE *p; {
 
 int negrel[] = { NE, EQ, GT, GE, LT, LE, UGT, UGE, ULT, ULE } ;  /* negatives of relationals */
 
-cbranch( p, true, false ) NODE *p; {
+void
+cbranch(NODE *p, int true, int false)
+{
 	/* evaluate p for truth value, and branch to true or false
 	   accordingly: label <0 means fall through */
 
-	register o, lab, flab, tlab;
+	register int o, lab, flab, tlab;
 
 	lab = -1;
 
@@ -1032,7 +1063,9 @@ cbranch( p, true, false ) NODE *p; {
 
 	}
 
-rcount(){ /* count recursions */
+void
+rcount(void)
+{ /* count recursions */
 	if( ++nrecur > NRECUR ){
 		cerror("expression causes compiler loop: try simplifying" );
 		}
@@ -1040,7 +1073,9 @@ rcount(){ /* count recursions */
 	}
 
 # ifndef BUG4
-eprint( p, down, a, b ) NODE *p; int *a, *b; {
+void
+eprint(NODE *p, int down, int *a, int *b)
+{
 
 	*a = *b = down+1;
 	while( down >= 2 ){
@@ -1089,14 +1124,15 @@ eprint( p, down, a, b ) NODE *p; int *a, *b; {
 
 # ifndef NOMAIN
 NODE *
-eread(){
+eread(void)
+{
 
 	/* call eread recursively to get subtrees, if any */
 
 	register NODE *p;
-	register i, c;
+	register int i, c;
 	register char *pc;
-	register j;
+	register int j;
 
 	i = rdin( 10 );
 
@@ -1145,8 +1181,9 @@ eread(){
 	}
 
 CONSZ
-rdin( base ){
-	register sign, c;
+rdin(int base)
+{
+	register int sign, c;
 	CONSZ val;
 
 	sign = 1;
@@ -1181,10 +1218,13 @@ rdin( base ){
 #ifndef FIELDOPS
 	/* do this if there is no special hardware support for fields */
 
-ffld( p, down, down1, down2 ) NODE *p; int *down1, *down2; {
+void
+ffld(NODE *p, int down, int *down1, int *down2)
+{
 	 /* look for fields that are not in an lvalue context, and rewrite them... */
 	register NODE *shp;
-	register s, o, v, ty;
+	register int s, o, v;
+	register TWORD ty;
 
 	*down1 =  asgop( p->in.op );
 	*down2 = 0;
@@ -1248,13 +1288,14 @@ ffld( p, down, down1, down2 ) NODE *p; int *down1, *down2; {
 #endif
 
 void
-oreg2( p ) register NODE *p; {
+oreg2(NODE *p)
+{
 
 	/* look for situations where we can turn * into OREG */
 
 	NODE *q;
-	register i;
-	register r;
+	register int i;
+	register int r;
 	register char *cp;
 	register NODE *ql, *qr;
 	CONSZ temp;
@@ -1317,13 +1358,12 @@ oreg2( p ) register NODE *p; {
 
 	}
 
-canon(p) NODE *p; {
+void
+canon(NODE *p)
+{
 	/* put p in canonical form */
-	void oreg2();
-	void sucomp();
 
 #ifndef FIELDOPS
-	int ffld();
 	fwalk( p, ffld, 0 ); /* look for field operators */
 # endif
 	walkf( p, oreg2 );  /* look for and create OREG nodes */

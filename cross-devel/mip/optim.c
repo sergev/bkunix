@@ -19,7 +19,8 @@
 int oflag = 0;
 
 NODE *
-fortarg( p ) NODE *p; {
+fortarg(NODE *p)
+{
 	/* fortran function arguments */
 
 	if( p->in.op == CM ){
@@ -37,10 +38,11 @@ fortarg( p ) NODE *p; {
 	/* mapping relationals when the sides are reversed */
 short revrel[] ={ EQ, NE, GE, GT, LE, LT, UGE, UGT, ULE, ULT };
 NODE *
-optim(p) register NODE *p; {
+optim(NODE *p)
+{
 	/* local optimizations, most of which are probably machine independent */
 
-	register o, ty;
+	register int o, ty;
 	NODE *sp;
 	int i;
 	TWORD t;
@@ -269,8 +271,10 @@ optim(p) register NODE *p; {
 	return(p);
 	}
 
-ispow2( c ) CONSZ c; {
-	register i;
+int
+ispow2(CONSZ c)
+{
+	register int i;
 	if( c <= 0 || (c&(c-1)) ) return(-1);
 	for( i=0; c>1; ++i) c >>= 1;
 	return(i);

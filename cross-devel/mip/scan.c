@@ -71,11 +71,11 @@ int oldway;		/* allocate storage so lint will compile as well */
 extern int lastloc;
 #endif
 
-OFFSZ caloff();
 	/* ARGSUSED */
-mainp1( argc, argv ) int argc; char *argv[]; {  /* control multiple files */
-
-	register i;
+int
+mainp1(int argc, char *argv[])
+{  /* control multiple files */
+	register int i;
 	register char *cp;
 	extern int idebug, bdebug, tdebug, edebug;
 	extern int ddebug, xdebug, gdebug, adebug;
@@ -201,9 +201,11 @@ mainp1( argc, argv ) int argc; char *argv[]; {  /* control multiple files */
 
 short lxmask[CSSZ+1];
 
-lxenter( s, m ) register char *s; register short m; {
+void
+lxenter(char *s, short m)
+{
 	/* enter a mask into lxmask */
-	register c;
+	register int c;
 
 	while( (c= *s++) ) lxmask[c+1] |= m;
 
@@ -212,7 +214,9 @@ lxenter( s, m ) register char *s; register short m; {
 
 # define lxget(c,m) (lxgcp=yytext,lxmore(c,m))
 
-lxmore( c, m )  register c, m; {
+void
+lxmore(int c, int m)
+{
 	register char *cp;
 
 	*(cp = lxgcp) = c;
@@ -269,9 +273,11 @@ struct lxdope {
 
 struct lxdope *lxcp[CSSZ+1];
 
-lxinit(){
+void
+lxinit(void)
+{
 	register struct lxdope *p;
-	register i;
+	register int i;
 	register char *cp;
 	/* set up character classes */
 
@@ -313,12 +319,14 @@ lxinit(){
 
 int lxmatch;  /* character to be matched in char or string constant */
 
-lxstr(ct){
+void
+lxstr(int ct)
+{
 	/* match a string or character constant, up to lxmatch */
 
-	register c;
-	register val;
-	register i;
+	register int c;
+	register int val;
+	register int i;
 
 	i=0;
 	while( (c=getchar()) != lxmatch ){
@@ -431,8 +439,10 @@ lxstr(ct){
 		}
 	}
 
-lxcom(){
-	register c;
+void
+lxcom(void)
+{
+	register int c;
 	/* saw slash-star: process a comment */
 
 	for(;;){
@@ -495,10 +505,12 @@ lxcom(){
 		}
 	}
 
-yylex(){
+int
+yylex(void)
+{
 	for(;;){
 
-		register lxchar;
+		register int lxchar;
 		register struct lxdope *p;
 		register struct symtab *sp;
 		int id;
@@ -660,7 +672,7 @@ yylex(){
 
 		case A_BCD:
 			{
-				register i;
+				register int i;
 				int j;
 				for( i=0; i<LXTSZ; ++i ){
 					if( ( j = getchar() ) == '`' ) break;
@@ -868,12 +880,14 @@ struct lxrdope {
 	"",		0,	0,	/* to stop the search */
 	};
 
-lxres() {
+int
+lxres(void)
+{
 	/* check to see of yytext is reserved; if so,
 	   do the appropriate action and return.
 	   Otherwise, return -1 */
 
-	register c, ch;
+	register int c, ch;
 	register struct lxrdope *p;
 
 	ch = yytext[0];
@@ -992,10 +1006,12 @@ lxres() {
 
 extern int	labelno;
 
-lxtitle(){
+void
+lxtitle(void)
+{
 	/* called after a newline; set linenumber and file name */
 
-	register c, val;
+	register int c, val;
 	register char *cp, *cq;
 
 	for(;;){  /* might be several such lines in a row */
@@ -1058,10 +1074,10 @@ char	*savetab;
 int	saveleft;
 
 char *
-savestr(cp)
-	register char *cp;
+savestr(const char *cp)
 {
 	register int len;
+	char *result;
 
 	len = strlen(cp) + 1;
 	if (len > saveleft) {
@@ -1072,11 +1088,11 @@ savestr(cp)
 		if (savetab == 0)
 			cerror("Ran out of memory (savestr)");
 	}
+	result = savetab;
 	strncpy(savetab, cp, len);
-	cp = savetab;
 	savetab += len;
 	saveleft -= len;
-	return (cp);
+	return (result);
 }
 
 /*
@@ -1091,12 +1107,11 @@ struct ht {
 } htab[MAXHASH];
 
 char *
-hash(s)
-	char *s;
+hash(const char *s)
 {
 	register char **h;
-	register i;
-	register char *cp;
+	register int i;
+	register const char *cp;
 	struct ht *htp;
 	int sh;
 
@@ -1153,4 +1168,5 @@ hash(s)
 	}
 	cerror("ran out of hash tables");
 /* NOTREACHED */
+	return 0;
 }

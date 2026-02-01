@@ -15,10 +15,7 @@ DESTDIR		= /usr/local
 LDESTDIR	= $(DESTDIR)/lib/pdp11
 M		= ../mip
 CC              = gcc
-CFLAGS		= -O -g -I. -I$(M) -DONEPASS -DFIXSTRUCT="outstruct" \
-		  -DFLEXNAMES \
-		  -Wno-implicit-int -Wno-implicit-function-declaration \
-		  -Wno-deprecated-non-prototype -Wno-return-mismatch -Wno-return-type
+CFLAGS		= -O -g -Werror -I. -I$(M) -DONEPASS -DFIXSTRUCT="outstruct" -DFLEXNAMES
 LDFLAGS 	= -g
 YACC		= byacc
 

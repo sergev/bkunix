@@ -9,7 +9,8 @@
 /*	this file contains code which is dependent on the target machine */
 
 NODE *
-cast( p, t ) register NODE *p; TWORD t; {
+cast(NODE *p, TWORD t)
+{
 	/* cast node p to type t */
 
 	p = buildtree( CAST, block( NAME, NIL, NIL, t, 0, (int)t ), p );
@@ -19,7 +20,8 @@ cast( p, t ) register NODE *p; TWORD t; {
 	}
 
 NODE *
-clocal(p) NODE *p; {
+clocal(NODE *p)
+{
 
 	/* this is called to do local transformations on
 	   an expression tree preparitory to its being
@@ -35,8 +37,8 @@ clocal(p) NODE *p; {
 
 	register struct symtab *q;
 	register NODE *r;
-	register o;
-	register m, ml;
+	register int o;
+	register int m, ml;
 
 	switch( o = p->in.op ){
 
@@ -218,16 +220,22 @@ clocal(p) NODE *p; {
 	return(p);
 	}
 
-andable( p ) NODE *p; {
+int
+andable(NODE *p)
+{
 	return(1);  /* all names can have & taken on them */
 	}
 
-cendarg(){ /* at the end of the arguments of a ftn, set the automatic offset */
+int
+cendarg(void)
+{ /* at the end of the arguments of a ftn, set the automatic offset */
 	autooff = AUTOINIT;
 	return 0;
 	}
 
-cisreg( t ) TWORD t; { /* is an automatic variable of type t OK for a register variable */
+int
+cisreg(TWORD t)
+{ /* is an automatic variable of type t OK for a register variable */
 
 #ifdef TRUST_REG_CHAR_AND_REG_SHORT
 	if( t==INT || t==UNSIGNED 				/* tbl */
@@ -244,7 +252,8 @@ cisreg( t ) TWORD t; { /* is an automatic variable of type t OK for a register v
 	}
 
 NODE *
-offcon( off, t, d, s ) OFFSZ off; TWORD t; {
+offcon(OFFSZ off, TWORD t, int d, int s)
+{
 
 	/* return a node, for structure references, which is suitable for
 	   being added to a pointer of type t, in order to be off bits offset
@@ -261,10 +270,12 @@ offcon( off, t, d, s ) OFFSZ off; TWORD t; {
 
 	}
 
-static inwd	/* current bit offsed in word */;
-static word	/* word being built from fields */;
+static int inwd;	/* current bit offset in word */
+static unsigned word;	/* word being built from fields */
 
-incode( p, sz ) register NODE *p; {
+void
+incode(NODE *p, int sz)
+{
 
 	/* generate initialization code for assigning a constant c
 		to a field of width sz */
@@ -282,7 +293,9 @@ incode( p, sz ) register NODE *p; {
 		}
 	}
 
-fincode( d, sz ) double d; {
+void
+fincode(double d, int sz)
+{
 	/* output code to initialize space of size sz to the value d */
 	/* the proper alignment has been obtained */
 	/* inoff is updated to have the proper final value */
@@ -297,7 +310,9 @@ fincode( d, sz ) double d; {
 	inoff += sz;
 	}
 
-cinit( p, sz ) NODE *p; {
+void
+cinit(NODE *p, int sz)
+{
 	NODE *l;
 
 	/*
@@ -328,10 +343,11 @@ cinit( p, sz ) NODE *p; {
 	/* inoff is updated to have the proper final value */
 	ecode( p );
 	inoff += sz;
-	return 0;
 	}
 
-vfdzero( n ){ /* define n bits of zeros in a vfd */
+void
+vfdzero(int n)
+{ /* define n bits of zeros in a vfd */
 
 	if( n <= 0 ) return;
 
@@ -344,7 +360,8 @@ vfdzero( n ){ /* define n bits of zeros in a vfd */
 	}
 
 char *
-exname( p ) char *p; {
+exname(char *p)
+{
 	/* make a name look like an external name in the local machine */
 
 #ifndef FLEXNAMES
@@ -353,7 +370,7 @@ exname( p ) char *p; {
 	static char text[256+1];
 #endif
 
-	register i;
+	register int i;
 
 	text[0] = '_';
 #ifndef FLEXNAMES
@@ -371,8 +388,9 @@ exname( p ) char *p; {
 	return( text );
 	}
 
-ctype( type ) TWORD type;
-     { /* map types which are not defined on the local machine */
+TWORD
+ctype(TWORD type)
+{ /* map types which are not defined on the local machine */
 	switch( BTYPE(type) ){
 
 	case SHORT:
@@ -384,7 +402,9 @@ ctype( type ) TWORD type;
 	return( type );
 	}
 
-noinit() { /* curid is a variable which is defined but
+int
+noinit(void)
+{ /* curid is a variable which is defined but
 	is not initialized (and not a function );
 	This routine returns the stroage class for an uninitialized declaration */
 
@@ -392,9 +412,11 @@ noinit() { /* curid is a variable which is defined but
 
 	}
 
-commdec( id ){ /* make a common declaration for id, if reasonable */
+int
+commdec(int id)
+{ /* make a common declaration for id, if reasonable */
 	register struct symtab *q;
-	OFFSZ off, tsize();
+	OFFSZ off;
 
 	q = &stab[id];
 	printf( "	.comm	%s,", exname( q->sname ) );
@@ -404,7 +426,9 @@ commdec( id ){ /* make a common declaration for id, if reasonable */
 	return 0;
 	}
 
-isitlong( cb, ce ){ /* is lastcon to be long or short */
+int
+isitlong(int cb, int ce)
+{ /* is lastcon to be long or short */
 	/* cb is the first character of the representation, ce the last */
 
 	if( ce == 'l' || ce == 'L' ||
@@ -412,12 +436,13 @@ isitlong( cb, ce ){ /* is lastcon to be long or short */
 	return(0);
 	}
 
-isitfloat( s ) char *s; {
+int
+isitfloat(const char *s)
+{
 	union cvt {
 		double	d;
 		int	n[4];
 	} cvt;
-	double atof();
 
 	/* avoid floating point exception for double -> float conversions */
 	dcon = cvt.d = atof(s);
@@ -428,18 +453,20 @@ isitfloat( s ) char *s; {
 	return( DCON );
 	}
 
-ecode( p ) NODE *p; {
+void
+ecode(NODE *p)
+{
 
 	/* walk the tree and write out the nodes.. */
 
 	if( nerrors ) return;
 	p2tree( p );
 	p2compile( p );
-	return 0;
 	}
 
 #ifndef ONEPASS
-tlen(p) NODE *p;
+int
+tlen(NODE *p)
 {
 	switch(p->in.type) {
 		case CHAR:

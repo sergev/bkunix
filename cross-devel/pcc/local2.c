@@ -10,18 +10,23 @@ extern	int	fltused;
 /* a lot of the machine dependent parts of the second pass */
 
 # define BITMASK(n) ((1L<<n)-1)
-where(c) {
+void
+where2(int c)
+{
 	fprintf(stderr, "%s, line %d: ", filename, lineno);
-	return 0;
 	}
 
-lineid( l, fn ) char *fn; {
+int
+lineid(int l, char *fn)
+{
 	/* identify line l and file fn */
 	printf( "/	line %d, file %s\n", l, fn );
 	return 0;
 	}
 
-eobl2(){
+void
+eobl2(void)
+{
 	OFFSZ spoff;	/* offset from stack pointer */
 
 	spoff = maxoff;
@@ -33,7 +38,6 @@ eobl2(){
 		fltused = 0;
 		printf( "	.globl	fltused\n" );
 		}
-	return 0;
 	}
 
 struct hoptab { int opmask; char * opstring; } ioptab[]= {
@@ -51,7 +55,9 @@ struct hoptab { int opmask; char * opstring; } ioptab[]= {
 
 	-1, ""    };
 
-hopcode( f, o ){
+void
+hopcode(int f, int o)
+{
 	/* output the appropriate string from the above table */
 
 	register struct hoptab *q;
@@ -64,7 +70,6 @@ hopcode( f, o ){
 			}
 		}
 		cerror( "no hoptab for %s", opst[o] );
-	return 0;  /* not reached */
 	}
 
 char *
@@ -87,7 +92,8 @@ int rstatus[] = {
 	SBREG, SBREG,
 	};
 
-tlen(p) NODE *p;
+int
+tlen(NODE *p)
 {
 	switch(p->in.type) {
 		case CHAR:
@@ -111,8 +117,10 @@ int brcase;
 
 int toff = 0; /* number of stack locations used for args */
 
-zzzcode( p, c ) NODE *p; {
-	register m;
+void
+zzzcode(NODE *p, int c)
+{
+	register int m;
 	switch( c ){
 
 	case 'B':	/* output b if type is byte */
@@ -145,7 +153,7 @@ zzzcode( p, c ) NODE *p; {
 
 	case 'H':  /* fix up unsigned shifts */
 		{	register NODE *q;
-			register r, l;
+			register int r, l;
 			TWORD t;
 
 			if( p->in.op == ASG LS ) return;
@@ -308,7 +316,7 @@ zzzcode( p, c ) NODE *p; {
 	case 'S':  /* structure assignment */
 		{
 			register NODE *l, *r;
-			register size, count;
+			register int size, count;
 
 			if( p->in.op == STASG ){
 				l = p->in.left;
@@ -353,7 +361,9 @@ zzzcode( p, c ) NODE *p; {
 		}
 	}
 
-rmove( rt, rs, t ) TWORD t; {
+void
+rmove(int rt, int rs, TWORD t)
+{
 	printf( "	%s	%s,%s\n",
 		(t==FLOAT||t==DOUBLE)?"movf":"mov", rnames[rs], rnames[rt] );
 	}
@@ -367,8 +377,10 @@ respref[] = {
 	INTAREG,	SOREG|SNAME,
 	0,	0 };
 
-setregs(){ /* set up temporary registers */
-	register i;
+void
+setregs(void)
+{ /* set up temporary registers */
+	register int i;
 
 	/* use any unused variable registers as scratch registers */
 	fregs = maxtreg>=MINRVAR ? maxtreg + 1 : MINRVAR;
@@ -382,7 +394,9 @@ setregs(){ /* set up temporary registers */
 		rstatus[i] = i<fregs ? SAREG|STAREG : SAREG;
 	}
 
-szty(t) TWORD t; { /* size, in words, needed to hold thing of type t */
+int
+szty(TWORD t)
+{ /* size, in words, needed to hold thing of type t */
 	/* really is the number of registers to hold type t */
 	switch( t ) {
 
@@ -396,34 +410,46 @@ szty(t) TWORD t; { /* size, in words, needed to hold thing of type t */
 		}
 	}
 
-rewfld( p ) NODE *p; {
+int
+rewfld(NODE *p)
+{
 	return(1);
 	}
 
-callreg(p) NODE *p; {
+int
+callreg(NODE *p)
+{
 	return( (p->in.type==DOUBLE||p->in.type==FLOAT) ? FR0 : R0 );
 	}
 
-canaddr( p ) NODE *p; {
+int
+canaddr(NODE *p)
+{
 	register int o = p->in.op;
 
 	if( o==NAME || o==REG || o==ICON || o==OREG || (o==UNARY MUL && shumul(p->in.left)) ) return(1);
 	return(0);
 	}
 
-flshape( p ) register NODE *p; {
-	register o = p->in.op;
+int
+flshape(NODE *p)
+{
+	register int o = p->in.op;
 	if( o==NAME || o==REG || o==ICON || o==OREG ) return( 1 );
 	return( o==UNARY MUL && shumul(p->in.left)==STARNM );
 	}
 
-shtemp( p ) register NODE *p; {
+int
+shtemp(NODE *p)
+{
 	if( p->in.op == UNARY MUL ) p = p->in.left;
 	if( p->in.op == REG || p->in.op == OREG ) return( !istreg( p->tn.rval ) );
 	return( p->in.op == NAME || p->in.op == ICON );
 	}
 
-spsz( t, v ) TWORD t; CONSZ v; {
+int
+spsz(TWORD t, CONSZ v)
+{
 
 	/* is v the size to increment something of type t */
 
@@ -452,8 +478,10 @@ spsz( t, v ) TWORD t; CONSZ v; {
 	return( 0 );
 	}
 
-shumul( p ) register NODE *p; {
-	register o;
+int
+shumul(NODE *p)
+{
+	register int o;
 
 	o = p->in.op;
 	if( o == NAME || o == OREG || o == ICON ) return( STARNM );
@@ -467,11 +495,15 @@ shumul( p ) register NODE *p; {
 	return( 0 );
 	}
 
-adrcon( val ) CONSZ val; {
+void
+adrcon(CONSZ val)
+{
 	printf( CONFMT, val );
 	}
 
-conput( p ) register NODE *p; {
+void
+conput(NODE *p)
+{
 	switch( p->in.op ){
 
 	case ICON:
@@ -487,11 +519,15 @@ conput( p ) register NODE *p; {
 		}
 	}
 
-insput( p ) NODE *p; {
+void
+insput(NODE *p)
+{
 	cerror( "insput" );
 	}
 
-upput( p ) NODE *p; {
+void
+upput(NODE *p)
+{
 	/* output the address of the second word in the
 	   pair pointed to by p (for LONGs)*/
 	CONSZ save;
@@ -537,7 +573,9 @@ upput( p ) NODE *p; {
 
 	}
 
-adrput( p ) register NODE *p; {
+void
+adrput(NODE *p)
+{
 	/* output an address, with offsets, from p */
 
 	if( p->in.op == FLD ){
@@ -589,7 +627,7 @@ adrput( p ) register NODE *p; {
 		else {	/* STARREG - really auto inc or dec */
 			/* turn into OREG so replacement node will
 			   reflect the value of the expression */
-			register i;
+			register int i;
 			register NODE *q, *l;
 
 			l = p->in.left;
@@ -625,7 +663,9 @@ adrput( p ) register NODE *p; {
 
 	}
 
-acon( p ) register NODE *p; { /* print out a constant */
+void
+acon(NODE *p)
+{ /* print out a constant */
 
 	if( p->in.name[0] == '\0' ){	/* constant only */
 		printf( CONFMT, p->tn.lval);
@@ -648,15 +688,19 @@ acon( p ) register NODE *p; { /* print out a constant */
 		}
 	}
 
-genscall( p, cookie ) register NODE *p; {
+int
+genscall(NODE *p, int cookie)
+{
 	/* structure valued call */
 	return( gencall( p, cookie ) );
 	}
 
-gencall( p, cookie ) register NODE *p; {
+int
+gencall(NODE *p, int cookie)
+{
 	/* generate the call given by p */
-	register temp;
-	register m;
+	register int temp;
+	register int m;
 
 	if( p->in.right ) temp = argsize( p->in.right );
 	else temp = 0;
@@ -675,7 +719,9 @@ gencall( p, cookie ) register NODE *p; {
 	return(m != MDONE);
 	}
 
-popargs( size ) register size; {
+void
+popargs(int size)
+{
 	/* pop arguments from stack */
 
 	toff -= size/2;
@@ -743,8 +789,10 @@ short revrel[] ={ EQ, NE, GE, GT, LE, LT, UGE, UGT, ULE, ULT };
 extern short revrel[];
 #endif
 
-cbgen( o, lab, mode ) { /*   printf conditional and unconditional branches */
-	register *plb;
+void
+cbgen(int o, int lab, int mode)
+{ /*   printf conditional and unconditional branches */
+	register int *plb;
 	int lab1f;
 
 	if( o == 0 ) printf( "	jbr	L%d\n", lab );
@@ -778,7 +826,9 @@ cbgen( o, lab, mode ) { /*   printf conditional and unconditional branches */
 		}
 	}
 
-nextcook( p, cookie ) NODE *p; {
+int
+nextcook(NODE *p, int cookie)
+{
 	/* we have failed to match p with cookie; try another */
 	if( cookie == FORREW ) return( 0 );  /* hopeless! */
 	if( !(cookie&(INTAREG|INTBREG)) ) return( INTAREG|INTBREG );
@@ -786,7 +836,9 @@ nextcook( p, cookie ) NODE *p; {
 	return( FORREW );
 	}
 
-lastchance( p, cook ) NODE *p; {
+int
+lastchance(NODE *p, int cook)
+{
 	/* forget it! */
 	return(0);
 	}
@@ -811,12 +863,13 @@ struct functbl {
 	0,	0,	0 };
 
 void
-hardops(p)  register NODE *p; {
+hardops(NODE *p)
+{
 	/* change hard to do operators into function calls.
 	   for pdp11 do long * / %	*/
 	register NODE *q;
 	register struct functbl *f;
-	register o;
+	register int o;
 	register TWORD t;
 
 	o = p->in.op;
@@ -906,7 +959,8 @@ hardops(p)  register NODE *p; {
 	}
 
 void
-optim2( p ) register NODE *p; {
+optim2(NODE *p)
+{
 	/* do local tree transformations and optimizations */
 
 	register NODE *r;
@@ -958,7 +1012,9 @@ optim2( p ) register NODE *p; {
 		}
 	}
 
-special( p, shape ) register NODE *p; {
+int
+special(NODE *p, int shape)
+{
 	/* special shape matching routine */
 
 	switch( shape ) {
@@ -979,28 +1035,35 @@ special( p, shape ) register NODE *p; {
 	return( 0 );
 	}
 
-NODE * addroreg(l) NODE *l;
-				/* OREG was built in clocal()
-				 * for an auto or formal parameter
-				 * now its address is being taken
-				 * local code must unwind it
-				 * back to PLUS/MINUS REG ICON
-				 * according to local conventions
-				 */
+NODE *
+addroreg(NODE *l)
 {
+	/* OREG was built in clocal()
+	 * for an auto or formal parameter
+	 * now its address is being taken
+	 * local code must unwind it
+	 * back to PLUS/MINUS REG ICON
+	 * according to local conventions
+	 */
 	cerror("address of OREG taken");
 	/*NOTREACHED*/
-}
+	return (NODE *)0;
+	}
 
 # ifndef ONEPASS
-main( argc, argv ) char *argv[]; {
+int
+main(int argc, char *argv[])
+{
 	return( mainp2( argc, argv ) );
 	}
 # endif
 
-myreader(p) register NODE *p; {
+NODE *
+myreader(NODE *p)
+{
 	walkf( p, hardops );	/* convert ops to function calls */
 	canon( p );		/* expands r-vals for fileds */
 	walkf( p, optim2 );
 	toff = 0;  /* stack offset swindle */
+	return p;
 	}

@@ -60,7 +60,7 @@ struct	symtab {
 #define FIELD		0100
 #define FLDSIZ		077
 #ifndef BUG1
-extern	char *scnames();
+extern	char *scnames(int);
 #endif
 
 /*
@@ -174,36 +174,158 @@ extern	int asavbc[], *psavbc;
 extern	NODE	*buildtree(int, NODE *, NODE *);
 extern	NODE	*block(int, NODE *, NODE *, TWORD, int, int);
 extern	NODE	*optim(NODE *);
-extern	NODE
-	*bdty(),
-	*mkty(),
-	*rstruct(),
-	*dclstruct(),
-	*getstr(),
-	*tymerge(),
-	*stref(),
-	*offcon(),
-	*bcon(),
-	*bpsize(),
-	*convert(),
-	*pconvert(),
-	*oconvert(),
-	*ptmatch(),
-	*tymatch(),
-	*makety(),
-	*doszof(),
-	*talloc(),
-	*fixargs(),
-	*clocal();
-OFFSZ	tsize(),
-	psize();
-TWORD	types();
-double	atof(const char *);
-char	*exname(), *exdcon();
+extern	NODE	*bdty(int, NODE *, int);
+extern	NODE	*mkty(unsigned int, int, int);
+extern	NODE	*rstruct(int, int);
+extern	NODE	*dclstruct(int);
+extern	NODE	*getstr(void);
+extern	NODE	*tymerge(NODE *, NODE *);
+extern	NODE	*stref(NODE *);
+extern	NODE	*offcon(OFFSZ, TWORD, int, int);
+extern	NODE	*bcon(int);
+extern	NODE	*bpsize(NODE *);
+extern	NODE	*convert(NODE *, int);
+extern	NODE	*pconvert(NODE *);
+extern	NODE	*oconvert(NODE *);
+extern	NODE	*ptmatch(NODE *);
+extern	NODE	*tymatch(NODE *);
+extern	NODE	*makety(NODE *, TWORD, int, int);
+extern	NODE	*doszof(NODE *);
+extern	NODE	*talloc(void);
+extern	NODE	*fixargs(NODE *);
+extern	NODE	*clocal(NODE *);
+extern	OFFSZ	tsize(TWORD, int, int);
+extern	OFFSZ	psize(NODE *);
+extern	TWORD	types(TWORD, TWORD, TWORD);
+extern	double	atof(const char *);
+extern	TWORD	ctype(TWORD);
+extern	int	lookup(const char *, int);
+extern	char	*exname(char *);
+extern	char	*exdcon(int);
 
 void	cerror(const char *, ...);
 void	uerror(const char *, ...);
+void	werror(const char *, ...);
 void	tfree(NODE *);
+
+/* PCC backend / codegen interface (pass1) */
+void	where(int);
+int	branch(int);
+int	defalign(int);
+int	locctr(int);
+void	deflab(int);
+int	getlab(void);
+void	efcode(void);
+void	psline(void);
+void	ecomp(NODE *);
+void	bccode(void);
+void	plcstab(int);
+void	yyerror(const char *);
+int	yyparse(void);
+void	yyaccpt(void);
+int	p2init(int, char *[]);
+void	lxinit(void);
+void	tinit(void);
+void	mkdope(void);
+void	pfstab(const char *);
+void	ejobcode(int);
+void	ftnend(void);
+NODE	*defid(NODE *, int);
+void	ecode(NODE *);
+NODE	*addroreg(NODE *);
+void	p2tree(NODE *);
+void	p2compile(NODE *);
+void	tcheck(void);
+void	fixarg(struct symtab *);
+int	cendarg(void);
+void	bfcode(OFFSZ [], int);
+void	p2bend(void);
+void	p2bbeg(OFFSZ, int);
+int	talign(unsigned int, int);
+void	outstruct(int, int);
+void	beginit(int);
+void	endinit(void);
+void	doinit(NODE *);
+void	ilbrace(void);
+void	irbrace(void);
+void	nidcl(NODE *);
+int	uclass(int);
+void	clearst(int);
+void	prcstab(int);
+void	defnam(struct symtab *);
+void	pstab(const void *, int);
+unsigned int	fldal(TWORD);
+void	vfdzero(int);
+void	zecode(OFFSZ);
+void	instk(int, TWORD, int, int, OFFSZ);
+int	mainp1(int, char *[]);
+void	lxstr(int);
+void	lxtitle(void);
+int	lxres(void);
+int	isitfloat(const char *);
+void	putbyte(int);
+void	bycode(int, int);
+void	makeheap(struct sw *, int, int);
+void	walkheap(int, int);
+int	hselect(int);
+int	bstruct(int, int);
+void	incode(NODE *, int);
+void	gotscal(void);
+void	fincode(double, int);
+void	cinit(NODE *, int);
+int	icons(NODE *);
+TWORD	moditype(TWORD);
+void	rbusy(int, TWORD);
+int	noinit(void);
+int	commdec(int);
+int	fldty(struct symtab *);
+
+/* common.c (comm1.c) */
+extern	OFFSZ	caloff(void);
+extern	void	fwalk(NODE *, void (*)(NODE *, int, int *, int *), int);
+extern	void	walkf(NODE *, void (*)(NODE *));
+extern	void	mkdope(void);
+extern	void	tprint(TWORD);
+extern	void	eprint(NODE *, int, int *, int *);
+
+/* trees.c, allo.c, optim.c cross-refs */
+extern	int	conval(NODE *, int, NODE *);
+extern	NODE	*econvert(NODE *);
+extern	void	allo0(void);
+extern	OFFSZ	freetemp(int);
+extern	int	freereg(NODE *, int);
+extern	int	usable(NODE *, int, int);
+extern	void	reclaim(NODE *, int, int);
+extern	void	allchk(void);
+extern	int	ispow2(CONSZ);
+extern	int	notlval(NODE *);
+extern	void	delay(NODE *);
+extern	void	tyreduce(NODE *);
+extern	void	fixtype(NODE *, int);
+extern	TWORD	fixclass(int, TWORD);
+extern	void	moedef(int);
+extern	void	ftnarg(int);
+extern	void	dclargs(void);
+extern	int	cisreg(TWORD);
+extern	void	aobeg(void);
+extern	void	aocode(struct symtab *);
+extern	void	aoend(void);
+extern	void	unhide(struct symtab *);
+extern	int	falloc(struct symtab *, int, int, NODE *);
+extern	void	genswitch(struct sw *, int);
+extern	int	andable(NODE *);
+extern	NODE	*lineid(NODE *, char *);
+extern	int	callreg(NODE *);
+extern	NODE	*shtemp(NODE *);
+extern	void	outstab(struct symtab *);
+extern	void	psave(OFFSZ);
+extern	OFFSZ	oalloc(struct symtab *, OFFSZ *);
+extern	struct symtab	*mknonuniq(int *);
+extern	int	hide(struct symtab *);
+extern	void	dstash(OFFSZ);
+extern	int	opact(NODE *);
+extern	void	chkpun(NODE *);
+extern	int	chkstr(int, int, TWORD);
 
 #define checkst(x)
 

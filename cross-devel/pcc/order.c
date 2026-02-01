@@ -7,7 +7,9 @@
 
 int fltused = 0;
 
-stoasg( p, o ) register NODE *p; {
+int
+stoasg(NODE *p, int o)
+{
 	/* should the assignment op p be stored,
 	   given that it lies as the right operand of o
 	   (or the left, if o==UNARY MUL) */
@@ -15,7 +17,9 @@ stoasg( p, o ) register NODE *p; {
 
 	}
 
-deltest( p ) register NODE *p; {
+int
+deltest(NODE *p)
+{
 	/* should we delay the INCR or DECR operation p */
 	if( p->in.op == INCR && p->in.left->in.op == REG && spsz( p->in.left->in.type, p->in.right->tn.lval ) ){
 		/* STARREG */
@@ -27,7 +31,9 @@ deltest( p ) register NODE *p; {
 	return( p->in.op == NAME || p->in.op == OREG || p->in.op == REG );
 	}
 
-autoincr( p ) NODE *p; {
+int
+autoincr(NODE *p)
+{
 	register NODE *q = p->in.left;
 
 	if( q->in.op == INCR && q->in.left->in.op == REG &&
@@ -37,8 +43,10 @@ autoincr( p ) NODE *p; {
 	return(0);
 	}
 
-mkadrs(p) register NODE *p; {
-	register o;
+int
+mkadrs(NODE *p)
+{
+	register int o;
 
 	o = p->in.op;
 
@@ -72,7 +80,9 @@ mkadrs(p) register NODE *p; {
 	return 0;
 	}
 
-notoff( t, r, off, cp) TWORD t; CONSZ off; char *cp; {
+int
+notoff(TWORD t, int r, CONSZ off, char *cp)
+{
 	/* is it legal to make an OREG or NAME entry which has an
 	   offset of off, (from a register of r), if the
 	   resulting thing had type t */
@@ -89,12 +99,14 @@ notoff( t, r, off, cp) TWORD t; CONSZ off; char *cp; {
 # define ZLONG 02
 # define ZFLOAT 04
 
-zum( p, zap ) register NODE *p; {
+int
+zum(NODE *p, int zap)
+{
 	/* zap Sethi-Ullman number for chars, longs, floats */
 	/* in the case of longs, only STARNM's are zapped */
 	/* ZCHAR, ZLONG, ZFLOAT are used to select the zapping */
 
-	register su;
+	register int su;
 
 	su = p->in.su;
 
@@ -122,13 +134,14 @@ zum( p, zap ) register NODE *p; {
 	}
 
 void
-sucomp( p ) register NODE *p; {
+sucomp(NODE *p)
+{
 
 	/* set the su field in the node to the sethi-ullman
 	   number, or local equivalent */
 
-	register o, ty, sul, sur;
-	register nr;
+	register int o, ty, sul, sur;
+	register int nr;
 
 	ty = optype( o=p->in.op);
 	nr = szty( p->in.type );
@@ -265,7 +278,7 @@ sucomp( p ) register NODE *p; {
 		/* AND is ruined by the hardware */
 		/* permute: get the harder on the left */
 
-		register rt, lt;
+		register TWORD rt, lt;
 
 		if( istnode( p->in.left ) || sul > sur ) goto noswap;  /* don't do it! */
 
@@ -313,12 +326,13 @@ sucomp( p ) register NODE *p; {
 		/* do harder into a register, then easier */
 		p->in.su = max( nr+nr, min( max( sul, nr+sur ), max( sur, nr+sul ) ) );
 		}
-	return 0;
 	}
 
 int radebug = 0;
 
-mkrall( p, r ) register NODE *p; {
+void
+mkrall(NODE *p, int r)
+{
 	/* insure that the use of p gets done with register r; in effect, */
 	/* simulate offstar */
 
@@ -338,12 +352,13 @@ mkrall( p, r ) register NODE *p; {
 		p = p->in.left;
 		}
 	rallo( p, r );
-	return 0;
 	}
 
-rallo( p, down ) register NODE *p; {
+void
+rallo(NODE *p, int down)
+{
 	/* do register allocation */
-	register o, type, down1, down2, ty;
+	register int o, type, down1, down2, ty;
 
 	if( radebug ) printf( "rallo( %p, %o )\n", p, down );
 
@@ -434,10 +449,11 @@ rallo( p, down ) register NODE *p; {
 	if( ty != LTYPE ) rallo( p->in.left, down1 );
 	if( ty == BITYPE ) rallo( p->in.right, down2 );
 
-	return 0;
 	}
 
-offstar( p ) register NODE *p; {
+void
+offstar(NODE *p)
+{
 	if( p->in.op == PLUS ) {
 		if( p->in.left->in.su == fregs ) {
 			order( p->in.left, INTAREG|INAREG );
@@ -481,10 +497,11 @@ offstar( p ) register NODE *p; {
 	}
 
 	order( p, INTAREG|INAREG );
-	return 0;
 	}
 
-setincr( p ) register NODE *p; {
+int
+setincr(NODE *p)
+{
 	p = p->in.left;
 	if( p->in.op == UNARY MUL ){
 		offstar( p );
@@ -493,14 +510,19 @@ setincr( p ) register NODE *p; {
 	return( 0 );
 	}
 
-niceuty( p ) register NODE *p; {
+int
+niceuty(NODE *p)
+{
 	register TWORD t;
 
 	return( p->in.op == UNARY MUL && (t=p->in.type)!=CHAR &&
 		t!= UCHAR && t!= FLOAT &&
 		shumul( p->in.left) != STARREG );
 	}
-setbin( p ) register NODE *p; {
+
+int
+setbin(NODE *p)
+{
 	register NODE *r, *l;
 
 	r = p->in.right;
@@ -575,7 +597,9 @@ setbin( p ) register NODE *p; {
 		}
 	}
 
-setstr( p ) register NODE *p; { /* structure assignment */
+int
+setstr(NODE *p)
+{ /* structure assignment */
 	if( p->in.right->in.op != REG ){
 		order( p->in.right, INTAREG );
 		return(1);
@@ -589,7 +613,9 @@ setstr( p ) register NODE *p; { /* structure assignment */
 	return( 0 );
 	}
 
-setasg( p ) register NODE *p; {
+int
+setasg(NODE *p)
+{
 	/* setup for assignment operator */
 
 	if( p->in.right->in.su != 0 && p->in.right->in.op != REG ) {
@@ -619,9 +645,11 @@ setasg( p ) register NODE *p; {
 	return(0);
 	}
 
-setasop( p ) register NODE *p; {
+int
+setasop(NODE *p)
+{
 	/* setup for =ops */
-	register sul, sur;
+	register int sul, sur;
 	register NODE *q, *p2;
 
 	sul = p->in.left->in.su;
@@ -713,18 +741,24 @@ setasop( p ) register NODE *p; {
 
 int crslab = 32767;
 
-getlab(){
+int
+getlab(void)
+{
 	return( crslab-- );
 	}
 
-deflab( l ){
+void
+deflab(int l)
+{
 	printf( "L%d:\n", l );
 	}
 
-genargs( p ) register NODE *p; {
+void
+genargs(NODE *p)
+{
 	register NODE *pasg;
-	register align;
-	register size;
+	register int align;
+	register int size;
 	int count;
 
 	/* generate code for the arguments */
@@ -772,7 +806,8 @@ genargs( p ) register NODE *p; {
 	}
 
 OFFSZ
-argsize( p ) register NODE *p; {
+argsize(NODE *p)
+{
 	OFFSZ t;
 	t = 0;
 	if( p->in.op == CM ){

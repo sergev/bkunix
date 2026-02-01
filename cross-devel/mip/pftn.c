@@ -27,14 +27,14 @@ instack[10],
 	/* defines used for getting things off of the initialization stack */
 
 
-struct symtab *relook();
+struct symtab *relook(struct symtab *);
 
 
 int ddebug = 0;
 
-struct symtab * mknonuniq();
-
-defid( q, class ) register NODE *q; register int class; {
+NODE *
+defid(NODE *q, int class)
+{
 	register struct symtab *p;
 	int idp;
 	register TWORD type;
@@ -44,7 +44,7 @@ defid( q, class ) register NODE *q; register int class; {
 	int slev, temp;
 	int changed;
 
-	if( q == NIL ) return;  /* an error was detected */
+	if( q == NIL ) return NIL;  /* an error was detected */
 
 	if( q < node || q >= &node[TREESZ] ) cerror("defid call" );
 
@@ -149,7 +149,7 @@ defid( q, class ) register NODE *q; register int class; {
 		if( !falloc( p, class&FLDSIZ, 1, NIL ) ) {
 			/* successful allocation */
 			psave( (OFFSZ)idp );
-			return;
+			return NIL;
 			}
 		/* blew it: resume at end of switch... */
 		}
@@ -160,13 +160,13 @@ defid( q, class ) register NODE *q; register int class; {
 		switch( scl ){
 		case STATIC:
 		case USTATIC:
-			if( slev==0 ) return;
+			if( slev==0 ) return NIL;
 			break;
 		case EXTDEF:
 		case EXTERN:
 		case FORTRAN:
 		case UFORTRAN:
-			return;
+			return NIL;
 			}
 		break;
 
@@ -174,35 +174,35 @@ defid( q, class ) register NODE *q; register int class; {
 		if( scl==USTATIC || (scl==EXTERN && blevel==0) ){
 			p->sclass = STATIC;
 			if( ISFTN(type) ) curftn = idp;
-			return;
+			return NIL;
 			}
 		break;
 
 	case USTATIC:
-		if( scl==STATIC || scl==USTATIC ) return;
+		if( scl==STATIC || scl==USTATIC ) return NIL;
 		break;
 
 	case LABEL:
 		if( scl == ULABEL ){
 			p->sclass = LABEL;
 			deflab( (int)p->offset );
-			return;
+			return NIL;
 			}
 		break;
 
 	case TYPEDEF:
-		if( scl == class ) return;
+		if( scl == class ) return NIL;
 		break;
 
 	case UFORTRAN:
-		if( scl == UFORTRAN || scl == FORTRAN ) return;
+		if( scl == UFORTRAN || scl == FORTRAN ) return NIL;
 		break;
 
 	case FORTRAN:
 		if( scl == UFORTRAN ){
 			p->sclass = FORTRAN;
 			if( ISFTN(type) ) curftn = idp;
-			return;
+			return NIL;
 			}
 		break;
 
@@ -212,7 +212,7 @@ defid( q, class ) register NODE *q; register int class; {
 			if( oalloc( p, &strucoff ) ) break;
 			if( class == MOU ) strucoff = 0;
 			psave( (OFFSZ)idp );
-			return;
+			return NIL;
 			}
 		break;
 
@@ -227,7 +227,7 @@ defid( q, class ) register NODE *q; register int class; {
 		if( scl == EXTERN ) {
 			p->sclass = EXTDEF;
 			if( ISFTN(type) ) curftn = idp;
-			return;
+			return NIL;
 			}
 		break;
 
@@ -235,11 +235,11 @@ defid( q, class ) register NODE *q; register int class; {
 	case UNAME:
 	case ENAME:
 		if( scl != class ) break;
-		if( dimtab[p->sizoff] == 0 ) return;  /* previous entry just a mention */
+		if( dimtab[p->sizoff] == 0 ) return NIL;  /* previous entry just a mention */
 		break;
 
 	case ULABEL:
-		if( scl == LABEL || scl == ULABEL ) return;
+		if( scl == LABEL || scl == ULABEL ) return NIL;
 	case PARAM:
 	case AUTO:
 	case REGISTER:
@@ -289,7 +289,7 @@ defid( q, class ) register NODE *q; register int class; {
 	uerror("redeclaration of %s", p->sname );
 #endif
 	if( class==EXTDEF && ISFTN(type) ) curftn = idp;
-	return;
+	return NIL;
 
 	enter:  /* make a new entry */
 
@@ -394,16 +394,21 @@ defid( q, class ) register NODE *q; register int class; {
 	if( ddebug ) printf( "	dimoff, sizoff, offset: %d, %d, %d\n", p->dimoff, p->sizoff, (int) p->offset );
 # endif
 
+	return q;
 	}
 
-psave( i ) OFFSZ i;{
+void
+psave(OFFSZ i)
+{
 	if( paramno >= PARAMSZ ){
 		cerror("parameter stack overflow");
 		}
 	paramstk[ paramno++ ] = i;
 	}
 
-ftnend(){ /* end of function */
+void
+ftnend(void)
+{ /* end of function */
 	if( retlab != NOLAB ){ /* inside a real function */
 		efcode();
 		}
@@ -428,8 +433,10 @@ ftnend(){ /* end of function */
 	locctr(DATA);
 	}
 
-dclargs(){
-	register i;
+void
+dclargs(void)
+{
+	register int i;
 	OFFSZ	j;
 	register struct symtab *p;
 	register NODE *q;
@@ -464,7 +471,8 @@ dclargs(){
 	}
 
 NODE *
-rstruct( idn, soru ){ /* reference to a structure or union, with no definition */
+rstruct(int idn, int soru)
+{ /* reference to a structure or union, with no definition */
 	register struct symtab *p;
 	register NODE *q;
 	p = &stab[idn];
@@ -495,7 +503,9 @@ rstruct( idn, soru ){ /* reference to a structure or union, with no definition *
 	return( mkty( p->stype, 0, p->sizoff ) );
 	}
 
-moedef( idn ){
+void
+moedef(int idn)
+{
 	register NODE *q;
 
 	q = block( FREE, NIL, NIL, MOETY, 0, 0 );
@@ -503,7 +513,9 @@ moedef( idn ){
 	if( idn>=0 ) defid( q, MOE );
 	}
 
-bstruct( idn, soru ){ /* begining of structure or union declaration */
+int
+bstruct(int idn, int soru)
+{ /* begining of structure or union declaration */
 	register NODE *q;
 
 	psave( (OFFSZ)instruct );
@@ -535,9 +547,10 @@ bstruct( idn, soru ){ /* begining of structure or union declaration */
 	}
 
 NODE *
-dclstruct( oparam ){
+dclstruct(int oparam)
+{
 	register struct symtab *p;
-	register sa, al;
+	register int sa, al;
 	int szindex;
 	OFFSZ sz, i, j;
 	register TWORD temp;
@@ -653,17 +666,23 @@ dclstruct( oparam ){
 	}
 
 	/* VARARGS */
-yyerror(s ) char *s; { /* error printing routine in parser */
+void
+yyerror(const char *s)
+{ /* error printing routine in parser */
 
 	uerror(s );
 
 	}
 
-yyaccpt(){
+void
+yyaccpt(void)
+{
 	ftnend();
 	}
 
-ftnarg( idn ) {
+void
+ftnarg(int idn)
+{
 	switch( stab[idn].stype ){
 
 	case UNDEF:
@@ -692,10 +711,12 @@ ftnarg( idn ) {
 	psave( (OFFSZ)idn );
 	}
 
-talign( ty, s) register unsigned ty; register s; {
+int
+talign(unsigned int ty, int s)
+{
 	/* compute the alignment of an object with type ty, sizeoff index s */
 
-	register i;
+	register int i;
 	if( s<0 && ty!=INT && ty!=CHAR && ty!=SHORT && ty!=UNSIGNED && ty!=UCHAR && ty!=USHORT
 #ifdef LONGFIELDS
 		&& ty!=LONG && ty!=ULONG
@@ -743,7 +764,8 @@ talign( ty, s) register unsigned ty; register s; {
 	}
 
 OFFSZ
-tsize( ty, d, s )  TWORD ty; {
+tsize(TWORD ty, int d, int s)
+{
 	/* compute the size associated with type ty,
 	    dimoff d, and sizoff s */
 	/* BETTER NOT BE CALLED WHEN t, d, and s REFER TO A BIT FIELD... */
@@ -779,10 +801,12 @@ tsize( ty, d, s )  TWORD ty; {
 	return( dimtab[ s ] * mult );
 	}
 
-inforce( n ) OFFSZ n; {  /* force inoff to have the value n */
+void
+inforce(OFFSZ n)
+{  /* force inoff to have the value n */
 	/* inoff is updated to have the value n */
 	OFFSZ wb;
-	register rest;
+	register OFFSZ rest;
 	/* rest is used to do a lot of conversion to ints... */
 
 	if( inoff == n ) return;
@@ -819,7 +843,9 @@ inforce( n ) OFFSZ n; {  /* force inoff to have the value n */
 
 	}
 
-vfdalign( n ) OFFSZ n;{ /* make inoff have the offset the next alignment of n */
+void
+vfdalign(OFFSZ n)
+{ /* make inoff have the offset the next alignment of n */
 	OFFSZ m;
 
 	m = inoff;
@@ -838,7 +864,9 @@ int iclass;  /* storage class of thing being initialized */
 
 int ilocctr = 0;  /* location counter for current initialization */
 
-beginit(curid){
+void
+beginit(int curid)
+{
 	/* beginning of initilization; set location ctr and set type */
 	register struct symtab *p;
 
@@ -877,7 +905,9 @@ beginit(curid){
 
 	}
 
-instk( id, t, d, s, off ) OFFSZ off; TWORD t; {
+void
+instk(int id, TWORD t, int d, int s, OFFSZ off)
+{
 	/* make a new entry on the parameter stack to initialize id */
 
 	register struct symtab *p;
@@ -942,9 +972,10 @@ instk( id, t, d, s, off ) OFFSZ off; TWORD t; {
 	}
 
 NODE *
-getstr(){ /* decide if the string is external or an initializer, and get the contents accordingly */
+getstr(void)
+{ /* decide if the string is external or an initializer, and get the contents accordingly */
 
-	register l, temp;
+	register int l, temp;
 	register NODE *p;
 
 	if( (iclass==EXTDEF||iclass==STATIC) && (pstk->in_t == CHAR || pstk->in_t == UCHAR) &&
@@ -975,7 +1006,9 @@ getstr(){ /* decide if the string is external or an initializer, and get the con
 		}
 	}
 
-putbyte( v ){ /* simulate byte v appearing in a list of integer values */
+void
+putbyte(int v)
+{ /* simulate byte v appearing in a list of integer values */
 	register NODE *p;
 	p = bcon(v);
 	incode( p, SZCHAR );
@@ -983,9 +1016,11 @@ putbyte( v ){ /* simulate byte v appearing in a list of integer values */
 	gotscal();
 	}
 
-endinit(){
+void
+endinit(void)
+{
 	register TWORD t;
-	register d, n, d1;
+	register int d, n, d1;
 	int s;
 
 # ifndef BUG1
@@ -1039,13 +1074,15 @@ endinit(){
 
 	}
 
-doinit( p ) register NODE *p; {
+void
+doinit(NODE *p)
+{
 
 	/* take care of generating a value for the initializer p */
 	/* inoff has the current offset (last bit written)
 		in the current word being generated */
 
-	register d, s;
+	register int d, s;
 	OFFSZ sz;
 	register TWORD t;
 	int o;
@@ -1131,9 +1168,12 @@ doinit( p ) register NODE *p; {
 	tfree(p);
 	}
 
-gotscal(){
-	register t, ix;
-	register n, id;
+void
+gotscal(void)
+{
+	register TWORD t;
+	register int ix;
+	register int n, id;
 	struct symtab *p;
 	OFFSZ temp;
 
@@ -1171,8 +1211,10 @@ gotscal(){
 	ifull = 1;
 	}
 
-ilbrace(){ /* process an initializer's left brace */
-	register t;
+void
+ilbrace(void)
+{ /* process an initializer's left brace */
+	register TWORD t;
 	struct instk *temp;
 
 	temp = pstk;
@@ -1197,7 +1239,9 @@ ilbrace(){ /* process an initializer's left brace */
 	pstk = temp;
 	}
 
-irbrace(){
+void
+irbrace(void)
+{
 	/* called when a '}' is seen */
 
 # ifndef BUG1
@@ -1225,7 +1269,8 @@ irbrace(){
 	}
 
 OFFSZ
-upoff( size, alignment, poff ) OFFSZ size; register alignment; register OFFSZ *poff; {
+upoff(OFFSZ size, int alignment, OFFSZ *poff)
+{
 	/* update the offset pointed to by poff; return the
 	   offset of a value of size `size', alignment `alignment',
 	   given that off is increasing */
@@ -1242,7 +1287,9 @@ upoff( size, alignment, poff ) OFFSZ size; register alignment; register OFFSZ *p
 	return( off );
 	}
 
-oalloc( p, poff ) register struct symtab *p; register OFFSZ *poff; {
+OFFSZ
+oalloc(struct symtab *p, OFFSZ *poff)
+{
 	/* allocate p with offset *poff, and update *poff */
 	OFFSZ al, off, tsz;
 	OFFSZ noff;
@@ -1279,11 +1326,14 @@ oalloc( p, poff ) register struct symtab *p; register OFFSZ *poff; {
 	return(0);
 	}
 
-falloc( p, w, new, pty )  register struct symtab *p; NODE *pty; {
+int
+falloc(struct symtab *p, int w, int new, NODE *pty)
+{
 	/* allocate a field of width w */
 	/* new is 0 if new entry, 1 if redefinition, -1 if alignment */
 
-	register al,sz,type;
+	register int al, sz;
+	register TWORD type;
 
 	type = (new<0)? pty->in.type : p->stype;
 
@@ -1368,10 +1418,12 @@ falloc( p, w, new, pty )  register struct symtab *p; NODE *pty; {
 	return(0);
 	}
 
-nidcl( p ) NODE *p; { /* handle unitialized declarations */
+void
+nidcl(NODE *p)
+{ /* handle unitialized declarations */
 	/* assumed to be not functions */
-	register class;
-	register commflag;  /* flag for labelled common declarations */
+	register int class;
+	register int commflag;  /* flag for labelled common declarations */
 
 	commflag = 0;
 
@@ -1420,11 +1472,12 @@ nidcl( p ) NODE *p; { /* handle unitialized declarations */
 	}
 
 TWORD
-types( t1, t2, t3 ) TWORD t1, t2, t3; {
+types(TWORD t1, TWORD t2, TWORD t3)
+{
 	/* return a basic type from basic types t1, t2, and t3 */
 
 	TWORD t[3], noun, adj, unsg;
-	register i;
+	register int i;
 
 	t[0] = t1;
 	t[1] = t2;
@@ -1480,12 +1533,12 @@ types( t1, t2, t3 ) TWORD t1, t2, t3; {
 	}
 
 NODE *
-tymerge( typ, idp ) NODE *typ, *idp; {
+tymerge(NODE *typ, NODE *idp)
+{
 	/* merge type typ with identifier idp  */
 
 	register unsigned t;
-	register i;
-	extern int eprint();
+	register int i;
 
 	if( typ->in.op != TYPE ) cerror("tymerge: arg 1" );
 	if(idp == NIL ) return( NIL );
@@ -1514,11 +1567,12 @@ tymerge( typ, idp ) NODE *typ, *idp; {
 	return( idp );
 	}
 
-tyreduce( p ) register NODE *p; {
-
+void
+tyreduce(NODE *p)
+{
 	/* build a type, and stash away dimensions, from a parse tree of the declaration */
 	/* the type is build top down, the dimensions bottom up */
-	register o;
+	register int o;
 	CONSZ temp;
 	register unsigned t;
 
@@ -1547,9 +1601,11 @@ tyreduce( p ) register NODE *p; {
 
 	}
 
-fixtype( p, class ) register NODE *p; {
+void
+fixtype(NODE *p, int class)
+{
 	register unsigned t, type;
-	register mod1, mod2;
+	register int mod1, mod2;
 	/* fix up the types, and check for legality */
 
 	if( (type = p->in.type) == UNDEF ) return;
@@ -1593,7 +1649,9 @@ fixtype( p, class ) register NODE *p; {
 	p->in.type = type;
 	}
 
-uclass( class ) register class; {
+int
+uclass(int class)
+{
 	/* give undefined version of class */
 	if( class == SNULL ) return( EXTERN );
 	else if( class == STATIC ) return( USTATIC );
@@ -1601,7 +1659,9 @@ uclass( class ) register class; {
 	else return( class );
 	}
 
-fixclass( class, type ) TWORD type; {
+TWORD
+fixclass(int class, TWORD type)
+{
 
 	/* first, fix null class */
 
@@ -1697,16 +1757,18 @@ fixclass( class, type ) TWORD type; {
 	default:
 		cerror("illegal class: %d", class );
 		/* NOTREACHED */
+		return class;
 
 		}
 	}
 
 struct symtab *
-mknonuniq(idindex) int *idindex; {/* locate a symbol table entry for */
+mknonuniq(int *idindex)
+{/* locate a symbol table entry for */
 	/* an occurrence of a nonunique structure member name */
 	/* or field */
-	register i;
-	register struct symtab * sp;
+	register int i;
+	register struct symtab *sp;
 	char *p,*q;
 
 	sp = & stab[ i= *idindex ]; /* position search at old entry */
@@ -1739,7 +1801,9 @@ mknonuniq(idindex) int *idindex; {/* locate a symbol table entry for */
 	return ( sp );
 	}
 
-lookup( name, s) char *name; {
+int
+lookup(const char *name, int s)
+{
 	/* look up name: must agree with s w.r.t. STAG, SMOS and SHIDDEN */
 
 	register char *p, *q;
@@ -1773,7 +1837,7 @@ lookup( name, s) char *name; {
 			p = sp->sname;
 			for( j=0; j<NCHNAM; ++j ) if( *p++ = *name ) ++name;
 #else
-			sp->sname = name;
+			sp->sname = (char *)name;
 #endif
 			sp->stype = UNDEF;
 			sp->sclass = SNULL;
@@ -1781,7 +1845,7 @@ lookup( name, s) char *name; {
 			}
 		if( (sp->sflags & (STAG|SMOS|SHIDDEN)) != s ) goto next;
 		p = sp->sname;
-		q = name;
+		q = (char *)name;
 #ifndef FLEXNAMES
 		for( j=0; j<NCHNAM;++j ){
 			if( *p++ != *q ) goto next;
@@ -1804,7 +1868,9 @@ lookup( name, s) char *name; {
 
 #ifndef checkst
 /* if not debugging, make checkst a macro */
-checkst(lev){
+void
+checkst(int lev)
+{
 	register int s, i, j;
 	register struct symtab *p, *q;
 
@@ -1832,8 +1898,8 @@ checkst(lev){
 #endif
 
 struct symtab *
-relook(p) register struct symtab *p; {  /* look up p again, and see where it lies */
-
+relook(struct symtab *p)
+{  /* look up p again, and see where it lies */
 	register struct symtab *q;
 
 	/* I'm not sure that this handles towers of several hidden definitions in all cases */
@@ -1850,7 +1916,9 @@ relook(p) register struct symtab *p; {  /* look up p again, and see where it lie
 	return(q);
 	}
 
-clearst( lev ) register int lev; {
+void
+clearst(int lev)
+{
 	register struct symtab *p, *q;
 	register int temp;
 	struct symtab *clist = 0;
@@ -1927,7 +1995,9 @@ clearst( lev ) register int lev; {
 	aoend();
 	}
 
-hide( p ) register struct symtab *p; {
+int
+hide(struct symtab *p)
+{
 	register struct symtab *q;
 	for( q=p+1; ; ++q ){
 		if( q >= &stab[SYMTSZ] ) q = stab;
@@ -1948,9 +2018,11 @@ hide( p ) register struct symtab *p; {
 	return( idname = q-stab );
 	}
 
-unhide( p ) register struct symtab *p; {
+void
+unhide(struct symtab *p)
+{
 	register struct symtab *q;
-	register s, j;
+	register int s, j;
 
 	s = p->sflags & (SMOS|STAG);
 	q = p;

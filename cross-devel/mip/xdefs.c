@@ -104,7 +104,9 @@ ccnames[] = { /* names of storage classes */
 	"USTATIC",
 	};
 
-char * scnames( c ) register c; {
+char *
+scnames(int c)
+{
 	/* return the name for storage class c */
 	static char buf[12];
 	if( c&FIELD ){

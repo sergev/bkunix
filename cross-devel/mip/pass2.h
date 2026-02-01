@@ -6,9 +6,10 @@
 #ifndef _PASS2_
 #define	_PASS2_
 
+struct symtab;
 #include "macdefs.h"
-#include "mac2defs.h"
 #include "manifest.h"
+#include "mac2defs.h"
 
 /* cookies, used as arguments to codgen */
 #define FOREFF	01		/* compute for effects only */
@@ -172,15 +173,114 @@ extern	int ftnno;
 extern	int rtyflg;
 extern	int nrecur;		/* flag to keep track of recursions */
 
-extern	NODE
-	*talloc(),
-	*eread(),
-	*tcopy(),
-	*getlr();
+extern	NODE	*talloc(void);
+extern	NODE	*eread(void);
+extern	NODE	*tcopy(NODE *);
+extern	NODE	*getlr(NODE *, int);
 
-extern	CONSZ rdin();
-extern	int eprint();
+extern	CONSZ	rdin(int);
+extern	void	eprint(NODE *, int, int *, int *);
+extern	void	allo0(void);
+extern	void	cerror(const char *, ...);
+extern	void	mkdope(void);
+extern	void	setrew(void);
+extern	int	shtemp(NODE *);
+extern	int	flshape(NODE *);
+extern	int	spsz(TWORD, CONSZ);
+extern	NODE	*cast(NODE *, TWORD);
+extern	int	freereg(NODE *, int);
+extern	int	tlen(NODE *);
+extern	void	fwalk(NODE *, void (*)(NODE *, int, int *, int *), int);
+extern	void	delay(NODE *);
+extern	void	reclaim(NODE *, int, int);
+extern	void	allchk(void);
+extern	int	allo(NODE *, struct optab *);
+extern	void	cbgen(int, int, int);
+extern	int	getlab(void);
+extern	int	lineid(int, char *);
+extern	void	tcheck(void);
+extern	void	setregs(void);
+extern	int	szty(TWORD);
+extern	int	delay1(NODE *);
+extern	void	chkpun(NODE *);
+extern	int	chkstr(int, int, TWORD);
+extern	void	rcount(void);
+extern	void	p2bend(void);
+extern	void	eobl2(void);
+extern	OFFSZ	freetemp(int);
+extern	void	delay2(NODE *);
+extern	void	codgen(NODE *, int);
+extern	void	expand(NODE *, int, char *);
+extern	int	callreg(NODE *);
+extern	void	ecode(NODE *);
+extern	int	usable(NODE *, int, int);
+extern	int	autoincr(NODE *);
+extern	int	deltest(NODE *);
+extern	void	def2lab(int);
+extern	void	canon(NODE *);
+extern	void	store(NODE *);
+extern	void	order(NODE *, int);
+extern	int	shareit(NODE *, int, int);
+extern	void	conput(NODE *);
+extern	void	rfree(int, TWORD);
+extern	void	rbusy(int, TWORD);
+extern	void	adrput(NODE *);
+extern	void	zzzcode(NODE *, int);
+extern	int	ushare(NODE *, int, int);
+extern	void	prcook(int);
+extern	int	special(NODE *, int);
+extern	NODE	*myreader(NODE *);
 extern	char *rnames[];
+extern	void	rallo(NODE *, int);
+extern	int	tshape(NODE *, int);
+extern	int	nextcook(NODE *, int);
+extern	void	cbranch(NODE *, int, int);
+extern	void	acon(NODE *);
+extern	void	offstar(NODE *);
+extern	int	setincr(NODE *);
+extern	int	setstr(NODE *);
+extern	int	genscall(NODE *, int);
+extern	void	p2tree(NODE *);
+extern	void	p2compile(NODE *);
+extern	void	p2bbeg(OFFSZ, int);
+extern	void	defnam(struct symtab *);
+extern	int	gencall(NODE *, int);
+extern	void	lxtitle(void);
+extern	void	adrcon(CONSZ);
+extern	void	hopcode(int, int);
+extern	void	insput(NODE *);
+extern	void	upput(NODE *);
+extern	void	rmove(int, int, TWORD);
+extern	int	match(NODE *, int);
+extern	void	tfree(NODE *);
+extern	void	uerror(const char *, ...);
+extern	int	lastchance(NODE *, int);
+extern	int	canaddr(NODE *);
+extern	int	setasop(NODE *);
+extern	int	setasg(NODE *);
+extern	int	setbin(NODE *);
+extern	TWORD	ctype(TWORD);
+extern	void	fixarg(struct symtab *);
+extern	int	cendarg(void);
+extern	void	bfcode(OFFSZ [], int);
+extern	int	talign(unsigned int, int);
+extern	void	outstruct(int, int);
+extern	NODE	*econvert(NODE *);
+extern	void	werror(const char *, ...);
+extern	void	walkf(NODE *, void (*)(NODE *));
+extern	int	stoasg(NODE *, int);
+extern	void	stoarg(NODE *, int);
+extern	void	markcall(NODE *);
+extern	void	constore(NODE *);
+extern	int	mkadrs(NODE *);
+extern	OFFSZ	argsize(NODE *);
+extern	void	genargs(NODE *);
+extern	void	popargs(int);
+extern	NODE	*tcopy(NODE *);
+extern	void	tprint(TWORD);
+extern	int	rewfld(NODE *);
+extern	int	notoff(TWORD, int, CONSZ, char *);
+extern	void	sucomp(NODE *);
 
 extern	int lineno;
 extern	char filename[];

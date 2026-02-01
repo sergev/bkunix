@@ -11,7 +11,7 @@
 # endif
 # endif
 
-extern vdebug;
+extern int vdebug;
 
 int fldsz, fldshf;
 
@@ -42,10 +42,12 @@ static int mamask[] = { /* masks for matching dope with shapes */
 
 int sdebug = 0;
 
-tshape( p, shape ) NODE *p; {
+int
+tshape(NODE *p, int shape)
+{
 	/* return true if shape is appropriate for the node p
 	   side effect for SFLD is to set up fldsz,etc */
-	register o, mask;
+	register int o, mask;
 
 	o = p->in.op;
 
@@ -158,7 +160,9 @@ tshape( p, shape ) NODE *p; {
 
 int tdebug = 0;
 
-ttype( t, tword ) TWORD t; {
+int
+ttype(TWORD t, TWORD tword)
+{
 	/* does the type t match tword */
 
 	if( tword & TANY ) return(1);
@@ -214,7 +218,9 @@ struct optab *rwtable;
 
 struct optab *opptr[DSIZE];
 
-setrew(){
+void
+setrew(void)
+{
 	/* set rwtable to first value which allows rewrite */
 	register struct optab *q;
 	register int i;
@@ -251,7 +257,7 @@ setrew(){
 					if( q->op==i ) break;
 					}
 				else {
-					register opmtemp;
+					register int opmtemp;
 					if((opmtemp=mamask[q->op - OPSIMP])&SPFLG){
 						if( i==NAME || i==ICON || i==OREG ) break;
 						else if( shltype( i, NIL ) ) break;
@@ -264,7 +270,9 @@ setrew(){
 		}
 	}
 
-match( p, cookie ) NODE *p; {
+int
+match(NODE *p, int cookie)
+{
 	/* called by: order, gencall
 	   look for match in table and generate code if found unless
 	   entry specified REWRITE.
@@ -285,7 +293,7 @@ match( p, cookie ) NODE *p; {
 			if( q->op!=p->in.op ) continue;
 			}
 		else {
-			register opmtemp;
+			register int opmtemp;
 			if((opmtemp=mamask[q->op - OPSIMP])&SPFLG){
 				if( p->in.op!=NAME && p->in.op!=ICON && p->in.op!= OREG &&
 					! shltype( p->in.op, p ) ) continue;
@@ -320,7 +328,9 @@ match( p, cookie ) NODE *p; {
 
 int rtyflg = 0;
 
-expand( p, cookie, cp ) NODE *p;  register char *cp; {
+void
+expand(NODE *p, int cookie, char *cp)
+{
 	/* generate code by interpreting table entry */
 
 # ifdef NEWZZZ
@@ -420,7 +430,8 @@ expand( p, cookie, cp ) NODE *p;  register char *cp; {
 	}
 
 NODE *
-getlr( p, c ) NODE *p; {
+getlr(NODE *p, int c)
+{
 
 	/* return the pointer to the left or right side of p, or p itself,
 	   depending on the optype of p */
@@ -441,6 +452,7 @@ getlr( p, c ) NODE *p; {
 		}
 	cerror("bad getlr: %c", c );
 	/* NOTREACHED */
+	return (NODE *)0;
 	}
 # ifdef MULTILEVEL
 
@@ -470,10 +482,12 @@ int *mlsp; /* pointing into mlstack */
 NODE * ststack[MLSZ];
 NODE **stp; /* pointing into ststack */
 
-mlinit(){
+void
+mlinit(void)
+{
 	union mltemplate **lastlink;
 	register union mltemplate *n;
-	register mlop;
+	register int mlop;
 
 	lastlink = &(mltree[0].nexthead);
 	n = &mltree[0];
@@ -532,7 +546,9 @@ mlinit(){
 # endif
 	}
 
-mlmatch( subtree, target, subtarget ) NODE * subtree; int target,subtarget;{
+int
+mlmatch(NODE *subtree, int target, int subtarget)
+{
 	/*
 	 * does subtree match a multi-level tree with
 	 * tag "target"?  Return zero on failure,
@@ -541,7 +557,7 @@ mlmatch( subtree, target, subtarget ) NODE * subtree; int target,subtarget;{
 	 */
 	union mltemplate *head; /* current template header */
 	register union mltemplate *n; /* node being matched */
-	NODE * st; /* subtree being matched */
+	NODE *st; /* subtree being matched */
 	register int mlop;
 
 # ifndef BUG3
@@ -574,7 +590,7 @@ mlmatch( subtree, target, subtarget ) NODE * subtree; int target,subtarget;{
 				if( st->op != n->op )break;
 				}
 			else {
-				register opmtemp;
+				register int opmtemp;
 				if((opmtemp=mamask[n->op-OPSIMP])&SPFLG){
 					if(st->op!=NAME && st->op!=ICON && st->op!=OREG &&
 						! shltype(st->op,st)) break;

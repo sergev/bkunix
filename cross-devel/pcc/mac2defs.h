@@ -57,10 +57,11 @@ extern	int maxargs;
 /*
  * Some short routines that get called an awful lot are actually macros.
  */
+int	shumul(NODE *);
 #define	shltype(o, p) \
 	((o) == REG || (o) == NAME || (o) == ICON || \
 	 (o) == OREG || ((o) == UNARY MUL && shumul((p)->in.left)))
 #define	ncopy(q, p)	((q)->in = (p)->in)
 
 #define MYREADER(p) myreader(p)
-void	optim2();
+void	optim2(NODE *);

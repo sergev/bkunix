@@ -9,8 +9,7 @@
 
 int bdebug = 0;
 int adebug = 0;
-extern ddebug;
-extern eprint();
+extern int ddebug;
 
 	    /* corrections when in violation of lint */
 
@@ -29,9 +28,8 @@ extern eprint();
 # define NCVTR 010000
 
 #ifndef BUG1
-printact(t, acts)
-	NODE *t;
-	int acts;
+void
+printact(NODE *t, int acts)
 {
 	static struct actions {
 		int	a_bit;
@@ -82,13 +80,13 @@ printact(t, acts)
 	*/
 
 NODE *
-buildtree( o, l, r ) register NODE *l, *r; {
+buildtree(int o, NODE *l, NODE *r)
+{
 	register NODE *p, *q;
-	register actions;
-	register opty;
+	register int actions;
+	register int opty;
 	register struct symtab *sp;
 	register NODE *lr, *ll;
-	NODE *fixargs();
 	int i;
 
 # ifndef BUG1
@@ -356,7 +354,7 @@ buildtree( o, l, r ) register NODE *l, *r; {
 				(l->fn.csiz +1) >= 0 ){
 				/* nonunique name && structure defined */
 				char * memnam, * tabnam;
-				register k;
+				register int k;
 				int j;
 				int memi;
 				j=dimtab[l->fn.csiz+1];
@@ -398,7 +396,7 @@ buildtree( o, l, r ) register NODE *l, *r; {
 						stab[i].sname);
 				}
 			else {
-				register j;
+				register int j;
 				if( l->in.type != PTR+STRTY && l->in.type != PTR+UNIONTY ){
 					if( stab[i].sflags & SNONUNIQ ){
 						uerror("nonunique name demands struct/union or struct/union pointer" );
@@ -463,11 +461,10 @@ buildtree( o, l, r ) register NODE *l, *r; {
 				 * back to PLUS/MINUS REG ICON
 				 * according to local conventions
 				 */
-				{
-				extern NODE * addroreg();
+			{
 				p->in.op = FREE;
 				p = addroreg( l );
-				}
+			}
 				break;
 
 # endif
@@ -495,7 +492,7 @@ buildtree( o, l, r ) register NODE *l, *r; {
 
 			{
 				register TWORD t;
-				register d, s;
+				register int d, s;
 
 				if( l->fn.csiz != r->fn.csiz ) uerror("assignment of different structures" );
 
@@ -568,7 +565,9 @@ buildtree( o, l, r ) register NODE *l, *r; {
 int fpe_count = -1;
 jmp_buf gotfpe;
 
-fpe() {
+void
+fpe(void)
+{
 	if (fpe_count < 0)
 		cerror("floating point exception");
 	++fpe_count;
@@ -582,7 +581,7 @@ fpe() {
  * cast to double (to eliminate convert code).
  */
 NODE *
-fixargs( p ) register NODE *p;  {
+fixargs(register NODE *p) {
 	int o = p->in.op;
 
 	if( o == CM ){
@@ -601,7 +600,9 @@ fixargs( p ) register NODE *p;  {
 	return( p );
 	}
 
-chkstr( i, j, type ) TWORD type; {
+int
+chkstr(int i, int j, TWORD type)
+{
 	/* is the MOS or MOU at stab[i] OK for strict reference by a ptr */
 	/* i has been checked to contain a MOS or MOU */
 	/* j is the index in dimtab of the members... */
@@ -646,7 +647,8 @@ chkstr( i, j, type ) TWORD type; {
 	return( 0 );
 	}
 
-conval( p, o, q ) register NODE *p, *q; {
+int
+conval(register NODE *p, int o, register NODE *q) {
 	/* apply the op o to the lval part of p; if binary, rhs is val */
 	int i, u;
 	CONSZ val;
@@ -748,7 +750,9 @@ conval( p, o, q ) register NODE *p, *q; {
 	return(1);
 	}
 
-chkpun(p) register NODE *p; {
+void
+chkpun(NODE *p)
+{
 
 	/* checks p for the existance of a pun */
 
@@ -762,8 +766,8 @@ chkpun(p) register NODE *p; {
 	/* this falls out, because the LHS is never 0 */
 
 	register NODE *q;
-	register t1, t2;
-	register d1, d2;
+	register TWORD t1, t2;
+	register int d1, d2;
 
 	t1 = p->in.left->in.type;
 	t2 = p->in.right->in.type;
@@ -816,7 +820,8 @@ chkpun(p) register NODE *p; {
 	}
 
 NODE *
-stref( p ) register NODE *p; {
+stref(register NODE *p)
+{
 
 	TWORD t;
 	int d, s, dsc, align;
@@ -867,7 +872,8 @@ stref( p ) register NODE *p; {
 	return( clocal(p) );
 	}
 
-notlval(p) register NODE *p; {
+int
+notlval(register NODE *p) {
 
 	/* return 0 if p an lvalue, 1 otherwise */
 
@@ -899,7 +905,8 @@ notlval(p) register NODE *p; {
 	}
 
 NODE *
-bcon( i ) int i;{ /* make a constant node with value i */
+bcon(int i)
+{ /* make a constant node with value i */
 	register NODE *p;
 
 	p = block( ICON, NIL, NIL, INT, 0, INT );
@@ -909,12 +916,14 @@ bcon( i ) int i;{ /* make a constant node with value i */
 	}
 
 NODE *
-bpsize(p) register NODE *p; {
+bpsize(NODE *p)
+{
 	return( offcon( psize(p), p->in.type, p->fn.cdim, p->fn.csiz ) );
 	}
 
 OFFSZ
-psize( p ) NODE *p; {
+psize(NODE *p)
+{
 	/* p is a node of type pointer; psize returns the
 	   size of the thing pointed to */
 
@@ -927,7 +936,8 @@ psize( p ) NODE *p; {
 	}
 
 NODE *
-convert( p, f )  register NODE *p; {
+convert(register NODE *p, int f)
+{
 	/*  convert an operand of p
 	    f is either CVTL or CVTR
 	    operand has type int, and is converted by the size of the other side
@@ -949,7 +959,9 @@ convert( p, f )  register NODE *p; {
 	}
 
 #ifndef econvert
-econvert( p ) register NODE *p; {
+NODE *
+econvert(register NODE *p)
+{
 
 	/* change enums to ints, or appropriate types */
 
@@ -965,11 +977,13 @@ econvert( p ) register NODE *p; {
 		MODTYPE(p->in.type,ty);
 		if( p->in.op == ICON && ty != LONG ) p->in.type = p->fn.csiz = INT;
 		}
+	return p;
 	}
 #endif
 
 NODE *
-pconvert( p ) register NODE *p; {
+pconvert(register NODE *p)
+{
 
 	/* if p should be changed into a pointer, do so */
 
@@ -985,7 +999,8 @@ pconvert( p ) register NODE *p; {
 	}
 
 NODE *
-oconvert(p) register NODE *p; {
+oconvert(register NODE *p)
+{
 	/* convert the result itself: used for pointer and unsigned */
 
 	switch(p->in.op) {
@@ -1010,7 +1025,8 @@ oconvert(p) register NODE *p; {
 	}
 
 NODE *
-ptmatch(p)  register NODE *p; {
+ptmatch(register NODE *p)
+{
 
 	/* makes the operands of p agree; they are
 	   either pointers or integers, by this time */
@@ -1080,7 +1096,8 @@ ptmatch(p)  register NODE *p; {
 int tdebug = 0;
 
 NODE *
-tymatch(p)  register NODE *p; {
+tymatch(register NODE *p)
+{
 
 	/* satisfy the types of various arithmetic binary ops */
 
@@ -1093,7 +1110,7 @@ tymatch(p)  register NODE *p; {
 	*/
 
 	register TWORD t1, t2, t, tu;
-	register o, u;
+	register int o, u;
 
 	o = p->in.op;
 
@@ -1165,7 +1182,8 @@ tymatch(p)  register NODE *p; {
 	}
 
 NODE *
-makety( p, t, d, s ) register NODE *p; TWORD t; {
+makety(register NODE *p, TWORD t, int d, int s)
+{
 	/* make p into type t by inserting a conversion */
 
 	if( p->in.type == ENUMTY && p->in.op == ICON ) econvert(p);
@@ -1230,7 +1248,8 @@ makety( p, t, d, s ) register NODE *p; TWORD t; {
 	}
 
 NODE *
-block( o, l, r, t, d, s ) register NODE *l, *r; TWORD t; {
+block(int o, NODE *l, NODE *r, TWORD t, int d, int s)
+{
 
 	register NODE *p;
 
@@ -1244,7 +1263,9 @@ block( o, l, r, t, d, s ) register NODE *l, *r; TWORD t; {
 	return(p);
 	}
 
-icons(p) register NODE *p; {
+int
+icons(NODE *p)
+{
 	/* if p is an integer constant, return its value */
 	int val;
 
@@ -1295,9 +1316,11 @@ icons(p) register NODE *p; {
 # define MENU 040 /* enumeration variable or member */
 # define MVOID 0100000 /* void type */
 
-opact( p )  NODE *p; {
+int
+opact(NODE *p)
+{
 
-	register mt12, mt1, mt2, o;
+	register int mt12, mt1, mt2, o;
 
 	mt1 = mt2 = mt12 = 0;
 
@@ -1462,7 +1485,9 @@ opact( p )  NODE *p; {
 	return( NCVT );
 	}
 
-moditype( ty ) TWORD ty; {
+TWORD
+moditype(TWORD ty)
+{
 
 	switch( ty ){
 
@@ -1496,7 +1521,8 @@ moditype( ty ) TWORD ty; {
 	}
 
 NODE *
-doszof( p )  register NODE *p; {
+doszof(NODE *p)
+{
 	/* do sizeof p */
 	int i;
 
@@ -1509,8 +1535,10 @@ doszof( p )  register NODE *p; {
 	}
 
 # ifndef BUG2
-eprint( p, down, a, b ) register NODE *p; int *a, *b; {
-	register ty;
+void
+eprint(NODE *p, int down, int *a, int *b)
+{
+	register int ty;
 
 	*a = *b = down+1;
 	while( down > 1 ){
@@ -1532,7 +1560,8 @@ eprint( p, down, a, b ) register NODE *p; int *a, *b; {
 # endif
 
 void
-prtdcon( p ) register NODE *p; {
+prtdcon(NODE *p)
+{
 	int o = p->in.op, i;
 
 	if( o == DCON || o == FCON ){
@@ -1552,7 +1581,9 @@ prtdcon( p ) register NODE *p; {
 
 
 int edebug = 0;
-ecomp( p ) register NODE *p; {
+void
+ecomp(NODE *p)
+{
 # ifndef BUG2
 	if( edebug ) fwalk( p, eprint, 0 );
 # endif
@@ -1634,8 +1665,9 @@ prtree(p) register NODE *p; {
 
 # else
 
-p2tree(p) register NODE *p; {
-	register ty;
+void
+p2tree(register NODE *p) {
+	register int ty;
 
 # ifdef MYP2TREE
 	MYP2TREE(p);  /* local action can be taken here; then return... */
@@ -1654,7 +1686,7 @@ p2tree(p) register NODE *p; {
 #endif
 		else if( p->tn.rval >= 0 ){ /* copy name from exname */
 			register char *cp;
-			register i;
+			register int i;
 			cp = exname( stab[p->tn.rval].sname );
 #ifndef FLEXNAMES
 			for( i=0; i<NCHNAM; ++i ) p->in.name[i] = *cp++;

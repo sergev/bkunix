@@ -12,9 +12,10 @@ int busy[REGSZ];
 int maxa, mina, maxb, minb;
 
 # ifndef ALLO0
-allo0(){ /* free everything */
-
-	register i;
+void
+allo0(void)
+{ /* free everything */
+	register int i;
 
 	maxa = maxb = -1;
 	mina = minb = 0;
@@ -34,9 +35,10 @@ allo0(){ /* free everything */
 # endif
 
 # ifndef ALLO
-allo( p, q ) NODE *p; struct optab *q; {
-	OFFSZ freetemp();
-	register n, i, j;
+int
+allo(NODE *p, struct optab *q)
+{
+	register int n, i, j;
 	int either;
 
 	n = q->needs;
@@ -121,7 +123,8 @@ allo( p, q ) NODE *p; struct optab *q; {
 extern OFFSZ offsz;
 
 OFFSZ
-freetemp( k ){ /* allocate k integers worth of temp space */
+freetemp(int k)
+{ /* allocate k integers worth of temp space */
 	/* we also make the convention that, if the number of words is more than 1,
 	   it must be aligned for storing doubles... */
 
@@ -153,11 +156,13 @@ freetemp( k ){ /* allocate k integers worth of temp space */
 # endif
 	}
 
-freereg( p, n ) NODE *p; {
+int
+freereg(NODE *p, int n)
+{
 	/* allocate a register of type n */
 	/* p gives the type, if floating */
 
-	register j;
+	register int j;
 
 	/* not general; means that only one register (the result) OK for call */
 	if( callop(p->in.op) ){
@@ -188,7 +193,9 @@ freereg( p, n ) NODE *p; {
 	}
 
 # ifndef USABLE
-usable( p, n, r ) NODE *p; {
+int
+usable(NODE *p, int n, int r)
+{
 	/* decide if register r is usable in tree p to satisfy need n */
 
 	/* checks, for the moment */
@@ -240,7 +247,9 @@ usable( p, n, r ) NODE *p; {
 	}
 # endif
 
-shareit( p, r, n ) NODE *p; {
+int
+shareit(NODE *p, int r, int n)
+{
 	/* can we make register r available by sharing from p
 	   given that the need is n */
 	if( (n&(NASL|NBSL)) && ushare( p, 'L', r ) ) return(1);
@@ -248,7 +257,9 @@ shareit( p, r, n ) NODE *p; {
 	return(0);
 	}
 
-ushare( p, f, r ) NODE *p; {
+int
+ushare(NODE *p, int f, int r)
+{
 	/* can we find a register r to share on the left or right
 		(as f=='L' or 'R', respectively) of p */
 	p = getlr( p, f );
@@ -266,8 +277,9 @@ ushare( p, f, r ) NODE *p; {
 	}
 
 void
-recl2( p ) register NODE *p; {
-	register r = p->tn.rval;
+recl2(NODE *p)
+{
+	register int r = p->tn.rval;
 #ifndef OLD
 	int op = p->in.op;
 	if (op == REG && r >= REGSZ)
@@ -299,7 +311,9 @@ recl2( p ) register NODE *p; {
 int rdebug = 0;
 
 # ifndef RFREE
-rfree( r, t ) TWORD t; {
+void
+rfree(int r, TWORD t)
+{
 	/* mark register r free, if it is legal to do so */
 	/* t is the type */
 
@@ -324,7 +338,9 @@ rfree( r, t ) TWORD t; {
 # endif
 
 # ifndef RBUSY
-rbusy(r,t) TWORD t; {
+void
+rbusy(int r, TWORD t)
+{
 	/* mark register r busy */
 	/* t is the type */
 
@@ -347,8 +363,10 @@ rbusy(r,t) TWORD t; {
 # endif
 
 # ifndef BUG3
-rwprint( rw ){ /* print rewriting rule */
-	register i, flag;
+void
+rwprint(int rw)
+{ /* print rewriting rule */
+	register int i, flag;
 	static char * rwnames[] = {
 
 		"RLEFT",
@@ -380,10 +398,12 @@ rwprint( rw ){ /* print rewriting rule */
 	}
 # endif
 
-reclaim( p, rw, cookie ) NODE *p; {
+void
+reclaim(NODE *p, int rw, int cookie)
+{
 	register NODE **qq;
 	register NODE *q;
-	register i;
+	register int i;
 	NODE *recres[5];
 	struct respref *r;
 
@@ -545,11 +565,12 @@ ncopy( q, p ) NODE *p, *q; {
 #endif
 
 NODE *
-tcopy( p ) register NODE *p; {
+tcopy(NODE *p)
+{
 	/* make a fresh copy of p */
 
 	register NODE *q;
-	register r;
+	register int r;
 
 	ncopy( q=talloc(), p );
 
@@ -576,10 +597,12 @@ tcopy( p ) register NODE *p; {
 	return(q);
 	}
 
-allchk(){
+void
+allchk(void)
+{
 	/* check to ensure that all register are free */
 
-	register i;
+	register int i;
 
 	REGLOOP(i){
 		if( istreg(i) && busy[i] ){

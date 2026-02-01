@@ -16,7 +16,7 @@ psline(void)
 
 /* ARGSUSED */
 void
-pstab(struct symtab *p, int n)
+pstab(const void *p, int n)
 {
 	(void)p;
 	(void)n;
@@ -41,15 +41,16 @@ fixarg(struct symtab *p)
 
 /* ARGSUSED */
 void
-outstruct(struct symtab *p)
+outstruct(int szindex, int oparam)
 {
-	(void)p;
+	(void)szindex;
+	(void)oparam;
 	return;
 }
 
 /* ARGSUSED */
 void
-pfstab(char *cp)
+pfstab(const char *cp)
 {
 	(void)cp;
 	return;

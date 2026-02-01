@@ -16,7 +16,9 @@ int labelno;
 
 # define putstr(s)	fputs((s), stdout)
 
-branch( n ){
+int
+branch(int n)
+{
 	/* output a branch to label n */
 	printf( "	jbr	L%d\n", n );
 	return 0;
@@ -24,15 +26,19 @@ branch( n ){
 
 int lastloc = { -1 };
 
-defalign(n) {
+int
+defalign(int n)
+{
 	/* cause the alignment to become a multiple of n */
 	n /= SZCHAR;
 	if( lastloc != PROG && n > 1 ) printf( "	.even\n" );
 	return 0;
 	}
 
-locctr( l ){
-	register temp;
+int
+locctr(int l)
+{
+	register int temp;
 	/* l is PROG, ADATA, DATA, STRNG, ISTRNG, or STAB */
 
 	if( l == lastloc ) return(l);
@@ -72,19 +78,25 @@ locctr( l ){
 	return( temp );
 	}
 
-deflab( n ){
+void
+deflab(int n)
+{
 	/* output something to define the current position as label n */
 	printf( "L%d:\n", n );
 	}
 
 int crslab = 10;
 
-getlab(){
+int
+getlab(void)
+{
 	/* return a number usable for a label */
 	return( ++crslab );
 	}
 
-efcode(){
+void
+efcode(void)
+{
 	/* code for the end of a function */
 	deflab( retlab );
 
@@ -132,14 +144,15 @@ efcode(){
 	putstr( "	jmp	cret\n" );
 	p2bend();
 	fdefflag = 0;
-	return 0;
 	}
 
-bfcode( a, n ) int a[]; {
+void
+bfcode(OFFSZ a[], int n)
+{
 	/* code for the beginning of a function; a is an array of
 		indices in stab for the arguments; n is the number */
-	register i;
-	register temp;
+	register int i;
+	register int temp;
 	register struct symtab *p;
 	OFFSZ off;
 
@@ -168,7 +181,7 @@ bfcode( a, n ) int a[]; {
 	off = ARGINIT;
 
 	for( i=0; i<n; ++i ){
-		p = &stab[a[i]];
+		p = &stab[(int)a[i]];
 		if( p->sclass == REGISTER ){
 			temp = p->offset;  /* save register number */
 			p->sclass = PARAM;  /* forget that it is a register */
@@ -200,34 +213,43 @@ bfcode( a, n ) int a[]; {
 	fdefflag = 1;
 	}
 
-bccode(){ /* called just before the first executable statment */
+void
+bccode(void)
+{ /* called just before the first executable statment */
 		/* by now, the automatics and register variables are allocated */
 	SETOFF( autooff, SZINT );
 	/* set aside store area offset */
 	p2bbeg( autooff, regvar );
-	return 0;
 	}
 
-ejobcode( flag ){
+void
+ejobcode(int flag)
+{
 	/* called just before final exit */
 	/* flag is 1 if errors, 0 if none */
 	}
 
-aobeg(){
+void
+aobeg(void)
+{
 	/* called before removing automatics from stab */
-	return 0;
 	}
 
-aocode(p) struct symtab *p; {
+void
+aocode(struct symtab *p)
+{
 	/* called when automatic p removed from stab */
 	}
 
-aoend(){
+void
+aoend(void)
+{
 	/* called after removing all automatics from stab */
-	return 0;
 	}
 
-defnam( p ) register struct symtab *p; {
+void
+defnam(struct symtab *p)
+{
 	/* define the current location as the name p->sname */
 
 	if( p->sclass == EXTDEF ){
@@ -236,10 +258,11 @@ defnam( p ) register struct symtab *p; {
 	if( p->sclass == STATIC && p->slevel>1 ) deflab( (int)p->offset );
 	else printf( "%s:\n", exname( p->sname ) );
 
-	return 0;
 	}
 
-bycode( t, i ){
+void
+bycode(int t, int i)
+{
 #ifdef ASSTRINGS
 static	int	lastoctal = 0;
 #endif
@@ -297,13 +320,14 @@ static	int	lastoctal = 0;
 		if( i == 07 ) putchar( '\n' );
 		}
 #endif
-	return 0;
 	}
 
-zecode( n ){
+void
+zecode(OFFSZ n)
+{
 	/* n integer words of zeros */
 	OFFSZ temp;
-	register i;
+	register int i;
 
 	if( n <= 0 ) return;
 	printf( "	.word	0" );
@@ -316,27 +340,33 @@ zecode( n ){
 	printf( "\n" );
 	temp = n;
 	inoff += temp*SZINT;
-	return 0;
 	}
 
-fldal( t ) unsigned t; { /* return the alignment of field of type t */
+unsigned int
+fldal(TWORD t)
+{ /* return the alignment of field of type t */
 	uerror( "illegal field type" );
 	return( ALINT );
 	}
 
-fldty( p ) struct symtab *p; { /* fix up type of field p */
+int
+fldty(struct symtab *p)
+{ /* fix up type of field p */
 	;
 	return 0;
 	}
 
-where(c){ /* print location of error  */
+void
+where(int c)
+{ /* print location of error  */
 	/* c is either 'u', 'c', or 'w' */
 	/* GCOS version */
 	fprintf( stderr, "%s, line %d: ", ftitle, lineno );
-	return 0;
 	}
 
-main( argc, argv ) char *argv[]; {
+int
+main(int argc, char *argv[])
+{
 #ifdef BUFSTDERR
 	char errbuf[BUFSIZ];
 	setbuf(stderr, errbuf);
@@ -346,16 +376,18 @@ main( argc, argv ) char *argv[]; {
 
 struct sw heapsw[SWITSZ];	/* heap for switches */
 
-genswitch(p,n) register struct sw *p;{
+void
+genswitch(struct sw *p, int n)
+{
 	/*	p points to an array of structures, each consisting
 		of a constant value and a label.
 		The first is >=0 if there is a default label;
 		its value is the label number
 		The entries p[1] to p[n] are the nontrivial cases
 		*/
-	register i;
+	register int i;
 	register CONSZ j, range;
-	register dlab, swlab;
+	register int dlab, swlab;
 
 	range = p[n].sval-p[1].sval;
 
@@ -431,8 +463,8 @@ genswitch(p,n) register struct sw *p;{
 	if( p->slab>=0 ) branch( p->slab );
 	}
 
-makeheap(p, m, n)
-register struct sw *p;
+void
+makeheap(struct sw *p, int m, int n)
 {
 	register int q;
 
@@ -440,10 +472,11 @@ register struct sw *p;
 	heapsw[n] = p[q];
 	if( q>1 ) makeheap(p, q-1, 2*n);
 	if( q<m ) makeheap(p+q, m-q, 2*n+1);
-	return 0;
 }
 
-hselect(m) {
+int
+hselect(int m)
+{
 	register int l,i,k;
 
 	for(i=1; ; i*=2)
@@ -452,7 +485,8 @@ hselect(m) {
 	return( l + (m-k < l ? m-k : l));
 }
 
-walkheap(start, limit)
+void
+walkheap(int start, int limit)
 {
 	int label;
 

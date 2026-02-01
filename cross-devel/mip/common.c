@@ -34,8 +34,10 @@ extern OFFSZ offsz;
  * 32k bits (4kb).
 */
 
-OFFSZ caloff(){
-	register i;
+OFFSZ
+caloff(void)
+{
+	register int i;
 	OFFSZ temp;
 	OFFSZ off;
 #ifndef	pdp11
@@ -123,7 +125,8 @@ tinit(void)
 # define TNEXT(p) (p== &node[TREESZ-1]?node:p+1)
 
 NODE *
-talloc(){
+talloc(void)
+{
 	register NODE *p, *q;
 
 	q = lastfree;
@@ -164,8 +167,9 @@ tfree1(NODE *p)
 	else p->in.op = FREE;
 }
 
-fwalk( t, f, down ) register NODE *t; int (*f)(); {
-
+void
+fwalk(NODE *t, void (*f)(NODE *, int, int *, int *), int down)
+{
 	int down1, down2;
 
 	more:
@@ -190,8 +194,10 @@ fwalk( t, f, down ) register NODE *t; int (*f)(); {
 	}
 
 #ifndef vax
-walkf( t, f ) register NODE *t;  void (*f)(); {
-	register opty;
+void
+walkf(NODE *t, void (*f)(NODE *))
+{
+	register int opty;
 
 	opty = optype(t->in.op);
 
@@ -206,9 +212,8 @@ walkf( t, f ) register NODE *t;  void (*f)(); {
  * Deliberately avoids recursion -- use this version on machines with
  * expensive procedure calls.
  */
-walkf(t, f)
-	register NODE *t;
-	register void (*f)();
+void
+walkf(NODE *t, void (*f)(NODE *))
 {
 	register int i = 1;
 	register int opty = optype(t->in.op);
@@ -328,18 +333,20 @@ struct dopest { int dopeop; char *opst; int dopeval; } indope[] = {
 	-1,	"",	0
 };
 
-mkdope(){
+void
+mkdope(void)
+{
 	register struct dopest *q;
 
 	for( q = indope; q->dopeop >= 0; ++q ){
 		dope[q->dopeop] = q->dopeval;
 		opst[q->dopeop] = q->opst;
 		}
-	return 0;
 	}
 # ifndef BUG4
-tprint( t )  TWORD t; { /* output a nice description of the type of t */
-
+void
+tprint(TWORD t)
+{ /* output a nice description of the type of t */
 	static char * tnames[] = {
 		"undef",
 		"farg",
@@ -382,8 +389,7 @@ char	**curtstr = tstrbuf;
 int	tstrused;
 
 char *
-tstr(cp)
-	register char *cp;
+tstr(const char *cp)
 {
 	register int i = strlen(cp);
 	register char *dp;
