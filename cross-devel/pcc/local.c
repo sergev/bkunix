@@ -224,6 +224,7 @@ andable( p ) NODE *p; {
 
 cendarg(){ /* at the end of the arguments of a ftn, set the automatic offset */
 	autooff = AUTOINIT;
+	return 0;
 	}
 
 cisreg( t ) TWORD t; { /* is an automatic variable of type t OK for a register variable */
@@ -327,6 +328,7 @@ cinit( p, sz ) NODE *p; {
 	/* inoff is updated to have the proper final value */
 	ecode( p );
 	inoff += sz;
+	return 0;
 	}
 
 vfdzero( n ){ /* define n bits of zeros in a vfd */
@@ -399,6 +401,7 @@ commdec( id ){ /* make a common declaration for id, if reasonable */
 	off = tsize( q->stype, q->dimoff, q->sizoff );
 	printf( CONFMT, off/SZCHAR );
 	printf( "\n" );
+	return 0;
 	}
 
 isitlong( cb, ce ){ /* is lastcon to be long or short */
@@ -432,6 +435,7 @@ ecode( p ) NODE *p; {
 	if( nerrors ) return;
 	p2tree( p );
 	p2compile( p );
+	return 0;
 	}
 
 #ifndef ONEPASS

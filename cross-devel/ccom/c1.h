@@ -406,7 +406,7 @@ int degree();
 int delay();
 void distrib();
 void doinit();
-void error();
+void error(const char *, ...);
 int geti();
 void getree();
 int incref();

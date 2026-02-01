@@ -69,14 +69,15 @@ mkadrs(p) register NODE *p; {
 			SETSTO( p->in.right, INTEMP );
 			}
 		}
+	return 0;
 	}
 
 notoff( t, r, off, cp) TWORD t; CONSZ off; char *cp; {
 	/* is it legal to make an OREG or NAME entry which has an
-	/* offset of off, (from a register of r), if the
-	/* resulting thing had type t */
+	   offset of off, (from a register of r), if the
+	   resulting thing had type t */
 
-	/* if( r == R0 ) return( 1 );  /* NO */
+	/* if( r == R0 ) return( 1 );  -- NO */
 	return(0);  /* YES */
 	}
 
@@ -311,6 +312,7 @@ sucomp( p ) register NODE *p; {
 		/* do harder into a register, then easier */
 		p->in.su = max( nr+nr, min( max( sul, nr+sur ), max( sur, nr+sul ) ) );
 		}
+	return 0;
 	}
 
 int radebug = 0;
@@ -335,6 +337,7 @@ mkrall( p, r ) register NODE *p; {
 		p = p->in.left;
 		}
 	rallo( p, r );
+	return 0;
 	}
 
 rallo( p, down ) register NODE *p; {
@@ -430,6 +433,7 @@ rallo( p, down ) register NODE *p; {
 	if( ty != LTYPE ) rallo( p->in.left, down1 );
 	if( ty == BITYPE ) rallo( p->in.right, down2 );
 
+	return 0;
 	}
 
 offstar( p ) register NODE *p; {
@@ -476,6 +480,7 @@ offstar( p ) register NODE *p; {
 	}
 
 	order( p, INTAREG|INAREG );
+	return 0;
 	}
 
 setincr( p ) register NODE *p; {

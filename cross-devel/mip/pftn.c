@@ -1082,7 +1082,7 @@ doinit( p ) register NODE *p; {
 		}
 
 # ifndef BUG1
-	if( idebug > 1 ) printf( "doinit(%o)\n", (int) p );
+	if( idebug > 1 ) printf( "doinit(%lo)\n", (unsigned long)(void *)p );
 # endif
 
 	t = pstk->in_t;  /* type required */
@@ -1227,8 +1227,8 @@ irbrace(){
 OFFSZ
 upoff( size, alignment, poff ) OFFSZ size; register alignment; register OFFSZ *poff; {
 	/* update the offset pointed to by poff; return the
-	/* offset of a value of size `size', alignment `alignment',
-	/* given that off is increasing */
+	   offset of a value of size `size', alignment `alignment',
+	   given that off is increasing */
 
 	OFFSZ off;
 
@@ -1553,7 +1553,7 @@ fixtype( p, class ) register NODE *p; {
 	/* fix up the types, and check for legality */
 
 	if( (type = p->in.type) == UNDEF ) return;
-	if( mod2 = (type&TMASK) ){
+	if( (mod2 = (type&TMASK)) ){
 		t = DECREF(type);
 		while( mod1=mod2, mod2 = (t&TMASK) ){
 			if( mod1 == ARY && mod2 == FTN ){
@@ -1760,7 +1760,7 @@ lookup( name, s) char *name; {
 		if( ++j >= NCHNAM ) break;
 		}
 #else
-	i = (int)name;
+	i = (int)(unsigned long)name;
 #endif
 	i = i%SYMTSZ;
 	sp = &stab[ii=i];
@@ -1886,8 +1886,8 @@ clearst( lev ) register int lev; {
 #else
 				printf( "removing %s", p->sname );
 #endif
-				printf( " from stab[%d], flags %o level %d\n",
-					p-stab, p->sflags, p->slevel);
+				printf( " from stab[%ld], flags %o level %d\n",
+					(long)(p-stab), p->sflags, p->slevel);
 				}
 # endif
 			if( p->sflags & SHIDES )unhide( p );
@@ -1943,7 +1943,7 @@ hide( p ) register struct symtab *p; {
 	if( hflag ) werror("%s redefinition hides earlier one", p->sname );
 #endif
 # ifndef BUG1
-	if( ddebug ) printf( "	%d hidden in %d\n", p-stab, q-stab );
+	if( ddebug ) printf( "	%ld hidden in %ld\n", (long)(p-stab), (long)(q-stab) );
 # endif
 	return( idname = q-stab );
 	}
@@ -1971,7 +1971,7 @@ unhide( p ) register struct symtab *p; {
 #endif
 				q->sflags &= ~SHIDDEN;
 # ifndef BUG1
-				if( ddebug ) printf( "unhide uncovered %d from %d\n", q-stab,p-stab);
+				if( ddebug ) printf( "unhide uncovered %ld from %ld\n", (long)(q-stab), (long)(p-stab));
 # endif
 				return;
 				}

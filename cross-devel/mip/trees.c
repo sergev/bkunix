@@ -490,8 +490,8 @@ buildtree( o, l, r ) register NODE *l, *r; {
 		case CAST:
 			/* structure assignment */
 			/* take the addresses of the two sides; then make an
-			/* operator using STASG and
-			/* the addresses of left and right */
+			   operator using STASG and
+			   the addresses of left and right */
 
 			{
 				register TWORD t;

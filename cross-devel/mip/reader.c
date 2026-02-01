@@ -277,7 +277,7 @@ int deli;
 delay( p ) register NODE *p; {
 	/* look in all legal places for COMOP's and ++ and -- ops to delay */
 	/* note; don't delay ++ and -- within calls or things like
-	/* getchar (in their macro forms) will start behaving strangely */
+	   getchar (in their macro forms) will start behaving strangely */
 	register i;
 
 	/* look for visible COMOPS, and rewrite repeatedly */
@@ -345,7 +345,7 @@ delay2( p ) register NODE *p; {
 	case COMOP:
 	case CBRANCH:
 		/* for the moment, don't delay past a conditional context, or
-		/* inside of a call */
+		   inside of a call */
 		return;
 
 	case UNARY MUL:
@@ -652,7 +652,7 @@ order(p,cook) NODE *p; {
 		goto cleanup;
 
 		/* if arguments are passed in register, care must be taken that reclaim
-		/* not throw away the register which now has the result... */
+		   not throw away the register which now has the result... */
 
 	case UNARY MUL:
 		if( cook == FOREFF ){
@@ -903,7 +903,7 @@ int negrel[] = { NE, EQ, GT, GE, LT, LE, UGT, UGE, ULT, ULE } ;  /* negatives of
 
 cbranch( p, true, false ) NODE *p; {
 	/* evaluate p for truth value, and branch to true or false
-	/* accordingly: label <0 means fall through */
+	   accordingly: label <0 means fall through */
 
 	register o, lab, flab, tlab;
 

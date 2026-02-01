@@ -12,11 +12,13 @@ extern	int	fltused;
 # define BITMASK(n) ((1L<<n)-1)
 where(c) {
 	fprintf(stderr, "%s, line %d: ", filename, lineno);
+	return 0;
 	}
 
 lineid( l, fn ) char *fn; {
 	/* identify line l and file fn */
 	printf( "/	line %d, file %s\n", l, fn );
+	return 0;
 	}
 
 eobl2(){
@@ -31,6 +33,7 @@ eobl2(){
 		fltused = 0;
 		printf( "	.globl	fltused\n" );
 		}
+	return 0;
 	}
 
 struct hoptab { int opmask; char * opstring; } ioptab[]= {
@@ -60,7 +63,8 @@ hopcode( f, o ){
 			return;
 			}
 		}
-	cerror( "no hoptab for %s", opst[o] );
+		cerror( "no hoptab for %s", opst[o] );
+	return 0;  /* not reached */
 	}
 
 char *

@@ -123,7 +123,7 @@ extern OFFSZ offsz;
 OFFSZ
 freetemp( k ){ /* allocate k integers worth of temp space */
 	/* we also make the convention that, if the number of words is more than 1,
-	/* it must be aligned for storing doubles... */
+	   it must be aligned for storing doubles... */
 
 # ifndef BACKTEMP
 	OFFSZ t;

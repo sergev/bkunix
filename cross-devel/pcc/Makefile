@@ -18,7 +18,7 @@ CC              = gcc
 CFLAGS		= -O -g -I. -I$(M) -DONEPASS -DFIXSTRUCT="outstruct" \
 		  -DFLEXNAMES \
 		  -Wno-implicit-int -Wno-implicit-function-declaration \
-		  -Wno-deprecated-non-prototype -Wno-return-mismatch
+		  -Wno-deprecated-non-prototype -Wno-return-mismatch -Wno-return-type
 LDFLAGS 	= -g
 YACC		= byacc
 

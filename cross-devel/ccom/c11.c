@@ -6,6 +6,7 @@
  * See the accompanying file "COPYING" for more details.
  */
 #include "c1.h"
+#include <stdarg.h>
 
 int
 degree(t)
@@ -825,15 +826,15 @@ char *s;
 	fprintf(stderr, "%d: %s\n",line,s);
 }
 
-/* VARARGS1 */
 void
-error(s, p1, p2, p3, p4, p5, p6)
-char *s;
+error(const char *s, ...)
 {
-
+	va_list ap;
 	nerror++;
 	fprintf(stderr, "%d: ", line);
-	fprintf(stderr, s, p1, p2, p3, p4, p5, p6);
+	va_start(ap, s);
+	vfprintf(stderr, s, ap);
+	va_end(ap);
 	putc('\n', stderr);
 }
 

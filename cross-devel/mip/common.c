@@ -335,6 +335,7 @@ mkdope(){
 		dope[q->dopeop] = q->dopeval;
 		opst[q->dopeop] = q->opst;
 		}
+	return 0;
 	}
 # ifndef BUG4
 tprint( t )  TWORD t; { /* output a nice description of the type of t */

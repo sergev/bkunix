@@ -19,6 +19,7 @@ int labelno;
 branch( n ){
 	/* output a branch to label n */
 	printf( "	jbr	L%d\n", n );
+	return 0;
 	}
 
 int lastloc = { -1 };
@@ -27,6 +28,7 @@ defalign(n) {
 	/* cause the alignment to become a multiple of n */
 	n /= SZCHAR;
 	if( lastloc != PROG && n > 1 ) printf( "	.even\n" );
+	return 0;
 	}
 
 locctr( l ){
@@ -130,6 +132,7 @@ efcode(){
 	putstr( "	jmp	cret\n" );
 	p2bend();
 	fdefflag = 0;
+	return 0;
 	}
 
 bfcode( a, n ) int a[]; {
@@ -202,6 +205,7 @@ bccode(){ /* called just before the first executable statment */
 	SETOFF( autooff, SZINT );
 	/* set aside store area offset */
 	p2bbeg( autooff, regvar );
+	return 0;
 	}
 
 ejobcode( flag ){
@@ -211,6 +215,7 @@ ejobcode( flag ){
 
 aobeg(){
 	/* called before removing automatics from stab */
+	return 0;
 	}
 
 aocode(p) struct symtab *p; {
@@ -219,6 +224,7 @@ aocode(p) struct symtab *p; {
 
 aoend(){
 	/* called after removing all automatics from stab */
+	return 0;
 	}
 
 defnam( p ) register struct symtab *p; {
@@ -230,6 +236,7 @@ defnam( p ) register struct symtab *p; {
 	if( p->sclass == STATIC && p->slevel>1 ) deflab( (int)p->offset );
 	else printf( "%s:\n", exname( p->sname ) );
 
+	return 0;
 	}
 
 bycode( t, i ){
@@ -290,6 +297,7 @@ static	int	lastoctal = 0;
 		if( i == 07 ) putchar( '\n' );
 		}
 #endif
+	return 0;
 	}
 
 zecode( n ){
@@ -308,6 +316,7 @@ zecode( n ){
 	printf( "\n" );
 	temp = n;
 	inoff += temp*SZINT;
+	return 0;
 	}
 
 fldal( t ) unsigned t; { /* return the alignment of field of type t */
@@ -317,12 +326,14 @@ fldal( t ) unsigned t; { /* return the alignment of field of type t */
 
 fldty( p ) struct symtab *p; { /* fix up type of field p */
 	;
+	return 0;
 	}
 
 where(c){ /* print location of error  */
 	/* c is either 'u', 'c', or 'w' */
 	/* GCOS version */
 	fprintf( stderr, "%s, line %d: ", ftitle, lineno );
+	return 0;
 	}
 
 main( argc, argv ) char *argv[]; {
@@ -429,6 +440,7 @@ register struct sw *p;
 	heapsw[n] = p[q];
 	if( q>1 ) makeheap(p, q-1, 2*n);
 	if( q<m ) makeheap(p+q, m-q, 2*n+1);
+	return 0;
 }
 
 hselect(m) {

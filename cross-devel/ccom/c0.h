@@ -494,7 +494,7 @@ struct	nmlist *gentemp();
 union	tree *nblock();
 
 /* Used in c00.c */
-void error();
+void error(const char *, ...);
 void blkend();
 void build();
 int decl1();

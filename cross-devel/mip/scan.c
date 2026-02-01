@@ -205,7 +205,7 @@ lxenter( s, m ) register char *s; register short m; {
 	/* enter a mask into lxmask */
 	register c;
 
-	while( c= *s++ ) lxmask[c+1] |= m;
+	while( (c= *s++) ) lxmask[c+1] |= m;
 
 	}
 
@@ -433,7 +433,7 @@ lxstr(ct){
 
 lxcom(){
 	register c;
-	/* saw a /*: process a comment */
+	/* saw slash-star: process a comment */
 
 	for(;;){
 
@@ -870,8 +870,8 @@ struct lxrdope {
 
 lxres() {
 	/* check to see of yytext is reserved; if so,
-	/* do the appropriate action and return */
-	/* otherwise, return -1 */
+	   do the appropriate action and return.
+	   Otherwise, return -1 */
 
 	register c, ch;
 	register struct lxrdope *p;
