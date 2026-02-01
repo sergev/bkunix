@@ -190,7 +190,7 @@ fwalk( t, f, down ) register NODE *t; int (*f)(); {
 	}
 
 #ifndef vax
-walkf( t, f ) register NODE *t;  int (*f)(); {
+walkf( t, f ) register NODE *t;  void (*f)(); {
 	register opty;
 
 	opty = optype(t->in.op);
@@ -208,7 +208,7 @@ walkf( t, f ) register NODE *t;  int (*f)(); {
  */
 walkf(t, f)
 	register NODE *t;
-	register int (*f)();
+	register void (*f)();
 {
 	register int i = 1;
 	register int opty = optype(t->in.op);

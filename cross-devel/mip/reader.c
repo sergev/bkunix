@@ -1247,6 +1247,7 @@ ffld( p, down, down1, down2 ) NODE *p; int *down1, *down2; {
 	}
 #endif
 
+void
 oreg2( p ) register NODE *p; {
 
 	/* look for situations where we can turn * into OREG */
@@ -1318,7 +1319,8 @@ oreg2( p ) register NODE *p; {
 
 canon(p) NODE *p; {
 	/* put p in canonical form */
-	int oreg2(), sucomp();
+	void oreg2();
+	void sucomp();
 
 #ifndef FIELDOPS
 	int ffld();

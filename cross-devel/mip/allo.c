@@ -265,6 +265,7 @@ ushare( p, f, r ) NODE *p; {
 	return(0);
 	}
 
+void
 recl2( p ) register NODE *p; {
 	register r = p->tn.rval;
 #ifndef OLD

@@ -8,65 +8,65 @@
  * No op the stab stuff for now
 */
 
-int
+void
 psline(void)
 {
-	return(0);
+	return;
 }
 
 /* ARGSUSED */
-int
+void
 pstab(struct symtab *p, int n)
 {
 	(void)p;
 	(void)n;
-	return(0);
+	return;
 }
 
 /* ARGSUSED */
-int
+void
 outstab(struct symtab *p)
 {
 	(void)p;
-	return(0);
+	return;
 }
 
 /* ARGSUSED */
-int
+void
 fixarg(struct symtab *p)
 {
 	(void)p;
-	return(0);
+	return;
 }
 
 /* ARGSUSED */
-int
+void
 outstruct(struct symtab *p)
 {
 	(void)p;
-	return(0);
+	return;
 }
 
 /* ARGSUSED */
-int
+void
 pfstab(char *cp)
 {
 	(void)cp;
-	return(0);
+	return;
 }
 
 /* ARGSUSED */
-int
+void
 plcstab(int level)
 {
 	(void)level;
-	return(0);
+	return;
 }
 
 /* ARGSUSED */
-int
+void
 prcstab(int level)
 {
 	(void)level;
-	return(0);
+	return;
 }

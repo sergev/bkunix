@@ -810,6 +810,7 @@ struct functbl {
 	ASG MOD,	ULONG,	"ualrem",
 	0,	0,	0 };
 
+void
 hardops(p)  register NODE *p; {
 	/* change hard to do operators into function calls.
 	   for pdp11 do long * / %	*/
@@ -904,6 +905,7 @@ hardops(p)  register NODE *p; {
 
 	}
 
+void
 optim2( p ) register NODE *p; {
 	/* do local tree transformations and optimizations */
 

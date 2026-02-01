@@ -121,6 +121,7 @@ zum( p, zap ) register NODE *p; {
 	return( su );
 	}
 
+void
 sucomp( p ) register NODE *p; {
 
 	/* set the su field in the node to the sethi-ullman

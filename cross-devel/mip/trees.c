@@ -1531,6 +1531,7 @@ eprint( p, down, a, b ) register NODE *p; int *a, *b; {
 	}
 # endif
 
+void
 prtdcon( p ) register NODE *p; {
 	int o = p->in.op, i;
 

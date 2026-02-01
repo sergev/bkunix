@@ -63,4 +63,4 @@ extern	int maxargs;
 #define	ncopy(q, p)	((q)->in = (p)->in)
 
 #define MYREADER(p) myreader(p)
-int	optim2();
+void	optim2();
