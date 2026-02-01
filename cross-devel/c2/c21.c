@@ -648,11 +648,17 @@ alloc(int n)
 		return(p);
 	}
 	if (lasta+n >= lastr) {
-		if (sbrk(2000) == (char *)-1) {
+		register size_t old_size = lastr - firstr;
+		register size_t new_size = old_size + 2000;
+		register size_t off = lasta - firstr;
+		register char *new_firstr = realloc(firstr, new_size);
+		if (new_firstr == NULL) {
 			fprintf(stderr, "C Optimizer: out of space\n");
 			exit(1);
 		}
-		lastr += 2000;
+		firstr = new_firstr;
+		lastr = firstr + new_size;
+		lasta = firstr + off;
 	}
 	p = lasta;
 	lasta += n;

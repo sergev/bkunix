@@ -1,6 +1,6 @@
 DESTDIR		= /usr/local/
 CC              = gcc -Werror
-CFLAGS		= -O -g -Wall -Wno-deprecated-declarations
+CFLAGS		= -O -g -Wall
 LDFLAGS		= -g
 
 all:		c2

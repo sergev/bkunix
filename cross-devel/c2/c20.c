@@ -111,15 +111,21 @@ main(int argc, char **argv)
 			exit(1);
 		}
 	}
-	setbuf(stdin,buf1);		/* sbrk problems */
+	setbuf(stdin,buf1);		/* avoid heap for stdio buffers */
 	if (argc>2) {
 		if (freopen(argv[2], "w", stdout) == NULL) {
 			fprintf(stderr, "C2: can't create %s\n", argv[2]);
 			exit(1);
 		}
 	}
-	setbuf(stdout,buf2);		/* sbrk problems */
-	lasta = firstr = lastr = sbrk(sizeof(char *));
+	setbuf(stdout,buf2);		/* avoid heap for stdio buffers */
+	firstr = malloc(2000);
+	if (firstr == NULL) {
+		fprintf(stderr, "C Optimizer: out of space\n");
+		exit(1);
+	}
+	lasta = firstr;
+	lastr = firstr + 2000;
 	maxiter = 0;
 	opsetup();
 	do {
@@ -164,6 +170,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "%d literals eliminated\t\t", nlit);
 		fprintf(stderr, "%dK core\n", (int) (((size_t)lastr+01777)>>10)&077);
 	}
+	free(firstr);
 	exit(0);
 }
 
