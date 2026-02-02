@@ -14,8 +14,9 @@
 /*
 	Routine to set up a buffered file, with an initial offset
 */
-void oset(struct out_buf *p, int o)
+void p2_oset(struct pass2 *p2, struct out_buf *p, int o)
 {
+	(void)p2;
 	p->slot = p->buf + (o & 0777);
 	p->max = p->buf + sizeof p->buf;
 	p->seek = o;
@@ -28,7 +29,7 @@ void oset(struct out_buf *p, int o)
 /*
 	Routine to write a word to a buffered file
 */
-void aputw(struct out_buf *p, int v)
+void p2_aputw(struct pass2 *p2, struct out_buf *p, int v)
 {
 	char *pi;
 
@@ -39,12 +40,12 @@ void aputw(struct out_buf *p, int v)
 		p->slot = pi;
 	}
 	else {
-		flush(p);
+		p2_flush(p2, p);
 		*(p->slot++) = v;
 		*(p->slot++) = v >> 8;
 	}
 	if(DEBUG)
-		printf("aputw  %s %o slot %d ", (p == &relp) ? "rel" : "txt",
+		printf("aputw  %s %o slot %d ", (p == &p2->relp) ? "rel" : "txt",
 			v, (int) (p->slot - p->buf) / 2);
 }
 
@@ -52,7 +53,7 @@ void aputw(struct out_buf *p, int v)
 /*
 	Routine to flush a buferred file
 */
-void flush(struct out_buf *p)
+void p2_flush(struct pass2 *p2, struct out_buf *p)
 {
 	char *addr;
 	int bytes;
@@ -64,8 +65,8 @@ void flush(struct out_buf *p)
 		printf("\nflush: write %d bytes, seek to %x\n", bytes, p->seek);
 	if (bytes == 0)
 		return;
-	lseek(fout, (long)p->seek, 0);
-	write(fout, addr, bytes);
+	lseek(p2->fout, (long)p->seek, 0);
+	write(p2->fout, addr, bytes);
 
 	p->seek = (p->seek | 0777) + 1;
 	p->slot = p->buf;
@@ -76,22 +77,22 @@ void flush(struct out_buf *p)
 	Routine to read a token from the token file created in
 	the first pass
 */
-void readop(void)
+void p2_readop(struct pass2 *p2)
 {
-	tok.i = savop;
-	if(tok.i != 0) {
-		savop = 0;
+	p2->tok.i = p2->savop;
+	if(p2->tok.i != 0) {
+		p2->savop = 0;
 		return;
 	}
-	agetw();
-	if(tok.u > TOKSYMBOL) {
-		if(tok.u >= USYMFLAG) {
-			tok.u -= USYMFLAG;
-			tok.v = &usymtab[tok.u];
+	p2_agetw(p2);
+	if(p2->tok.u > TOKSYMBOL) {
+		if(p2->tok.u >= USYMFLAG) {
+			p2->tok.u -= USYMFLAG;
+			p2->tok.v = &p2->usymtab[p2->tok.u];
 		}
 		else {
-			tok.u -= PSYMFLAG;
-			tok.v = &symtab[tok.u];
+			p2->tok.u -= PSYMFLAG;
+			p2->tok.v = &p2->symtab[p2->tok.u];
 		}
 	}
 }
@@ -100,19 +101,19 @@ void readop(void)
 /*
 	Routine to read a word from token file created in pass 1
 */
-int agetw(void)
+int p2_agetw(struct pass2 *p2)
 {
 	unsigned char buf[2];
 
-	tok.u = savop;
-	if(tok.u != 0) {
-		savop = 0;
+	p2->tok.u = p2->savop;
+	if(p2->tok.u != 0) {
+		p2->savop = 0;
 		return(TRUE);
 	}
-	if(read(fin, buf, 2) < 2) {
-		tok.u = TOKEOF;
+	if(read(p2->fin, buf, 2) < 2) {
+		p2->tok.u = TOKEOF;
 		return(FALSE);
 	}
-	tok.u = buf[0] | buf[1] << 8;
+	p2->tok.u = buf[0] | buf[1] << 8;
 	return(TRUE);
 }

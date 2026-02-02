@@ -14,53 +14,53 @@
 /*
 	Routine to output a word to output, with relocation
 */
-void outw(int type, int val)
+void p2_outw(struct pass2 *p2, int type, int val)
 {
 	unsigned t;
 
 	if(DEBUG)
 		printf("outw type %o val %o ",type,val);
-	if(dotrel == TYPEBSS) {
-		aerror('x');
+	if(dotrel(p2) == TYPEBSS) {
+		p2_aerror(p2, 'x');
 		return;
 	}
-	if(dot & 1) {
-		aerror('o');
-		outb(TYPEUNDEF,val);
+	if(dot(p2) & 1) {
+		p2_aerror(p2, 'o');
+		p2_outb(p2, TYPEUNDEF,val);
 		return;
 	}
-	dot += 2;
-	if(passno == 0)
+	p2->symtab[0].val.u += 2;
+	if(p2->passno == 0)
 		return;
 	t = ((type & ENDTABFLAG) >> 15) & 1;
 	type &= ~ENDTABFLAG;
 	if(type == TYPEEXT) {
-		outmod = 0666;
-		type = (((struct value *)xsymbol - usymtab) << 3) | 4;
+		p2->outmod = 0666;
+		type = (((struct value *)p2->xsymbol - p2->usymtab) << 3) | 4;
 	}
 	else {
 		if((type &= ~TYPEEXT) >= TYPEOPFD) {
 			if(type == TYPEOPEST || type == TYPEOPESD)
-				aerror('r');
+				p2_aerror(p2, 'r');
 			type = TYPEABS;
 		}
 		if(type >= TYPETXT && type <= TYPEBSS) {
 			if(t == 0)
-				val += dotdot;
+				val += dotdot(p2);
 		}
 		else {
 			if(t != 0)
-				val -= dotdot;
+				val -= dotdot(p2);
 		}
 		if(--type < 0)
 			type = TYPEUNDEF;
 	}
 
 	type = (type << 1) | t;
-	aputw(&txtp,val);
-	*tseekp += 2;
-	aputw(&relp,type);
-	*rseekp += 2;
+	p2_aputw(p2, &p2->txtp, val);
+	*p2->tseekp += 2;
+	p2_aputw(p2, &p2->relp, type);
+	*p2->rseekp += 2;
 	return;
 }
 
@@ -68,33 +68,33 @@ void outw(int type, int val)
 /*
 	Routine to output a byte value
 */
-void outb(int type, int val)
+void p2_outb(struct pass2 *p2, int type, int val)
 {
-	if(dotrel == TYPEBSS) {
-		aerror('x');
+	if(dotrel(p2) == TYPEBSS) {
+		p2_aerror(p2, 'x');
 		return;
 	}
 	if(type > TYPEABS)
-		aerror('r');
-	if(passno != 0) {
-		if(!(dot & 1)) {
-			aputw(&txtp,val);
-			aputw(&relp,0);
-			*rseekp += 2;
-			*tseekp += 2;
+		p2_aerror(p2, 'r');
+	if(p2->passno != 0) {
+		if(!(dot(p2) & 1)) {
+			p2_aputw(p2, &p2->txtp, val);
+			p2_aputw(p2, &p2->relp, 0);
+			*p2->rseekp += 2;
+			*p2->tseekp += 2;
 		}
 		else {
-			*((char *)txtp.slot-1) = val;
+			*((char *)p2->txtp.slot-1) = val;
 		}
 	}
-	++dot;
+	p2->symtab[0].val.u++;
 }
 
 
 /*
 	Display file, line and error code for errors
 */
-void aerror(int c)
+void p2_aerror(struct pass2 *p2, int c)
 {
 	char *msg = 0;
 
@@ -110,11 +110,11 @@ void aerror(int c)
 	case ']': msg = "Requred ']'"; break;
 	case 'e': msg = "Bad expression"; break;
 	}
-	printf("%s:%d: ", argb, line);
+	printf("%s:%d: ", p2->argb, p2->line);
 	if (msg)
 		printf("%s\n", msg);
 	else
 		printf("Error '%c'\n", c);
 
-	outmod = 0666;		/* not executable */
+	p2->outmod = 0666;		/* not executable */
 }

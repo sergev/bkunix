@@ -1,5 +1,5 @@
 /*
- * as - PDP/11 assembler part 1 global data initialization
+ * as - PDP/11 assembler part 1 global data and init (now in struct pass1)
  *
  * This file is part of BKUNIX project, which is distributed
  * under the terms of the GNU General Public License (GPL).
@@ -9,68 +9,9 @@
 #include "as1.h"
 
 /*
-	Symbol table
-*/
-struct symtab *hshtab[HSHSIZ];		/* Hash Table		  */
-struct symtab symtab[SYMBOLS+USERSYMBOLS]; /* Permanent Symbol Table */
-struct symtab *usymtab = symtab + SYMBOLS; /* Normal Symbol Table */
-
-struct symtab *symend = symtab + SYMBOLS; /* Points past last entry */
-char symbol[8];				/* Symbol assembly line	  */
-unsigned savdot[3] = {0,0,0};		/* Saved . for txt/dat/bss*/
-
-/*
-	Forward branch table
-*/
-char curfbr[10] = {0,0,0,0,0,0,0,0,0,0};  /* Relocation		  */
-int curfb[10] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};  /* Value	  */
-struct fb_tab nxtfb = {0,0};		/* Entry descriptor	  */
-
-/*
-	Files
-*/
-FILE * fin;				/* Input file		  */
-int fbfil;				/* Forward branch output  */
-int pof;				/* Token output file	  */
-char fileflg;				/* (unused) file counter  */
-
-/*
-	Flags
-*/
-int errflg = 0;				/* Error counter	  */
-int ifflg = 0;				/* Nested .if counter	  */
-char globflag = 0;			/* true if pass 2 und->gbl*/
-int eos_flag = 0;			/* true if at end of stmt */
-
-/*
-	Scanning/Parsing variables
-*/
-union token tok;			/* scanned token	  */
-int line = 0;				/* Line in source file	  */
-int savop = 0;				/* token lookahead	  */
-char ch = 0;				/* character lookahead	  */
-int numval = 0;				/* number / string length */
-int num_rtn;				/* return val from number */
-
-
-/*
-	File name / arguments
-*/
-int nargs;				/* number of files to go  */
-char **curarg;				/* current file name	  */
-
-/*
-	Tables
-*/
-
-
-/*
 	Scanner character table, values match preprocessor vars CHAR*
-	Note that values are in octal.  Signed values have the
-	positive equivalents defined.
 */
-
-char chartab[] = {
+static const char chartab_init[] = {
 	-014,-014,-014,-014,-002,-014,-014,-014,
 	-014,-022, -02,-014,-014,-022,-014,-014,
 	-014,-014,-014,-014,-014,-014,-014,-014,
@@ -88,16 +29,38 @@ char chartab[] = {
 	0160,0161,0162,0163,0164,0165,0166,0167,
 	0170,0171,0172,-014,-026,-014,0176,-014 };
 
-/*
-	Table of back-slash escape sequences in strings
-*/
-
-char schar[] = {'n',012,'t',011,'e',TOKEOF,'0',0,
+static const char schar_init[] = {'n',012,'t',011,'e',TOKEOF,'0',0,
 		'r',015,'a',006,'p',033,0,-1};
 
+static const char esctab_init[] = {'/','/','<',TOKLSH,'>',TOKRSH,'%',TOKVBAR,0,0};
 
-/*
-	Table of special characters outside of strings
-*/
+void pass1_init(struct pass1 *p1)
+{
+	int i;
 
-char esctab[] = {'/','/','<',TOKLSH,'>',TOKRSH,'%',TOKVBAR,0,0};
+	for (i = 0; i < HSHSIZ; i++)
+		p1->hshtab[i] = 0;
+	p1->usymtab = p1->symtab + SYMBOLS;
+	p1->symend = p1->symtab + SYMBOLS;
+	p1->savdot[0] = p1->savdot[1] = p1->savdot[2] = 0;
+	for (i = 0; i < 10; i++) {
+		p1->curfbr[i] = 0;
+		p1->curfb[i] = -1;
+	}
+	p1->nxtfb.label = 0;
+	p1->nxtfb.val = 0;
+	p1->errflg = 0;
+	p1->ifflg = 0;
+	p1->globflag = 0;
+	p1->eos_flag = 0;
+	p1->line = 0;
+	p1->savop = 0;
+	p1->ch = 0;
+	p1->numval = 0;
+	for (i = 0; i < (int)(sizeof chartab_init / sizeof chartab_init[0]) && i < PASS1_CHARTAB_SIZE; i++)
+		p1->chartab[i] = chartab_init[i];
+	for (i = 0; i < (int)(sizeof schar_init / sizeof schar_init[0]) && i < PASS1_SCHAR_SIZE; i++)
+		p1->schar[i] = schar_init[i];
+	for (i = 0; i < (int)(sizeof esctab_init / sizeof esctab_init[0]) && i < PASS1_ESCTAB_SIZE; i++)
+		p1->esctab[i] = esctab_init[i];
+}

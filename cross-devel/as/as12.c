@@ -14,7 +14,7 @@
 /*
 	Print an error message
 */
-void aerror(int c)
+void aerror(struct pass1 *p1, int c)
 {
 	char *msg = 0;
 
@@ -34,12 +34,12 @@ void aerror(int c)
 	case 'e': msg = "Invalid expression"; break;
 	case ']': msg = "Expected ']'"; break;
 	}
-	printf("%s:%d: ", *curarg, line);
+	printf("%s:%d: ", *p1->curarg, p1->line);
 	if (msg)
 		printf("%s\n", msg);
 	else
 		printf("Error '%c'\n", c);
-	++errflg;
+	++p1->errflg;
 }
 
 
@@ -47,14 +47,14 @@ void aerror(int c)
 	Put current token to token output, except when
 	inside a .if and it isn't a newline (to keep line count)
 */
-void aputw(void)
+void aputw(struct pass1 *p1)
 {
 	char buf[2];
 
-	if(!ifflg || tok.i == '\n') {
-		buf[0] = tok.i;
-		buf[1] = tok.i >> 8;
-		if(write(pof, buf, 2) != 2)
+	if(!p1->ifflg || p1->tok.i == '\n') {
+		buf[0] = (unsigned char)p1->tok.i;
+		buf[1] = (unsigned char)(p1->tok.i >> 8);
+		if(write(p1->pof, buf, 2) != 2)
 			fprintf(stderr,"aputw: write error\n");
 	}
 }

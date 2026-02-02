@@ -14,7 +14,7 @@
 	Routine to parse and evaluate an expression
 	Returns value as a type/value structure
 */
-struct value express(void)
+struct value express(struct pass1 *p1)
 {
 	struct value v,rv;
 	int opfound,ttype;
@@ -27,57 +27,57 @@ struct value express(void)
 
 	while(1) {
 
-		if((rv.type.u = tok.u) >= TOKSYMBOL) {	/* name/opcode */
-			rv.type.i = tok.v->type.i;
-			rv.val.i = tok.v->val.i;
+		if(p1->tok.v >= &p1->symtab[0].v && p1->tok.v < &p1->symend->v) {	/* name/opcode */
+			rv.type.i = p1->tok.v->type.i;
+			rv.val.i = p1->tok.v->val.i;
 			goto operand;
 		}
-		if(tok.u >= FBBASE) {	/* local symbol reference */
-			if(tok.u >= FBFWD) {
+		if(p1->tok.u >= FBBASE) {	/* local symbol reference */
+			if(p1->tok.u >= FBFWD) {
 				v.type.i = TYPEUNDEF;
 				v.val.i = 0;
 				goto operand;
 			}
-			rv.type.i = curfbr[tok.i - FBBASE];
-			rv.val.i = curfb[tok.i - FBBASE];
+			rv.type.i = p1->curfbr[p1->tok.i - FBBASE];
+			rv.val.i = p1->curfb[p1->tok.i - FBBASE];
 			if(v.val.i < 0)
-				aerror('f');
+				aerror(p1, 'f');
 			goto operand;
 		}
 
-		switch(tok.i) {
+		switch(p1->tok.i) {
 		case '+':	case '-':	case '*':	case '/':
 		case '&':	case TOKVBAR:	case TOKLSH:
 		case TOKRSH:	case '%':	case '^':
 		case '!':
 			if(oldop != '+')
-				aerror('e');
-			oldop = tok.u;
-			readop();
+				aerror(p1, 'e');
+			oldop = p1->tok.u;
+			readop(p1);
 			continue;
 
 		case TOKINT:
-			rv.val.i = numval;
+			rv.val.i = p1->numval;
 			rv.type.i = TYPEABS;
 			break;
 
 		case '[':
-			readop();
-			rv = express();
-			if(tok.u != ']')
-				aerror(']');
+			readop(p1);
+			rv = express(p1);
+			if(p1->tok.u != ']')
+				aerror(p1, ']');
 			break;
 
 		default:
 			if(!opfound)
-				aerror('e');
+				aerror(p1, 'e');
 			return(v);
 		}
 
 	operand:
 
 		++opfound;
-		ttype = combine(v.type.i, rv.type.i, 0); /* tentative */
+		ttype = combine(p1, v.type.i, rv.type.i, 0); /* tentative */
 		switch(oldop) {
 
 		case '+':
@@ -86,7 +86,7 @@ struct value express(void)
 			break;
 
 		case '-':
-			v.type.i = combine(v.type.i, rv.type.i, 1);
+			v.type.i = combine(p1, v.type.i, rv.type.i, 1);
 			v.val.i -= rv.val.i;
 			break;
 
@@ -139,7 +139,7 @@ struct value express(void)
 		}
 
 		oldop = '+';
-		readop();
+		readop(p1);
 	}
 	return(v);	/* dummy... */
 }
@@ -148,10 +148,11 @@ struct value express(void)
 /*
 	Routine to determine type after combining to operands
 */
-int combine(int left, int right, int sflag)
+int combine(struct pass1 *p1, int left, int right, int sflag)
 {
 	int ext,t;
 
+	(void)p1;
 	ext = (left | right) & TYPEEXT;
 	left &= 037;
 	right &= 037;

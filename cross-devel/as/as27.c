@@ -11,14 +11,14 @@
 #include "as.h"
 #include "as2.h"
 
-struct value express(void)
+struct value p2_express(struct pass2 *p2)
 {
-	xsymbol = 0;
-	return(expres1());
+	p2->xsymbol = 0;
+	return(p2_expres1(p2));
 }
 
 
-struct value expres1(void)
+struct value p2_expres1(struct pass2 *p2)
 {
 	struct value v,rv;
 	int oldop;
@@ -29,53 +29,53 @@ struct value expres1(void)
 	v.type.i = TYPEABS;
 
 	while(1) {
-		if(tok.i > TOKSYMBOL) {
-			if((rv.type.i = tok.v->type.i) == TYPEUNDEF &&
-			   passno != 0)
-			   aerror('u');
+		if(p2->tok.i > TOKSYMBOL) {
+			if((rv.type.i = p2->tok.v->type.i) == TYPEUNDEF &&
+			   p2->passno != 0)
+			   p2_aerror(p2, 'u');
 			if(rv.type.i == TYPEEXT) {
-				xsymbol = (void*) (size_t) tok.u;
+				p2->xsymbol = (void*) (size_t) p2->tok.u;
 				rv.val.i = 0;
 				goto operand;
 			}
-			rv.val.i = tok.v->val.i;
+			rv.val.i = p2->tok.v->val.i;
 			goto operand;
 		}
 
-		if(tok.u >= FBBASE) {
-			pfb = curfb[tok.u - FBBASE];
+		if(p2->tok.u >= FBBASE) {
+			pfb = p2->curfb[p2->tok.u - FBBASE];
 			rv.val.i = pfb->val;
 			rv.type.i = (char) pfb->label;
 			goto operand;
 		}
 
-		switch(tok.u) {
+		switch(p2->tok.u) {
 
 		case '+': case '-': case '*': case '/':
 		case '&': case '%': case '^': case '!':
 		case TOKVBAR: case TOKLSH: case TOKRSH:
 			if(oldop != '+')
-				aerror('e');
-			oldop = tok.u;
-			readop();
+				p2_aerror(p2, 'e');
+			oldop = p2->tok.u;
+			p2_readop(p2);
 			continue;
 
 		case TOKINT:
-			agetw();
-			rv.val.i = tok.i;
+			p2_agetw(p2);
+			rv.val.i = p2->tok.i;
 			rv.type.i = TYPEABS;
 			goto operand;
 
 		case 2:
-			rv.val.i = numval;
+			rv.val.i = p2->numval;
 			rv.type.i = TYPEABS;
 			goto operand;
 
 		case '[':
-			readop();
-			rv = expres1();
-			if(tok.u != ']')
-				aerror(']');
+			p2_readop(p2);
+			rv = p2_expres1(p2);
+			if(p2->tok.u != ']')
+				p2_aerror(p2, ']');
 			goto operand;
 
 		default:
@@ -87,47 +87,47 @@ struct value expres1(void)
 		switch(oldop){
 
 		case '+':
-			v.type.i = combine(v.type.i,rv.type.i,reltp2);
+			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_reltp2(p2));
 			v.val.i += rv.val.i;
 			break;
 
 		case '-':
-			v.type.i = combine(v.type.i,rv.type.i,reltm2);
+			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_reltm2(p2));
 			v.val.i -= rv.val.i;
 			break;
 
 		case '*':
-			v.type.i = combine(v.type.i,rv.type.i,relte2);
+			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
 			v.val.i *= rv.val.i;
 			break;
 
 		case '/':
-			v.type.i = combine(v.type.i,rv.type.i,relte2);
+			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
 			v.val.i /= rv.val.i;
 			break;
 
 		case TOKVBAR:
-			v.type.i = combine(v.type.i,rv.type.i,relte2);
+			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
 			v.val.i |= rv.val.i;
 			break;
 
 		case '&':
-			v.type.i = combine(v.type.i,rv.type.i,relte2);
+			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
 			v.val.i &= rv.val.i;
 			break;
 
 		case TOKLSH:
-			v.type.i = combine(v.type.i,rv.type.i,relte2);
+			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
 			v.val.i <<= rv.val.i;
 			break;
 
 		case TOKRSH:
-			v.type.i = combine(v.type.i,rv.type.i,relte2);
+			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
 			v.val.u >>= rv.val.i;
 			break;
 
 		case '%':
-			v.type.i = combine(v.type.i,rv.type.i,relte2);
+			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
 			v.val.i %= rv.val.i;
 			break;
 
@@ -136,7 +136,7 @@ struct value expres1(void)
 			break;
 
 		case '!':
-			v.type.i = combine(v.type.i,rv.type.i,relte2);
+			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
 			v.val.i += ~rv.val.u;
 			break;
 
@@ -145,7 +145,7 @@ struct value expres1(void)
 		}
 
 		oldop = '+';
-		readop();
+		p2_readop(p2);
 	}
 	return(v);	/* never execued - for compiler */
 }
@@ -154,11 +154,11 @@ struct value expres1(void)
 /*
 	Routine to determine type after an operation
 */
-int combine(int left, int right, int *table)
+int p2_combine(struct pass2 *p2, int left, int right, int *table)
 {
 	int t,t2;
 
-	if(passno == 0) {
+	if(p2->passno == 0) {
 		t = (right | left) & TYPEEXT;
 		right &= 037;
 		left &= 037;
@@ -169,17 +169,17 @@ int combine(int left, int right, int *table)
 		}
 		if(right == TYPEUNDEF)
 			return(t);
-		if(table != &reltm2[0] || left != right)
+		if(table != pass2_reltm2(p2) || left != right)
 			return(t | left);
 		return(t | TYPEABS);
 	}
 
-	maxtyp = 0;
-	left = table[maprel(right)*6 + maprel(left)];
+	p2->maxtyp = 0;
+	left = table[p2_maprel(p2, right)*6 + p2_maprel(p2, left)];
 	if(left < 0) {
 		if(left != -1)
-			aerror('r');
-		return(maxtyp);
+			p2_aerror(p2, 'r');
+		return(p2->maxtyp);
 	}
 	return(left);
 }
@@ -190,12 +190,12 @@ int combine(int left, int right, int *table)
 	Routine to map relocation flag and type into reltX2
 	table index, and calculate "max" type
 */
-int maprel(int type)
+int p2_maprel(struct pass2 *p2, int type)
 {
 	if(type == TYPEEXT)
 		return(5);
-	if((type &= 037) > maxtyp)
-		maxtyp = type;
+	if((type &= 037) > p2->maxtyp)
+		p2->maxtyp = type;
 	if(type > TYPEOPFD)
 		return(1);
 	return(type);

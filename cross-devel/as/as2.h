@@ -10,62 +10,21 @@
 #define DEBUG 0
 
 /*
-	Symbol Table (without the character part)
+	br/jmp table length
 */
-extern struct value symtab[SYMBOLS];		/* Permanent symbol Table */
-extern struct value usymtab[USERSYMBOLS];	/* User symbol table	*/
-
-#define dotrel	(symtab[0].type.u)		/* Relocation factor for .*/
-#define dot	(symtab[0].val.u)		/* Assembler PC			  */
-#define dotdot	(symtab[1].val.u)		/* Origin location counter*/
-
-/*
-	Forward branch table
-*/
-extern struct fb_tab fbtab[1024];		/* forward branch table	  */
-extern struct fb_tab *fbbufp;			/* current loc in fbtab	  */
-extern struct fb_tab *curfb[20];		/* entries for back refs  */
-extern struct fb_tab **nxtfb;			/* entries for forward ref*/
-extern struct fb_tab *endtable;			/* end of branch table */
+#define BRLEN	1024				/* max number of jbr/jcc  */
 
 /*
 	a.out header structure
 */
-extern struct hdr {
+struct hdr {
 	int txtmagic;				/* magic number (br)	  */
 	unsigned atxtsiz[3];			/* segment sizes		  */
 	unsigned symsiz;			/* size of symbol table	  */
 	unsigned stksiz;			/* entry location (0)	  */
 	unsigned exorig;			/* unused				  */
 	unsigned unused;			/* relocation supressed	  */
-} hdr;
-
-#define txtsiz	(hdr.atxtsiz[0])
-#define datsiz	(hdr.atxtsiz[1])
-#define bsssiz	(hdr.atxtsiz[2])
-
-/*
-	File seek locations
-*/
-extern unsigned aseek[3];			/* seek for "absolute"	  */
-extern unsigned relseek[3];			/* seek for reloc. data	  */
-extern unsigned symseek;			/* seek for symbol table  */
-
-#define txtseek		(aseek[0])		/* seek for txt abs data  */
-#define datseek		(aseek[1])		/* seek for data abs data */
-#define trelseek	(relseek[0])		/* seek for txt reloc.	  */
-#define drelseek	(relseek[1])		/* seek for data reloc.	  */
-
-extern unsigned *tseekp;			/* ptr to abs seek entry  */
-extern unsigned *rseekp;			/* ptr to reloc. seek ent.*/
-
-/*
-	br/jmp table
-*/
-#define BRLEN	1024				/* max number of jbr/jcc  */
-extern char brtab[];				/* jbr table 1=can't	  */
-extern int brtabp;				/* current entry number	  */
-extern int brdelt;				/* current displacement	  */
+};
 
 /*
 	output buffer structure
@@ -77,72 +36,110 @@ struct out_buf {
 	char buf[512];				/* data buffer			  */
 };
 
-extern struct out_buf txtp;			/* abs data buffer		  */
-extern struct out_buf relp;			/* relocation data buffer */
-
 /*
-	Other variables, etc.
+	Pass2 context - all former globals
 */
+struct pass2 {
+	struct value symtab[SYMBOLS];
+	struct value usymtab[USERSYMBOLS];
 
-extern int savdot[3];				/* saved . for txt/dat/bss*/
+	struct fb_tab fbtab[1024];
+	struct fb_tab *fbbufp;
+	struct fb_tab *curfb[20];
+	struct fb_tab **nxtfb;
+	struct fb_tab *endtable;
 
-extern unsigned adrbuf[6];			/* for constructint addrs */
-extern unsigned *padrb;				/* pointer into adrbuf	  */
+	struct hdr hdr;
 
-extern char argb[];				/* input source file name */
-extern int defund;				/* true if undef auto def */
-extern int txtfil;				/* input token file		  */
-extern int symf;				/* symbol table file	  */
-extern int fbfil;				/* forward branch file	  */
-extern int fin;					/* generic input file	  */
-extern int fout;				/* output file			  */
-extern int passno;				/* pass of this phase	  */
-extern int outmod;				/* 777 for ok 666 for err */
-extern int line;				/* line in source file	  */
-extern int savop;				/* token "stack"		  */
-extern void *xsymbol;				/* symbol offset for ext. */
-extern int swapf;				/* true to swap operands  */
-extern int rlimit;				/* displacement limit	  */
-extern int datbase;				/* base addr for .data	  */
-extern int bssbase;				/* base address for .bss  */
-extern int numval;				/* value of numeric token */
-extern int maxtyp;				/* max type in combination*/
+	unsigned aseek[3];
+	unsigned relseek[3];
+	unsigned symseek;
+	unsigned *tseekp;
+	unsigned *rseekp;
 
-extern int reltp2[];				/* combine r1 + r2		  */
-extern int reltm2[];				/* combine r1 - r2		  */
-extern int relte2[];				/* combine r1 other r2	  */
+	char brtab[BRLEN/8];
+	int brtabp;
+	int brdelt;
 
-extern union token tok;				/* token from token file  */
+	struct out_buf txtp;
+	struct out_buf relp;
 
-void addrovf(void);
-void aerror(int);
-void aexit(int);
-int agetw(void);
-void aputw(struct out_buf*, int);
-void assem(void);
-int checkeos(void);
-void checkreg(struct value *);
-void checkrp(void);
-int combine(int, int, int*);
-void docolon(union token*);
-void doequal(union token*);
-void doreloc(struct value*);
-void dotmax(void);
-void fbadv(void);
-void filerr(char*);
-void flush(struct out_buf*);
-int getbr(void);
-int maprel(int);
-int ofile(char*);
-void op2a(unsigned);
-void op2b(unsigned, unsigned);
-void opline(void);
-void oset(struct out_buf*, int);
-void outb(int, int);
-void outw(int, int);
-void readop(void);
-int setbr(int);
-void setup(void);
-struct value express(void);
-struct value expres1(void);
-unsigned address(void);
+	int savdot[3];
+	unsigned adrbuf[6];
+	unsigned *padrb;
+	char argb[44];
+	int defund;
+	int txtfil;
+	int symf;
+	int fbfil;
+	int fin;
+	int fout;
+	int passno;
+	int outmod;
+	int line;
+	int savop;
+	void *xsymbol;
+	int swapf;
+	int rlimit;
+	int datbase;
+	int bssbase;
+	int numval;
+	int maxtyp;
+	union token tok;
+
+	char *atmp1;
+	char *atmp2;
+	char *atmp3;
+	char *outfile;
+	int debug;
+};
+
+/* Accessors for values derived from struct fields */
+#define dotrel(p2)	((p2)->symtab[0].type.u)
+#define dot(p2)		((p2)->symtab[0].val.u)
+#define dotdot(p2)	((p2)->symtab[1].val.u)
+#define txtsiz(p2)	((p2)->hdr.atxtsiz[0])
+#define datsiz(p2)	((p2)->hdr.atxtsiz[1])
+#define bsssiz(p2)	((p2)->hdr.atxtsiz[2])
+#define txtseek(p2)	((p2)->aseek[0])
+#define datseek(p2)	((p2)->aseek[1])
+#define trelseek(p2)	((p2)->relseek[0])
+#define drelseek(p2)	((p2)->relseek[1])
+
+void pass2_init(struct pass2 *p2);
+int *pass2_reltp2(struct pass2 *p2);
+int *pass2_reltm2(struct pass2 *p2);
+int *pass2_relte2(struct pass2 *p2);
+
+void p2_addrovf(struct pass2 *p2);
+void p2_aerror(struct pass2 *p2, int);
+void p2_aexit(struct pass2 *p2, int);
+int p2_agetw(struct pass2 *p2);
+void p2_aputw(struct pass2 *p2, struct out_buf*, int);
+void p2_assem(struct pass2 *p2);
+int p2_checkeos(struct pass2 *p2);
+void p2_checkreg(struct pass2 *p2, struct value *);
+void p2_checkrp(struct pass2 *p2);
+int p2_combine(struct pass2 *p2, int, int, int *);
+void p2_docolon(struct pass2 *p2, union token*);
+void p2_doequal(struct pass2 *p2, union token*);
+void p2_doreloc(struct pass2 *p2, struct value*);
+void p2_dotmax(struct pass2 *p2);
+void p2_fbadv(struct pass2 *p2);
+void p2_filerr(struct pass2 *p2, char*);
+void p2_flush(struct pass2 *p2, struct out_buf*);
+int p2_getbr(struct pass2 *p2);
+int p2_maprel(struct pass2 *p2, int);
+int p2_ofile(struct pass2 *p2, char*);
+void p2_op2a(struct pass2 *p2, unsigned);
+void p2_op2b(struct pass2 *p2, unsigned, unsigned);
+void p2_opline(struct pass2 *p2);
+void p2_oset(struct pass2 *p2, struct out_buf*, int);
+void p2_outb(struct pass2 *p2, int, int);
+void p2_outw(struct pass2 *p2, int, int);
+void p2_readop(struct pass2 *p2);
+int p2_setbr(struct pass2 *p2, int);
+void p2_setup(struct pass2 *p2);
+struct value p2_express(struct pass2 *p2);
+struct value p2_expres1(struct pass2 *p2);
+unsigned p2_address(struct pass2 *p2);

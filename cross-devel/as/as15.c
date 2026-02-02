@@ -13,18 +13,18 @@
 /*
 	Main scanner routine
 */
-void readop(void)
+void readop(struct pass1 *p1)
 {
 	unsigned char c;
 	int i;
 
-	if((tok.i = savop) != 0) {
-		savop = 0;
+	if((p1->tok.i = p1->savop) != 0) {
+		p1->savop = 0;
 		return;
 	}
 
 	while(1) {
-		while((c = chartab[tok.i = rch()]) == CHARWHITE)
+		while((c = p1->chartab[p1->tok.i = rch(p1)]) == CHARWHITE)
 			;
 		if(c != 0 && c < 128)
 			goto rdname;
@@ -32,17 +32,17 @@ void readop(void)
 		switch(c) {
 
 		case CHARSTRING:	/* <...>	*/
-			tok.i = '<';
-			aputw();
-			numval = 0;
-			while(c = rsch(), !eos_flag) {
-				tok.i = c | STRINGFLAG;
-				aputw();
-				++numval;
+			p1->tok.i = '<';
+			aputw(p1);
+			p1->numval = 0;
+			while(c = rsch(p1), !p1->eos_flag) {
+				p1->tok.i = c | STRINGFLAG;
+				aputw(p1);
+				++p1->numval;
 			}
-			tok.i = -1;
-			aputw();
-			tok.i = '<';
+			p1->tok.i = -1;
+			aputw(p1);
+			p1->tok.i = '<';
 			return;
 
 		case CHARLF:		/* character is the token */
@@ -50,66 +50,66 @@ void readop(void)
 			break;
 
 		case CHARSKIP:		/* / - comment */
-			while((c = rch()) != TOKEOF && c != '\n')
+			while((c = rch(p1)) != TOKEOF && c != '\n')
 				;
-			tok.i = c;		/* newline or eof */
+			p1->tok.i = c;		/* newline or eof */
 			break;
 
 		case CHARNAME:
 		rdname:
-			ch = tok.i;
+			p1->ch = p1->tok.i;
 			if(c < '0' || c > '9') {
-				rname(c);
+				rname(p1, c);
 				return;
 			}
 			/* fall thru since it is a number */
 
 		case CHARNUM:
-			if(!number())
+			if(!number(p1))
 				break;		/* really a temporary label */
-			numval = num_rtn;
-			tok.i = TOKINT;
-			aputw();
-			tok.i = numval;
-			aputw();
-			tok.i = TOKINT;
+			p1->numval = p1->num_rtn;
+			p1->tok.i = TOKINT;
+			aputw(p1);
+			p1->tok.i = p1->numval;
+			aputw(p1);
+			p1->tok.i = TOKINT;
 			return;
 
 		case CHARSQUOTE:
 		case CHARDQUOTE:
 			if(c == CHARSQUOTE)
-				numval = rsch();
+				p1->numval = rsch(p1);
 			else {
-				numval = rsch();
-				numval |= rsch() << 8;
+				p1->numval = rsch(p1);
+				p1->numval |= rsch(p1) << 8;
 			}
-			tok.i = TOKINT;
-			aputw();
-			tok.i = numval;
-			aputw();
-			tok.i = TOKINT;
+			p1->tok.i = TOKINT;
+			aputw(p1);
+			p1->tok.i = p1->numval;
+			aputw(p1);
+			p1->tok.i = TOKINT;
 			return;
 
 		case CHARGARB:
-			aerror('g');
+			aerror(p1, 'g');
 			continue;
 
 		case CHARESCP:
-			c = rch();
-			for(i=0; esctab[i] != 0; i+=2) {
-				if(esctab[i] == c) {
-					tok.i = esctab[i+1];
+			c = rch(p1);
+			for(i=0; p1->esctab[i] != 0; i+=2) {
+				if(p1->esctab[i] == c) {
+					p1->tok.i = p1->esctab[i+1];
 					break;
 				}
 			}
 			break;
 
 		case CHARFIXOR:
-			tok.i = TOKVBAR;
+			p1->tok.i = TOKVBAR;
 			break;
 		}
 
-		aputw();
+		aputw(p1);
 		return;
 	}
 }
@@ -118,24 +118,24 @@ void readop(void)
 /*
 	Routine to read a character inside a string ( <...> )
 */
-char rsch(void)
+char rsch(struct pass1 *p1)
 {
 	char c;
 	int i;
 
-	if((c = rch()) == TOKEOF || c == '\n') {
-		aerror('<');
-		aexit();
+	if((c = rch(p1)) == TOKEOF || c == '\n') {
+		aerror(p1, '<');
+		aexit(p1);
 	}
-	eos_flag = 0;
+	p1->eos_flag = 0;
 	if(c == '\\') {
-		c = rch();
-		for(i = 0; schar[i] != 0; i += 2) {
-			if(schar[i] == c)
-				return(schar[i+1]);
+		c = rch(p1);
+		for(i = 0; p1->schar[i] != 0; i += 2) {
+			if(p1->schar[i] == c)
+				return(p1->schar[i+1]);
 		}
 		return(c);
 	}
-	eos_flag = (c == '>');
+	p1->eos_flag = (c == '>');
 	return(c);
 }

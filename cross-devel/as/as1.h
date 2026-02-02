@@ -14,86 +14,79 @@ struct symtab {
 	struct value v;
 };
 
-extern struct symtab *hshtab[HSHSIZ];		/* Hash Table			  */
-extern struct symtab symtab[];			/* Permanent Symbol Table */
-extern struct symtab *usymtab;			/* Normal Symbol Table*/
-
-#define dotrel	(symtab[0].v.type.i)		/* Relocation factor for .*/
-#define dot	(symtab[0].v.val.u)		/* Assembler Program ctr  */
-#define dotdot	(symtab[1].v.val.u)		/* Origin location counter*/
-
-extern struct symtab *symend;			/* Points past last entry */
-extern char symbol[8];				/* Symbol assembly line	  */
-extern unsigned savdot[3];			/* Saved . for txt/dat/bss*/
-
 /*
-	Forward branch table
+	Pass1 context - all former globals
 */
-extern char curfbr[10];				/* Relocation for $0-$9	  */
-extern int  curfb[10];				/* . for $0 - $9		  */
-extern struct fb_tab nxtfb;			/* next forward branch	  */
+#define PASS1_CHARTAB_SIZE 128
+#define PASS1_SCHAR_SIZE 16
+#define PASS1_ESCTAB_SIZE 16
 
-/*
-	Files
-*/
-extern FILE * fin;				/* Input file			  */
-extern int fbfil;				/* Forward branch file	  */
-extern int pof;					/* Token output file	  */
-extern char fileflg;				/* (unsued) file counter  */
+struct pass1 {
+	struct symtab *hshtab[HSHSIZ];
+	struct symtab symtab[SYMBOLS+USERSYMBOLS];
+	struct symtab *usymtab;
+	struct symtab *symend;
+	char symbol[8];
+	unsigned savdot[3];
 
-/*
-	Flags
-*/
-extern int errflg;				/* error counter		  */
-extern int ifflg;				/* .if nesting counter	  */
-extern char globflag;				/* true if 2 undef=>gbl   */
-extern int eos_flag;				/* true if at end of stmt */
+	char curfbr[10];
+	int curfb[10];
+	struct fb_tab nxtfb;
 
-/*
-	Scanning/Parsing variables
-*/
-extern union token tok;				/* Scanned token		  */
-extern int line;				/* Line # in source file  */
-extern int savop;				/* saved token			  */
-extern char ch;					/* saved character		  */
-extern int numval;				/* number / string length */
-extern int num_rtn;				/* return value from number*/
+	FILE *fin;
+	int fbfil;
+	int pof;
+	char fileflg;
 
-/*
-	File name / arguments
-*/
-extern int nargs;				/* Number of files left	  */
-extern char **curarg;				/* Current input file nam */
+	int errflg;
+	int ifflg;
+	char globflag;
+	int eos_flag;
 
-/*
-	Tables
-*/
-extern char chartab[];				/* Scanner character table*/
-extern char schar[];				/* escapes in strings	  */
-extern char esctab[];				/* escapes in free text	  */
+	union token tok;
+	int line;
+	int savop;
+	char ch;
+	int numval;
+	int num_rtn;
 
-int address(void);
-void add_symbol(struct symtab*, char*);
-void aerror(int);
-void aexit(void);
-void aputw(void);
-void assem(void);
-int checkeos(void);
-void checkrp(void);
-void checkreg(struct value);
-unsigned fbcheck(unsigned);
-int f_create(char*);
-void filerr(char*, char*);
-void hash_enter(struct symtab*);
-void opline(void);
-char number(void);
-unsigned char rch(void);
-void readop(void);
-void rname(unsigned char);
-void setup(void);
-struct value express(void);
-unsigned short hash(char*);
-char rsch(void);
-int combine(int, int, int);
-void write_syms(int);
-void write_fb(int, struct fb_tab*);
+	int nargs;
+	char **curarg;
+
+	char chartab[PASS1_CHARTAB_SIZE];
+	char schar[PASS1_SCHAR_SIZE];
+	char esctab[PASS1_ESCTAB_SIZE];
+};
+
+/* Accessors for values derived from struct fields */
+#define dotrel(p1)	((p1)->symtab[0].v.type.i)
+#define dot(p1)		((p1)->symtab[0].v.val.u)
+#define dotdot(p1)	((p1)->symtab[1].v.val.u)
+
+void pass1_init(struct pass1 *p1);
+
+int address(struct pass1 *p1);
+void add_symbol(struct pass1 *p1, struct symtab*, char*);
+void aerror(struct pass1 *p1, int);
+void aexit(struct pass1 *p1);
+void aputw(struct pass1 *p1);
+void assem(struct pass1 *p1);
+int checkeos(struct pass1 *p1);
+void checkrp(struct pass1 *p1);
+void checkreg(struct pass1 *p1, struct value);
+unsigned fbcheck(struct pass1 *p1, unsigned);
+int f_create(struct pass1 *p1, char*);
+void filerr(struct pass1 *p1, char*, char*);
+void hash_enter(struct pass1 *p1, struct symtab*);
+void opline(struct pass1 *p1);
+char number(struct pass1 *p1);
+unsigned char rch(struct pass1 *p1);
+void readop(struct pass1 *p1);
+void rname(struct pass1 *p1, unsigned char);
+void setup(struct pass1 *p1);
+struct value express(struct pass1 *p1);
+unsigned short hash(struct pass1 *p1, char*);
+char rsch(struct pass1 *p1);
+int combine(struct pass1 *p1, int, int, int);
+void write_syms(struct pass1 *p1, int);
+void write_fb(struct pass1 *p1, int, struct fb_tab*);

@@ -7,6 +7,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
@@ -23,6 +24,11 @@
 */
 #define OPTABL		DESTDIR "/lib/pdp11/opcode.tbl"
 #define PASS2		DESTDIR "/lib/pdp11/asm2"
+
+extern char atmp1[], atmp2[], atmp3[];
+
+void asm_pass1(int globflag, int argc, char *argv[]);
+int asm_pass2(int globflag, char *outfile);
 
 /*
 	Special Flags
@@ -139,8 +145,8 @@ struct value {
 };
 
 union token {
-	int i;
-	unsigned u;
+	intptr_t i;
+	uintptr_t u;
 	struct value *v;
 	struct symtab *s;
 };

@@ -16,7 +16,7 @@
 	Routine to read a name whose 1st character is
 	contained in variable c
 */
-void rname(unsigned char c)
+void rname(struct pass1 *p1, unsigned char c)
 {
 	char *sp;
 	unsigned char tc;
@@ -27,21 +27,21 @@ void rname(unsigned char c)
 
 	sl = 8;
 	no_hash = 0;
-	memset(symbol, 0, 8);
-	sp = symbol;
+	memset(p1->symbol, 0, 8);
+	sp = p1->symbol;
 	if(c == '~') {
 		++no_hash;
-		ch = 0;
+		p1->ch = 0;
 	}
-	while((c = chartab[tc = rch()]) < 128 && c != 0) {
+	while((c = p1->chartab[tc = rch(p1)]) < 128 && c != 0) {
 		if(--sl >= 0)
 			*sp++ = c;
 	}
-	hv = hash(symbol);
-	ch = tc;
+	hv = hash(p1, p1->symbol);
+	p1->ch = tc;
 	if(no_hash) {
-		tok.s = symend;
-		add_symbol(tok.s, symbol);
+		p1->tok.s = p1->symend;
+		add_symbol(p1, p1->tok.s, p1->symbol);
 	}
 	else {
 		probe = hv % HSHSIZ;
@@ -51,27 +51,27 @@ void rname(unsigned char c)
 				probe += HSHSIZ;
 			if(debug)
 				printf("rname debug probe %d next %u\n",probe,next);
-			if(hshtab[probe] == 0) {
-				hshtab[probe] = tok.s = symend;
-				add_symbol(tok.s, symbol);
+			if(p1->hshtab[probe] == 0) {
+				p1->hshtab[probe] = p1->tok.s = p1->symend;
+				add_symbol(p1, p1->tok.s, p1->symbol);
 				break;
 			}
 			if(debug)
-				printf("rname debug comparing to %s\n",hshtab[probe]->name);
-			if(strncmp(hshtab[probe]->name,symbol,8) == 0) {
-				tok.s = hshtab[probe];
+				printf("rname debug comparing to %s\n",p1->hshtab[probe]->name);
+			if(strncmp(p1->hshtab[probe]->name,p1->symbol,8) == 0) {
+				p1->tok.s = p1->hshtab[probe];
 				break;
 			}
 		}
 	}
 
-	stok = &tok.s->v;
-	if(tok.s >= usymtab)
-		tok.i = (tok.s - usymtab) + USYMFLAG;
+	stok = &p1->tok.s->v;
+	if(p1->tok.s >= p1->usymtab)
+		p1->tok.i = (p1->tok.s - p1->usymtab) + USYMFLAG;
 	else
-		tok.i = (tok.s - symtab) + PSYMFLAG;
-	aputw();
-	tok.v = stok;
+		p1->tok.i = (p1->tok.s - p1->symtab) + PSYMFLAG;
+	aputw(p1);
+	p1->tok.v = stok;
 }
 
 
@@ -79,23 +79,23 @@ void rname(unsigned char c)
 	Routine to handle numbers and temporary labels
 	Numbers starting from 0 are treated as octal.
 */
-char number(void)
+char number(struct pass1 *p1)
 {
 	int num, base;
 	unsigned char c;
 
-	if ((c = rch()) != '0') {
+	if ((c = rch(p1)) != '0') {
 		base = 10;
-		ch = c;
-	} else if ((c = rch()) != 'x' && c != 'X') {
+		p1->ch = c;
+	} else if ((c = rch(p1)) != 'x' && c != 'X') {
 		base = 8;
-		ch = c;
+		p1->ch = c;
 	} else {
 		base = 16;
 	}
 	num = 0;
 	for (;;) {
-		c = rch();
+		c = rch(p1);
 		if (c >= '0' && c <= '7')
 			c -= '0';
 		else if (base >= 10 && c >= '8' && c <= '9')
@@ -109,14 +109,14 @@ char number(void)
 		num = num * base + c;
 	}
 	if(c != 'b' && c != 'f') {
-		num_rtn = num;
-		ch = c;
+		p1->num_rtn = num;
+		p1->ch = c;
 		return(TRUE);
 	}
 	/*
 		Temporary label reference
 	*/
-	tok.i = fbcheck(num) + (c == 'b' ? FBBASE : FBFWD);
+	p1->tok.i = fbcheck(p1, num) + (c == 'b' ? FBBASE : FBFWD);
 	return(FALSE);
 }
 
@@ -125,45 +125,45 @@ char number(void)
 	Routine to read next character
 	Uses character routines so that MSDOS crlf turns into lf
 */
-unsigned char rch(void)
+unsigned char rch(struct pass1 *p1)
 {
 	int c;
-	int savtok;
+	union token savtok;
 	char *pc;
 
-	if((c = ch) != 0) {
-		ch = 0;
+	if((c = p1->ch) != 0) {
+		p1->ch = 0;
 		return(c);
 	}
 	while(TRUE) {
-		if(fin != 0) {
-			if((c = fgetc(fin)) != EOF)
+		if(p1->fin != 0) {
+			if((c = fgetc(p1->fin)) != EOF)
 				return(c & 0x7f);
 		}
-		if(fin != 0)
-			fclose(fin);
-		if(--nargs <= 0)
+		if(p1->fin != 0)
+			fclose(p1->fin);
+		if(--p1->nargs <= 0)
 			return(TOKEOF);
-		if(ifflg) {
-			aerror('i');
-			aexit();
+		if(p1->ifflg) {
+			aerror(p1, 'i');
+			aexit(p1);
 		}
-		++fileflg;
-		if((fin = fopen(*++curarg,"r")) == NULL) {
-			filerr(*curarg,"rch: can't open file.");
-			aexit();
+		++p1->fileflg;
+		if((p1->fin = fopen(*++p1->curarg,"r")) == NULL) {
+			filerr(p1, *p1->curarg,"rch: can't open file.");
+			aexit(p1);
 		}
-		line = 1;
-		savtok = tok.i;
-		tok.i = TOKFILE;
-		aputw();
-		for(pc = *curarg; *pc != '\0'; ++pc) {
-			tok.i = *pc;
-			aputw();
+		p1->line = 1;
+		savtok = p1->tok;
+		p1->tok.i = TOKFILE;
+		aputw(p1);
+		for(pc = *p1->curarg; *pc != '\0'; ++pc) {
+			p1->tok.i = *pc;
+			aputw(p1);
 		}
-		tok.i = -1;
-		aputw();
-		tok.i = savtok;
+		p1->tok.i = -1;
+		aputw(p1);
+		p1->tok = savtok;
 	}
 }
 
@@ -171,13 +171,13 @@ unsigned char rch(void)
 /*
 	Routine to hash a symbol and enter into hash table
 */
-void hash_enter(struct symtab *p)
+void hash_enter(struct pass1 *p1, struct symtab *p)
 {
 	unsigned short hv, next;
 	int probe;
 	char debug = 0;
 
-	hv = hash(p->name);
+	hv = hash(p1, p->name);
 	probe = hv % HSHSIZ;
 	next = (hv / HSHSIZ) + 1;
 	while(TRUE) {
@@ -185,8 +185,8 @@ void hash_enter(struct symtab *p)
 			probe += HSHSIZ;
 		if(debug)
 			printf("hash_enter: probe %d next %u\n",probe,next);
-		if(hshtab[probe] == 0) {
-			hshtab[probe] = p;
+		if(p1->hshtab[probe] == 0) {
+			p1->hshtab[probe] = p;
 			break;
 		}
 	}
@@ -196,11 +196,12 @@ void hash_enter(struct symtab *p)
 /*
 	Routine to hash a symbol
 */
-unsigned short hash(char *p)
+unsigned short hash(struct pass1 *p1, char *p)
 {
 	int i;
 
 	unsigned h = 0;
+	(void)p1;
 	for(i = 0; i < 8 && p[i] != '\0'; ++i) {
 		h += p[i];
 		h = (h  << 8) | ((h >> 8) & 0xFF);
@@ -213,11 +214,11 @@ unsigned short hash(char *p)
 	Routine to add a symbol to the symbol table and bump
 	the symbol table pointer
 */
-void add_symbol(struct symtab *p, char *s)
+void add_symbol(struct pass1 *p1, struct symtab *p, char *s)
 {
 	strncpy(p->name, s, 8);
-	if(++symend - usymtab > USERSYMBOLS) {
+	if(++p1->symend - p1->usymtab > USERSYMBOLS) {
 		fprintf(stderr,"add_symbol: symbol table overflow.\n");
-		aexit();
+		aexit(p1);
 	}
 }

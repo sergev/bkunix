@@ -11,41 +11,40 @@
 #include "as.h"
 #include "as1.h"
 
-void assem(void)
+void assem(struct pass1 *p1)
 {
 	struct value v;
 	union token savtok;
 	int i;
 
 	while(1) {
-		readop();
-		if(checkeos())
+		readop(p1);
+		if(checkeos(p1))
 			goto ealoop;
-		if(ifflg) {					/* Inside .if */
-			if(tok.u <= TOKSYMBOL)
+		if(p1->ifflg) {					/* Inside .if */
+			if(p1->tok.u <= TOKSYMBOL)
 				continue;
-			if(tok.v->type.i == TYPEOPIF)
-				++ifflg;
-			if(tok.v->type.i == TYPEOPEIF)
-				--ifflg;
+			if(p1->tok.v->type.i == TYPEOPIF)
+				++p1->ifflg;
+			if(p1->tok.v->type.i == TYPEOPEIF)
+				--p1->ifflg;
 			continue;
 		}
 
-		savtok.i = tok.i;
-		readop();
-		if(tok.i == '=') {
-			readop();
-			v = express();
+		savtok = p1->tok;
+		readop(p1);
+		if(p1->tok.i == '=') {
+			readop(p1);
+			v = express(p1);
 			if(savtok.u < TOKSYMBOL) {
-				aerror('x');
+				aerror(p1, 'x');
 				goto ealoop;
 			}
-			/* coerced to int * */
-			if((int*)tok.s == &dotrel) {
+			if(p1->tok.s == &p1->symtab[0]) {
 				v.type.u &= ~TYPEEXT;
-				if(v.type.i != dotrel) {
-					aerror('.');
-					dotrel = TYPETXT;
+				if(v.type.i != dotrel(p1)) {
+					aerror(p1, '.');
+					p1->symtab[0].v.type.i = TYPETXT;
 					goto ealoop;
 				}
 			}
@@ -58,56 +57,57 @@ void assem(void)
 			goto ealoop;
 		}  /* = */
 
-		if(tok.i == ':') {
-			tok.i = savtok.i;
-			if(tok.u >= TOKSYMBOL) {
-				if(tok.v->type.u & 037)
-					aerror('m');
-				tok.v->type.u |= dotrel;
-				tok.v->val.i = dot;
+		if(p1->tok.i == ':') {
+			p1->tok = savtok;
+			if(p1->tok.u >= TOKSYMBOL) {
+				if(p1->tok.v->type.u & 037)
+					aerror(p1, 'm');
+				p1->tok.v->type.u |= dotrel(p1);
+				p1->tok.v->val.i = dot(p1);
 				continue;
 			}
-			if(tok.i != TOKINT) {
-				aerror('x');
+			if(p1->tok.i != TOKINT) {
+				aerror(p1, 'x');
 				continue;
 			}
-			i = fbcheck(numval);	/* n: */
-			curfbr[i] = dotrel;
-			nxtfb.label = i << 8 | dotrel;
-			nxtfb.val = dot;
-			curfb[i] = dot;
-			write_fb(fbfil, &nxtfb);
+			i = fbcheck(p1, p1->numval);	/* n: */
+			p1->curfbr[i] = dotrel(p1);
+			p1->nxtfb.label = i << 8 | dotrel(p1);
+			p1->nxtfb.val = dot(p1);
+			p1->curfb[i] = dot(p1);
+			write_fb(p1, p1->fbfil, &p1->nxtfb);
 			continue;
 		}	/* : */
 
-		savop = tok.i;
-		tok.i = savtok.i;
-		opline();
+		p1->savop = p1->tok.i;
+		p1->tok = savtok;
+		opline(p1);
 
 ealoop:
 
-		if(tok.i == ';')
+		if(p1->tok.i == ';')
 			continue;
-		if(tok.i == '\n') {
-			++line;
-			continue;
-		}
-		if(tok.i != TOKEOF) {
-			aerror('x');
-			while(!checkeos())
-				readop();
+		if(p1->tok.i == '\n') {
+			++p1->line;
 			continue;
 		}
-		if(ifflg)
-			aerror('x');
+		if(p1->tok.i != TOKEOF) {
+			aerror(p1, 'x');
+			while(!checkeos(p1))
+				readop(p1);
+			continue;
+		}
+		if(p1->ifflg)
+			aerror(p1, 'x');
 		return;
 	}
 }
 
-void write_fb(int f, struct fb_tab *b)
+void write_fb(struct pass1 *p1, int f, struct fb_tab *b)
 {
 	char buf[4];
 
+	(void)p1;
 	buf[0] = b->label;
 	buf[1] = b->label >> 8;
 	buf[2] = b->val;
@@ -121,10 +121,10 @@ void write_fb(int f, struct fb_tab *b)
 	Routine to check a number to see if it is in range for
 	a temporary label
 */
-unsigned fbcheck(unsigned u)
+unsigned fbcheck(struct pass1 *p1, unsigned u)
 {
 	if(u > 9) {
-		aerror('f');
+		aerror(p1, 'f');
 		u = 0;
 	}
 	return(u);
@@ -135,7 +135,7 @@ unsigned fbcheck(unsigned u)
 	Routine to check current token to see if we are at the end of
 	a statement
 */
-int checkeos(void)
+int checkeos(struct pass1 *p1)
 {
-	return(tok.i == '\n' || tok.i == ';' || tok.i == '#' || tok.i == TOKEOF);
+	return(p1->tok.i == '\n' || p1->tok.i == ';' || p1->tok.i == '#' || p1->tok.i == TOKEOF);
 }
