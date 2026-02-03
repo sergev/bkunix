@@ -55,6 +55,7 @@ int asm_pass2(int globflag, char *outfile);
 #define TOKRSH    036
 #define TOKVBAR   037
 #define TOKSYMBOL 0200
+#define TOKFILEND 0xFFFF // end-of-filename sentinel in TOKFILE block (not stdio EOF)
 
 //
 // Special Character / Token values

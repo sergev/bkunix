@@ -29,7 +29,7 @@ void p2_opline(struct pass2 *p2)
     if (p2->tok.u < TOKSYMBOL) {
         if (p2->tok.u == TOKFILE) {
             p2->line = 1;
-            for (pf = p2->argb; p2_agetw(p2) && p2->tok.u != 0xffff; ++pf) {
+            for (pf = p2->argb; p2_agetw(p2) && p2->tok.u != TOKFILEND; ++pf) {
                 *pf = p2->tok.u;
             }
             *pf = '\0';

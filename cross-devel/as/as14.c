@@ -168,7 +168,7 @@ unsigned char rch(struct pass1 *p1)
             p1->tok.i = *pc;
             aputw(p1);
         }
-        p1->tok.i = -1;
+        p1->tok.u = TOKFILEND;
         aputw(p1);
         p1->tok = savtok;
     }
