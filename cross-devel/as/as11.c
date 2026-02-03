@@ -184,11 +184,8 @@ void setup(struct pass1 *p1)
     }
     p = p1->symtab;
     for (i = 0; i < opcode_table_size; ++i, ++p) {
-        size_t len;
+        memset(p->name, 0, sizeof(p->name));
         strncpy(p->name, opcode_table[i].name, 8);
-        len = strlen(p->name);
-        if (len < 8)
-            memset(p->name + len, 0, 8 - len);
         p->v.type.u = opcode_table[i].type;
         p->v.val.u  = opcode_table[i].val;
         hash_enter(p1, p);

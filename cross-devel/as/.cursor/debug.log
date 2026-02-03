@@ -1,2 +1,0 @@
-{"location":"as14.c:rch","message":"TOKFILE sentinel about to write","data":{"sentinel":"TOKFILEND"},"hypothesisId":"A","runId":"post-fix"}
-{"location":"as12.c:aputw","message":"write atmp1","data":{"tok_i":65535,"tok_u":65535},"hypothesisId":"A"}
