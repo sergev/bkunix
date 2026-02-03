@@ -70,6 +70,7 @@ int main(int argc, char *argv[])
 void asm_pass1(int globflag, int argc, char *argv[])
 {
     struct pass1 p1;
+    memset(&p1, 0, sizeof(p1));
     int fsym;
 
     pass1_init(&p1);

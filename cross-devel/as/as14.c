@@ -232,6 +232,8 @@ unsigned short hash(struct pass1 *p1, char *p)
 void add_symbol(struct pass1 *p1, struct symtab *p, char *s)
 {
     strncpy(p->name, s, 8);
+    p->v.type.u = TYPEUNDEF;
+    p->v.val.u  = 0;
     if (++p1->symend - p1->usymtab > USERSYMBOLS) {
         fprintf(stderr, "add_symbol: symbol table overflow.\n");
         aexit(p1);

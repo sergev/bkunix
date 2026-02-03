@@ -33,6 +33,7 @@ void p2_usage(void)
 int asm_pass2(int globflag, char *outfile)
 {
     struct pass2 p2;
+    memset(&p2, 0, sizeof(p2));
     struct value *sp, *p;
     unsigned t;
     struct fb_tab *fp;
