@@ -100,40 +100,40 @@ extern struct optab {
 	int	opcode;
 } optab[];
 
-char	line[LSIZE];
-struct	node	first;
-char	*curlp;
-int	nbrbr;
-int	nsaddr;
-int	redunm;
-int	iaftbr;
-int	njp1;
-int	nrlab;
-int	nxjump;
-int	ncmot;
-int	nrevbr;
-int	loopiv;
-int	nredunj;
-int	nskip;
-int	ncomj;
-int	nsob;
-int	nrtst;
-int	nlit;
+extern char	line[LSIZE];
+extern struct	node	first;
+extern char	*curlp;
+extern int	nbrbr;
+extern int	nsaddr;
+extern int	redunm;
+extern int	iaftbr;
+extern int	njp1;
+extern int	nrlab;
+extern int	nxjump;
+extern int	ncmot;
+extern int	nrevbr;
+extern int	loopiv;
+extern int	nredunj;
+extern int	nskip;
+extern int	ncomj;
+extern int	nsob;
+extern int	nrtst;
+extern int	nlit;
 
-int	nchange;
-int	isn;
-int	debug;
-int	lastseg;
-char	*lasta;
-char	*lastr;
-char	*alasta;
-char	*alastr;
-char	*firstr;
+extern int	nchange;
+extern int	isn;
+extern int	debug;
+extern int	lastseg;
+extern char	*lasta;
+extern char	*lastr;
+extern char	*alasta;
+extern char	*alastr;
+extern char	*firstr;
 extern char	revbr[];
-char	regs[12][MAXCPS + 1];
-char	conloc[MAXCPS + 1];
-char	conval[MAXCPS + 1];
-char	ccloc[MAXCPS + 1];
+extern char	regs[12][MAXCPS + 1];
+extern char	conloc[MAXCPS + 1];
+extern char	conval[MAXCPS + 1];
+extern char	ccloc[MAXCPS + 1];
 
 #define	RT1	10
 #define	RT2	11
@@ -142,7 +142,7 @@ char	ccloc[MAXCPS + 1];
 #define	LABHS	127
 #define	OPHS	57
 
-struct optab *ophash[OPHS];
+extern struct optab *ophash[OPHS];
 struct	node *nonlab(struct node *);
 char	*copy(int, char *, char *);
 char	*findcon(int);

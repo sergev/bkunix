@@ -1,6 +1,6 @@
 DESTDIR		= /usr/local
 CC              = gcc
-CFLAGS		= -O -g -Wall -Werror -DDESTDIR=\"$(DESTDIR)\"
+CFLAGS		= -O -g -Wall -Werror -fcommon -DDESTDIR=\"$(DESTDIR)\"
 
 all:		c0 c1
 

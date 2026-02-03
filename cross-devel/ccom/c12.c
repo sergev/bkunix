@@ -14,7 +14,12 @@ optim(union tree *tree)
 	register int op, dope;
 	int d1, d2;
 	union tree *t;
-	union { double dv; int iv[4];} fp11;
+	/*
+	 * PDP-11 FP representation logic assumes 4x16-bit words.
+	 * Use unsigned short here so the union is exactly 8 bytes
+	 * on modern hosts (avoids -Wmaybe-uninitialized with int[4]).
+	 */
+	union { double dv; unsigned short iv[4]; } fp11;
 
 	if (tree==NULL)
 		return(NULL);
@@ -920,20 +925,22 @@ pconst(int op, int *vp, int v, int type)
 				return;
 			}
 		}
-		if (v==0)
+		if (v==0) {
 			werror("divide check");
-		else
-			if (type==INT)
-				if (op==DIVIDE || op==UDIV)
-					*vp /= v;
-				else
-					*vp %= v;
-			else
-				if (op==DIVIDE || op==UDIV)
-					*(unsigned *)vp /= (unsigned)v;
-				else
-					*(unsigned *)vp %= (unsigned)v;
 			return;
+		}
+		if (type==INT) {
+			if (op==DIVIDE || op==UDIV)
+				*vp /= v;
+			else
+				*vp %= v;
+		} else {
+			if (op==DIVIDE || op==UDIV)
+				*(unsigned *)vp /= (unsigned)v;
+			else
+				*(unsigned *)vp %= (unsigned)v;
+		}
+		return;
 
 	case RSHIFT:
 	rshift:

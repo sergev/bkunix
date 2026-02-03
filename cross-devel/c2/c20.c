@@ -7,6 +7,43 @@
  */
 #include "c2.h"
 
+/*
+ * Global state (declared as 'extern' in c2.h).
+ * Historically these lived in the header; modern linkers require a single
+ * definition.
+ */
+char	line[LSIZE];
+struct	node	first;
+char	*curlp;
+int	nbrbr;
+int	nsaddr;
+int	redunm;
+int	iaftbr;
+int	njp1;
+int	nrlab;
+int	nxjump;
+int	ncmot;
+int	nrevbr;
+int	loopiv;
+int	nredunj;
+int	nskip;
+int	ncomj;
+int	nsob;
+int	nrtst;
+int	nlit;
+int	nchange;
+int	debug;
+char	*lasta;
+char	*lastr;
+char	*alasta;
+char	*alastr;
+char	*firstr;
+char	regs[12][MAXCPS + 1];
+char	conloc[MAXCPS + 1];
+char	conval[MAXCPS + 1];
+char	ccloc[MAXCPS + 1];
+struct optab *ophash[OPHS];
+
 struct optab optab[] = {
 	{ "jbr",	JBR, },
 	{ "jeq",	CBR | JEQ<<8, },
