@@ -35,6 +35,9 @@ int asm_esc = 0; /* asm escaped used in file */
 # define A_WS 18		/* whitespace (not \n) */
 # define A_NL 19		/* \n */
 
+/* One-pass: offsz defined here so it is set before any use in pftn.c */
+OFFSZ offsz;
+
 	/* character classes */
 
 # define LEXLET 01
@@ -79,7 +82,6 @@ mainp1(int argc, char *argv[])
 	register char *cp;
 	extern int idebug, bdebug, tdebug, edebug;
 	extern int ddebug, xdebug, gdebug, adebug;
-	extern OFFSZ offsz;
 	int fdef = 0;
 	char *release = "PCC/3.0 (2.11BSD) 7/23/91";
 
@@ -148,9 +150,7 @@ mainp1(int argc, char *argv[])
 			}
 		}
 
-# ifdef ONEPASS
 	p2init( argc, argv );
-# endif
 
 	for( i=0; i<SYMTSZ; ++i ) stab[i].stype = TNULL;
 
@@ -974,11 +974,6 @@ lxres(void)
 				if( getchar() != '(' ) goto badasm;
 				lxget( ' ', LEXWS );
 				if( getchar() != '"' ) goto badasm;
-# ifndef ONEPASS
-# ifndef LINT
-				putchar(')');
-# endif
-# endif
 				while( (c=getchar()) != '"' ){
 					if( c=='\n' || c==EOF ) goto badasm;
 # ifndef LINT

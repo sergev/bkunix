@@ -5,7 +5,7 @@
  */
 # include "pass1.h"
 
-OFFSZ offsz;
+extern OFFSZ offsz;
 
 struct symtab *schain[MAXSCOPES];	/* sym chains for clearst */
 int chaintop;				/* highest active entry */
@@ -1277,6 +1277,7 @@ upoff(OFFSZ size, int alignment, OFFSZ *poff)
 
 	OFFSZ off;
 
+	if( offsz == 0 ) cerror("Bad offsz = 0");
 	off = *poff;
 	SETOFF( off, alignment );
 	if( (offsz-off) <  size ){

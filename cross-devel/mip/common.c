@@ -19,10 +19,6 @@
 #ifdef FORT
 #undef BUFSTDERR
 #endif
-#ifndef ONEPASS
-#undef BUFSTDERR
-#endif
-
 int nerrors = 0;  /* number of errors */
 
 extern OFFSZ offsz;
@@ -47,7 +43,7 @@ caloff(void)
 		temp <<= 1;
 		++i;
 		} while( temp > 0 );
-	off = 1 << (i-1);
+	off = (OFFSZ)1 << (i-1);
 #else
 	off = 02000000L;		/* enough for 64kb */
 #endif

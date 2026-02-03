@@ -783,11 +783,7 @@ int lbranches[][3] = {
 	};
 
 /* logical relations when compared in reverse order (cmp R,L) */
-#ifndef	ONEPASS
-short revrel[] ={ EQ, NE, GE, GT, LE, LT, UGE, UGT, ULE, ULT };
-#else
 extern short revrel[];
-#endif
 
 void
 cbgen(int o, int lab, int mode)
@@ -1049,14 +1045,6 @@ addroreg(NODE *l)
 	/*NOTREACHED*/
 	return (NODE *)0;
 	}
-
-# ifndef ONEPASS
-int
-main(int argc, char *argv[])
-{
-	return( mainp2( argc, argv ) );
-	}
-# endif
 
 NODE *
 myreader(NODE *p)

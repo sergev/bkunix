@@ -143,10 +143,6 @@ extern	int callflag;
 
 extern	int fregs;
 
-#ifndef ONEPASS
-#include "ndu.h"
-#endif
-
 extern	NODE node[];
 
 /* code tables */
@@ -174,11 +170,9 @@ extern	int rtyflg;
 extern	int nrecur;		/* flag to keep track of recursions */
 
 extern	NODE	*talloc(void);
-extern	NODE	*eread(void);
 extern	NODE	*tcopy(NODE *);
 extern	NODE	*getlr(NODE *, int);
 
-extern	CONSZ	rdin(int);
 extern	void	eprint(NODE *, int, int *, int *);
 extern	void	allo0(void);
 extern	void	cerror(const char *, ...);

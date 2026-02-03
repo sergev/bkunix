@@ -7,14 +7,7 @@
 
 /*	some storage declarations */
 
-# ifndef ONEPASS
-NODE node[TREESZ];
-char filename[100] = "";  /* the name of the file */
-int ftnno;  /* number of current function */
-int lineno;
-# else
 # define NOMAIN
-#endif
 
 int nrecur;
 int lflag;
@@ -125,111 +118,6 @@ p2init(int argc, char *argv[])
 
 	}
 
-# ifndef NOMAIN
-
-OFFSZ offsz;
-int
-mainp2(int argc, char *argv[])
-{
-	register int files;
-	register int temp;
-	register int c;
-	register char *cp;
-	register NODE *p;
-
-	offsz = caloff();
-	files = p2init( argc, argv );
-	tinit();
-
-	reread:
-
-	if( files ){
-		while( files < argc && argv[files][0] == '-' ) {
-			++files;
-			}
-		if( files > argc ) return( nerrors );
-		freopen( argv[files], "r", stdin );
-		}
-	while( (c=getchar()) > 0 ) switch( c ){
-	case ')':
-		/* copy line unchanged */
-		if ( c != ')' )
-			PUTCHAR( c );  /*  initial tab  */
-		while( (c=getchar()) > 0 ){
-			PUTCHAR(c);
-			if( c == '\n' ) break;
-			}
-		continue;
-
-	case BBEG:
-		/* beginning of a block */
-		temp = rdin(10);  /* ftnno */
-		tmpoff = baseoff = rdin(10); /* autooff for block gives max offset of autos in block */
-		maxtreg = rdin(10);
-		if( getchar() != '\n' ) cerror("intermediate file format error");
-
-		if( temp != ftnno ){ /* beginning of function */
-			maxoff = baseoff;
-			ftnno = temp;
-			maxtemp = 0;
-			}
-		else {
-			if( baseoff > maxoff ) maxoff = baseoff;
-			/* maxoff at end of ftn is max of autos and temps
-			   over all blocks in the function */
-			}
-		setregs();
-		continue;
-
-	case BEND:  /* end of block */
-		SETOFF( maxoff, ALSTACK );
-		eobl2();
-		while( (c=getchar()) != '\n' ){
-			if( c <= 0 ) cerror("intermediate file format eof" );
-			}
-		continue;
-
-	case EXPR:
-		/* compile code for an expression */
-		lineno = rdin( 10 );
-		for( cp=filename; (*cp=getchar()) != '\n'; ++cp ) ; /* VOID, reads filename */
-		*cp = '\0';
-		if( lflag ) lineid( lineno, filename );
-
-		tmpoff = baseoff;  /* expression at top level reuses temps */
-		p = eread();
-
-# ifndef BUG4
-		if( edebug ) fwalk( p, eprint, 0 );
-# endif
-
-# ifdef MYREADER
-		MYREADER(p);  /* do your own laundering of the input */
-# endif
-
-		nrecur = 0;
-		delay( p );  /* expression statement  throws out results */
-		reclaim( p, RNULL, 0 );
-
-		allchk();
-		tcheck();
-		continue;
-
-	default:
-		cerror("intermediate file format error" );
-
-		}
-
-	/* EOF */
-	if( files ) goto reread;
-	return(nerrors);
-
-	}
-
-# endif
-
-# ifdef ONEPASS
-
 void
 p2compile(NODE *p)
 {
@@ -277,8 +165,6 @@ p2bend(void)
 	SETOFF( maxoff, ALSTACK );
 	eobl2();
 	}
-
-# endif
 
 NODE *deltrees[DELAYS];
 int deli;
@@ -1119,99 +1005,6 @@ eprint(NODE *p, int down, int *a, int *b)
 		}
 	printf( ", SU= %d\n", p->in.su );
 
-	}
-# endif
-
-# ifndef NOMAIN
-NODE *
-eread(void)
-{
-
-	/* call eread recursively to get subtrees, if any */
-
-	register NODE *p;
-	register int i, c;
-	register char *pc;
-	register int j;
-
-	i = rdin( 10 );
-
-	p = talloc();
-
-	p->in.op = i;
-
-	i = optype(i);
-
-	if( i == LTYPE ) p->tn.lval = rdin( 10 );
-	if( i != BITYPE ) p->tn.rval = rdin( 10 );
-
-	p->in.type = rdin(8 );
-	p->in.rall = NOPREF;  /* register allocation information */
-
-	if( p->in.op == STASG || p->in.op == STARG || p->in.op == STCALL || p->in.op == UNARY STCALL ){
-		p->stn.stsize = (rdin( 10 ) + (SZCHAR-1) )/SZCHAR;
-		p->stn.stalign = rdin(10) / SZCHAR;
-		if( getchar() != '\n' ) cerror("illegal \n" );
-		}
-	else {   /* usual case */
-		if( p->in.op == REG ) rbusy( p->tn.rval, p->in.type );  /* non usually, but sometimes justified */
-#ifndef FLEXNAMES
-		for( pc=p->in.name,j=0; ( c = getchar() ) != '\n'; ++j ){
-			if( j < NCHNAM ) *pc++ = c;
-			}
-		if( j < NCHNAM ) *pc = '\0';
-#else
-		{ char buf[BUFSIZ];
-		for( pc=buf,j=0; ( c = getchar() ) != '\n'; ++j ){
-			if( j < BUFSIZ ) *pc++ = c;
-			}
-		if( j < BUFSIZ ) *pc = '\0';
-		p->in.name = tstr(buf);
-		}
-#endif
-		}
-
-	/* now, recursively read descendents, if any */
-
-	if( i != LTYPE ) p->in.left = eread();
-	if( i == BITYPE ) p->in.right = eread();
-
-	return( p );
-
-	}
-
-CONSZ
-rdin(int base)
-{
-	register int sign, c;
-	CONSZ val;
-
-	sign = 1;
-	val = 0;
-
-	while( (c=getchar()) > 0 ) {
-		if( c == '-' ){
-			if( val != 0 ) cerror("illegal -");
-			sign = -sign;
-			continue;
-			}
-		if( c == '\t' ) break;
-		if( c>='0' && c<='9' ) {
-			val *= base;
-			if( sign > 0 )
-				val += c-'0';
-			else
-				val -= c-'0';
-			continue;
-			}
-		cerror("illegal character `%c' on intermediate file", c );
-		break;
-		}
-
-	if( c <= 0 ) {
-		cerror("unexpected EOF");
-		}
-	return( val );
 	}
 # endif
 

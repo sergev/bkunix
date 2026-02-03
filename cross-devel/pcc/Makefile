@@ -7,7 +7,6 @@
 #       EIS		use mul, div, ash, ashc instructions
 #
 # Some symbols are specific to certain compilers:
-#	ONEPASS		compile pass 1 and pass 2 together
 #	SPRECC		do single precision in single not double
 #	FORT		get f77-style pass 2
 #
@@ -15,7 +14,7 @@ DESTDIR		= /usr/local
 LDESTDIR	= $(DESTDIR)/lib/pdp11
 M		= ../mip
 CC              = gcc
-CFLAGS		= -O -g -Werror -I. -I$(M) -DONEPASS -DFIXSTRUCT="outstruct" -DFLEXNAMES
+CFLAGS		= -O -g -Werror -I. -I$(M) -DFIXSTRUCT="outstruct" -DFLEXNAMES
 LDFLAGS 	= -g
 YACC		= byacc
 

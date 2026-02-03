@@ -108,18 +108,6 @@ typedef	union ndu NODE;
 typedef	unsigned int TWORD;
 #define NIL	(NODE *)0
 
-#ifndef ONEPASS
-#ifndef EXPR
-#define EXPR '.'
-#endif
-#ifndef BBEG
-#define BBEG '['
-#endif
-#ifndef BEND
-#define BEND ']'
-#endif
-#else
 #include "onepass.h"
-#endif
 
 #endif /* _MANIFEST_ */

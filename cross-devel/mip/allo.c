@@ -488,9 +488,7 @@ reclaim(NODE *p, int rw, int cookie)
 	p->tn.rval = q->tn.rval;
 #ifdef FLEXNAMES
 	p->in.name = q->in.name;
-#ifdef ONEPASS
 	p->in.stalign = q->in.stalign;
-#endif
 #else
 	for( i=0; i<NCHNAM; ++i )
 		p->in.name[i] = q->in.name[i];
@@ -554,9 +552,7 @@ ncopy( q, p ) NODE *p, *q; {
 	q->tn.rval = p->tn.rval;
 #ifdef FLEXNAMES
 	q->in.name = p->in.name;
-#ifdef ONEPASS
 	q->in.stalign = p->in.stalign;
-#endif
 #else
 	for( i=0; i<NCHNAM; ++i ) q->in.name[i]  = p->in.name[i];
 #endif

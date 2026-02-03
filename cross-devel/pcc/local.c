@@ -464,25 +464,3 @@ ecode(NODE *p)
 	p2compile( p );
 	}
 
-#ifndef ONEPASS
-int
-tlen(NODE *p)
-{
-	switch(p->in.type) {
-		case CHAR:
-		case UCHAR:
-			return(1);
-
-		case LONG:
-		case ULONG:
-		case FLOAT:
-			return(4);
-
-		case DOUBLE:
-			return(8);
-
-		default:
-			return(2);
-		}
-	}
-#endif
