@@ -11,161 +11,165 @@
 #include "as1.h"
 
 /*
-	Routine to parse and evaluate an expression
-	Returns value as a type/value structure
+        Routine to parse and evaluate an expression
+        Returns value as a type/value structure
 */
 struct value express(struct pass1 *p1)
 {
-	struct value v,rv;
-	int opfound,ttype;
-	char oldop;
+    struct value v, rv;
+    int opfound, ttype;
+    char oldop;
 
-	oldop = '+';
-	opfound = 0;
-	v.val.i = 0;
-	v.type.i = TYPEABS;
+    oldop    = '+';
+    opfound  = 0;
+    v.val.i  = 0;
+    v.type.i = TYPEABS;
 
-	while(1) {
+    while (1) {
+        if (p1->tok.v >= &p1->symtab[0].v && p1->tok.v < &p1->symend->v) { /* name/opcode */
+            rv.type.i = p1->tok.v->type.i;
+            rv.val.i  = p1->tok.v->val.i;
+            goto operand;
+        }
+        if (p1->tok.u >= FBBASE) { /* local symbol reference */
+            if (p1->tok.u >= FBFWD) {
+                v.type.i = TYPEUNDEF;
+                v.val.i  = 0;
+                goto operand;
+            }
+            rv.type.i = p1->curfbr[p1->tok.i - FBBASE];
+            rv.val.i  = p1->curfb[p1->tok.i - FBBASE];
+            if (v.val.i < 0)
+                aerror(p1, 'f');
+            goto operand;
+        }
 
-		if(p1->tok.v >= &p1->symtab[0].v && p1->tok.v < &p1->symend->v) {	/* name/opcode */
-			rv.type.i = p1->tok.v->type.i;
-			rv.val.i = p1->tok.v->val.i;
-			goto operand;
-		}
-		if(p1->tok.u >= FBBASE) {	/* local symbol reference */
-			if(p1->tok.u >= FBFWD) {
-				v.type.i = TYPEUNDEF;
-				v.val.i = 0;
-				goto operand;
-			}
-			rv.type.i = p1->curfbr[p1->tok.i - FBBASE];
-			rv.val.i = p1->curfb[p1->tok.i - FBBASE];
-			if(v.val.i < 0)
-				aerror(p1, 'f');
-			goto operand;
-		}
+        switch (p1->tok.i) {
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+        case '&':
+        case TOKVBAR:
+        case TOKLSH:
+        case TOKRSH:
+        case '%':
+        case '^':
+        case '!':
+            if (oldop != '+')
+                aerror(p1, 'e');
+            oldop = p1->tok.u;
+            readop(p1);
+            continue;
 
-		switch(p1->tok.i) {
-		case '+':	case '-':	case '*':	case '/':
-		case '&':	case TOKVBAR:	case TOKLSH:
-		case TOKRSH:	case '%':	case '^':
-		case '!':
-			if(oldop != '+')
-				aerror(p1, 'e');
-			oldop = p1->tok.u;
-			readop(p1);
-			continue;
+        case TOKINT:
+            rv.val.i  = p1->numval;
+            rv.type.i = TYPEABS;
+            break;
 
-		case TOKINT:
-			rv.val.i = p1->numval;
-			rv.type.i = TYPEABS;
-			break;
+        case '[':
+            readop(p1);
+            rv = express(p1);
+            if (p1->tok.u != ']')
+                aerror(p1, ']');
+            break;
 
-		case '[':
-			readop(p1);
-			rv = express(p1);
-			if(p1->tok.u != ']')
-				aerror(p1, ']');
-			break;
+        default:
+            if (!opfound)
+                aerror(p1, 'e');
+            return (v);
+        }
 
-		default:
-			if(!opfound)
-				aerror(p1, 'e');
-			return(v);
-		}
+    operand:
 
-	operand:
+        ++opfound;
+        ttype = combine(p1, v.type.i, rv.type.i, 0); /* tentative */
+        switch (oldop) {
+        case '+':
+            v.type.i = ttype;
+            v.val.i += rv.val.i;
+            break;
 
-		++opfound;
-		ttype = combine(p1, v.type.i, rv.type.i, 0); /* tentative */
-		switch(oldop) {
+        case '-':
+            v.type.i = combine(p1, v.type.i, rv.type.i, 1);
+            v.val.i -= rv.val.i;
+            break;
 
-		case '+':
-			v.type.i = ttype;
-			v.val.i += rv.val.i;
-			break;
+        case '*':
+            v.type.i = ttype;
+            v.val.i *= rv.val.i;
+            break;
 
-		case '-':
-			v.type.i = combine(p1, v.type.i, rv.type.i, 1);
-			v.val.i -= rv.val.i;
-			break;
+        case '/':
+            v.type.i = ttype;
+            v.val.i /= rv.val.i;
+            break;
 
-		case '*':
-			v.type.i = ttype;
-			v.val.i *= rv.val.i;
-			break;
+        case TOKVBAR:
+            v.type.i = ttype;
+            v.val.i |= rv.val.i;
+            break;
 
-		case '/':
-			v.type.i = ttype;
-			v.val.i /= rv.val.i;
-			break;
+        case '&':
+            v.type.i = ttype;
+            v.val.i &= rv.val.i;
+            break;
 
-		case TOKVBAR:
-			v.type.i = ttype;
-			v.val.i |= rv.val.i;
-			break;
+        case TOKLSH:
+            v.type.i = ttype;
+            v.val.i <<= rv.val.i;
+            break;
 
-		case '&':
-			v.type.i = ttype;
-			v.val.i &= rv.val.i;
-			break;
+        case TOKRSH:
+            v.type.i = ttype;
+            v.val.u >>= rv.val.i;
+            break;
 
-		case TOKLSH:
-			v.type.i = ttype;
-			v.val.i <<= rv.val.i;
-			break;
+        case '%':
+            v.type.i = ttype;
+            v.val.i %= rv.val.i;
+            break;
 
-		case TOKRSH:
-			v.type.i = ttype;
-			v.val.u >>= rv.val.i;
-			break;
+        case '!':
+            v.type.i = ttype;
+            v.val.i += ~rv.val.u;
+            break;
 
-		case '%':
-			v.type.i = ttype;
-			v.val.i %= rv.val.i;
-			break;
+        case '^':
+            v.type.i = rv.type.i;
+            break;
 
-		case '!':
-			v.type.i = ttype;
-			v.val.i += ~rv.val.u;
-			break;
+        default:
+            break;
+        }
 
-		case '^':
-			v.type.i = rv.type.i;
-			break;
-
-		default:
-			break;
-		}
-
-		oldop = '+';
-		readop(p1);
-	}
-	return(v);	/* dummy... */
+        oldop = '+';
+        readop(p1);
+    }
+    return (v); /* dummy... */
 }
 
-
 /*
-	Routine to determine type after combining to operands
+        Routine to determine type after combining to operands
 */
 int combine(struct pass1 *p1, int left, int right, int sflag)
 {
-	int ext,t;
+    int ext, t;
 
-	(void)p1;
-	ext = (left | right) & TYPEEXT;
-	left &= 037;
-	right &= 037;
-	if(right > left) {				/* highest type on left */
-		t = right;
-		right = left;
-		left = t;
-	}
-	if(right == TYPEUNDEF)			/* if either one was undef */
-		return(ext);
-	if(!sflag)						/* not subtract */
-		return(left | ext);
-	if(left != right)				/* subtract unlike types */
-		return(left | ext);
-	return(ext | TYPEABS);			/* subtract like types */
+    (void)p1;
+    ext = (left | right) & TYPEEXT;
+    left &= 037;
+    right &= 037;
+    if (right > left) { /* highest type on left */
+        t     = right;
+        right = left;
+        left  = t;
+    }
+    if (right == TYPEUNDEF) /* if either one was undef */
+        return (ext);
+    if (!sflag) /* not subtract */
+        return (left | ext);
+    if (left != right) /* subtract unlike types */
+        return (left | ext);
+    return (ext | TYPEABS); /* subtract like types */
 }

@@ -8,195 +8,197 @@
  * See the accompanying file "COPYING" for more details.
  */
 #include <stdio.h>
+
 #include "as.h"
 #include "as2.h"
 
 struct value p2_express(struct pass2 *p2)
 {
-	p2->xsymbol = 0;
-	return(p2_expres1(p2));
+    p2->xsymbol = 0;
+    return (p2_expres1(p2));
 }
-
 
 struct value p2_expres1(struct pass2 *p2)
 {
-	struct value v,rv;
-	int oldop;
-	struct fb_tab *pfb;
+    struct value v, rv;
+    int oldop;
+    struct fb_tab *pfb;
 
-	oldop = '+';
-	v.val.i = 0;
-	v.type.i = TYPEABS;
+    oldop    = '+';
+    v.val.i  = 0;
+    v.type.i = TYPEABS;
 
-	while(1) {
-		if(p2->tok.i > TOKSYMBOL) {
-			if((rv.type.i = p2->tok.v->type.i) == TYPEUNDEF &&
-			   p2->passno != 0)
-			   p2_aerror(p2, 'u');
-			if(rv.type.i == TYPEEXT) {
-				p2->xsymbol = (void*) (size_t) p2->tok.u;
-				rv.val.i = 0;
-				goto operand;
-			}
-			rv.val.i = p2->tok.v->val.i;
-			goto operand;
-		}
+    while (1) {
+        if (p2->tok.i > TOKSYMBOL) {
+            if ((rv.type.i = p2->tok.v->type.i) == TYPEUNDEF && p2->passno != 0)
+                p2_aerror(p2, 'u');
+            if (rv.type.i == TYPEEXT) {
+                p2->xsymbol = (void *)(size_t)p2->tok.u;
+                rv.val.i    = 0;
+                goto operand;
+            }
+            rv.val.i = p2->tok.v->val.i;
+            goto operand;
+        }
 
-		if(p2->tok.u >= FBBASE) {
-			pfb = p2->curfb[p2->tok.u - FBBASE];
-			rv.val.i = pfb->val;
-			rv.type.i = (char) pfb->label;
-			goto operand;
-		}
+        if (p2->tok.u >= FBBASE) {
+            pfb       = p2->curfb[p2->tok.u - FBBASE];
+            rv.val.i  = pfb->val;
+            rv.type.i = (char)pfb->label;
+            goto operand;
+        }
 
-		switch(p2->tok.u) {
+        switch (p2->tok.u) {
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+        case '&':
+        case '%':
+        case '^':
+        case '!':
+        case TOKVBAR:
+        case TOKLSH:
+        case TOKRSH:
+            if (oldop != '+')
+                p2_aerror(p2, 'e');
+            oldop = p2->tok.u;
+            p2_readop(p2);
+            continue;
 
-		case '+': case '-': case '*': case '/':
-		case '&': case '%': case '^': case '!':
-		case TOKVBAR: case TOKLSH: case TOKRSH:
-			if(oldop != '+')
-				p2_aerror(p2, 'e');
-			oldop = p2->tok.u;
-			p2_readop(p2);
-			continue;
+        case TOKINT:
+            p2_agetw(p2);
+            rv.val.i  = p2->tok.i;
+            rv.type.i = TYPEABS;
+            goto operand;
 
-		case TOKINT:
-			p2_agetw(p2);
-			rv.val.i = p2->tok.i;
-			rv.type.i = TYPEABS;
-			goto operand;
+        case 2:
+            rv.val.i  = p2->numval;
+            rv.type.i = TYPEABS;
+            goto operand;
 
-		case 2:
-			rv.val.i = p2->numval;
-			rv.type.i = TYPEABS;
-			goto operand;
+        case '[':
+            p2_readop(p2);
+            rv = p2_expres1(p2);
+            if (p2->tok.u != ']')
+                p2_aerror(p2, ']');
+            goto operand;
 
-		case '[':
-			p2_readop(p2);
-			rv = p2_expres1(p2);
-			if(p2->tok.u != ']')
-				p2_aerror(p2, ']');
-			goto operand;
+        default:
+            return (v);
+        }
 
-		default:
-			return(v);
-		}
+    operand:
 
-	operand:
+        switch (oldop) {
+        case '+':
+            v.type.i = p2_combine(p2, v.type.i, rv.type.i, pass2_reltp2(p2));
+            v.val.i += rv.val.i;
+            break;
 
-		switch(oldop){
+        case '-':
+            v.type.i = p2_combine(p2, v.type.i, rv.type.i, pass2_reltm2(p2));
+            v.val.i -= rv.val.i;
+            break;
 
-		case '+':
-			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_reltp2(p2));
-			v.val.i += rv.val.i;
-			break;
+        case '*':
+            v.type.i = p2_combine(p2, v.type.i, rv.type.i, pass2_relte2(p2));
+            v.val.i *= rv.val.i;
+            break;
 
-		case '-':
-			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_reltm2(p2));
-			v.val.i -= rv.val.i;
-			break;
+        case '/':
+            v.type.i = p2_combine(p2, v.type.i, rv.type.i, pass2_relte2(p2));
+            v.val.i /= rv.val.i;
+            break;
 
-		case '*':
-			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
-			v.val.i *= rv.val.i;
-			break;
+        case TOKVBAR:
+            v.type.i = p2_combine(p2, v.type.i, rv.type.i, pass2_relte2(p2));
+            v.val.i |= rv.val.i;
+            break;
 
-		case '/':
-			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
-			v.val.i /= rv.val.i;
-			break;
+        case '&':
+            v.type.i = p2_combine(p2, v.type.i, rv.type.i, pass2_relte2(p2));
+            v.val.i &= rv.val.i;
+            break;
 
-		case TOKVBAR:
-			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
-			v.val.i |= rv.val.i;
-			break;
+        case TOKLSH:
+            v.type.i = p2_combine(p2, v.type.i, rv.type.i, pass2_relte2(p2));
+            v.val.i <<= rv.val.i;
+            break;
 
-		case '&':
-			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
-			v.val.i &= rv.val.i;
-			break;
+        case TOKRSH:
+            v.type.i = p2_combine(p2, v.type.i, rv.type.i, pass2_relte2(p2));
+            v.val.u >>= rv.val.i;
+            break;
 
-		case TOKLSH:
-			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
-			v.val.i <<= rv.val.i;
-			break;
+        case '%':
+            v.type.i = p2_combine(p2, v.type.i, rv.type.i, pass2_relte2(p2));
+            v.val.i %= rv.val.i;
+            break;
 
-		case TOKRSH:
-			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
-			v.val.u >>= rv.val.i;
-			break;
+        case '^':
+            v.type.i = rv.type.i;
+            break;
 
-		case '%':
-			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
-			v.val.i %= rv.val.i;
-			break;
+        case '!':
+            v.type.i = p2_combine(p2, v.type.i, rv.type.i, pass2_relte2(p2));
+            v.val.i += ~rv.val.u;
+            break;
 
-		case '^':
-			v.type.i = rv.type.i;
-			break;
+        default:
+            break;
+        }
 
-		case '!':
-			v.type.i = p2_combine(p2, v.type.i,rv.type.i,pass2_relte2(p2));
-			v.val.i += ~rv.val.u;
-			break;
-
-		default:
-			break;
-		}
-
-		oldop = '+';
-		p2_readop(p2);
-	}
-	return(v);	/* never execued - for compiler */
+        oldop = '+';
+        p2_readop(p2);
+    }
+    return (v); /* never execued - for compiler */
 }
 
-
 /*
-	Routine to determine type after an operation
+        Routine to determine type after an operation
 */
 int p2_combine(struct pass2 *p2, int left, int right, int *table)
 {
-	int t,t2;
+    int t, t2;
 
-	if(p2->passno == 0) {
-		t = (right | left) & TYPEEXT;
-		right &= 037;
-		left &= 037;
-		if(right > left) {
-			t2 = right;
-			right = left;
-			left = t2;
-		}
-		if(right == TYPEUNDEF)
-			return(t);
-		if(table != pass2_reltm2(p2) || left != right)
-			return(t | left);
-		return(t | TYPEABS);
-	}
+    if (p2->passno == 0) {
+        t = (right | left) & TYPEEXT;
+        right &= 037;
+        left &= 037;
+        if (right > left) {
+            t2    = right;
+            right = left;
+            left  = t2;
+        }
+        if (right == TYPEUNDEF)
+            return (t);
+        if (table != pass2_reltm2(p2) || left != right)
+            return (t | left);
+        return (t | TYPEABS);
+    }
 
-	p2->maxtyp = 0;
-	left = table[p2_maprel(p2, right)*6 + p2_maprel(p2, left)];
-	if(left < 0) {
-		if(left != -1)
-			p2_aerror(p2, 'r');
-		return(p2->maxtyp);
-	}
-	return(left);
+    p2->maxtyp = 0;
+    left       = table[p2_maprel(p2, right) * 6 + p2_maprel(p2, left)];
+    if (left < 0) {
+        if (left != -1)
+            p2_aerror(p2, 'r');
+        return (p2->maxtyp);
+    }
+    return (left);
 }
 
-
-
 /*
-	Routine to map relocation flag and type into reltX2
-	table index, and calculate "max" type
+        Routine to map relocation flag and type into reltX2
+        table index, and calculate "max" type
 */
 int p2_maprel(struct pass2 *p2, int type)
 {
-	if(type == TYPEEXT)
-		return(5);
-	if((type &= 037) > p2->maxtyp)
-		p2->maxtyp = type;
-	if(type > TYPEOPFD)
-		return(1);
-	return(type);
+    if (type == TYPEEXT)
+        return (5);
+    if ((type &= 037) > p2->maxtyp)
+        p2->maxtyp = type;
+    if (type > TYPEOPFD)
+        return (1);
+    return (type);
 }
