@@ -86,7 +86,7 @@ void assem(struct pass1 *p1)
             continue;
         } // :
 
-        p1->savop = p1->tok.i;
+        p1->savop = p1->tok;
         p1->tok   = savtok;
         opline(p1);
 

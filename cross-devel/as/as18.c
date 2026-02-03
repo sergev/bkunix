@@ -60,7 +60,7 @@ void pass1_init(struct pass1 *p1)
     p1->globflag    = 0;
     p1->eos_flag    = 0;
     p1->line        = 0;
-    p1->savop       = 0;
+    p1->savop.i     = 0;
     p1->ch          = 0;
     p1->numval      = 0;
     for (i = 0; i < (int)(sizeof chartab_init / sizeof chartab_init[0]) && i < PASS1_CHARTAB_SIZE;

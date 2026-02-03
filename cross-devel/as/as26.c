@@ -368,7 +368,7 @@ unsigned p2_address(struct pass2 *p2)
         case '-':
             p2_readop(p2);
             if (p2->tok.u != '(') {
-                p2->savop = p2->tok.u;
+                p2->savop = p2->tok;
                 p2->tok.u = '-';
                 break;
             }

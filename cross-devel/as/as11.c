@@ -85,7 +85,6 @@ void asm_pass1(int globflag, int argc, char *argv[])
     p1.ifflg   = 0;
     p1.fileflg = 0;
     p1.errflg  = 0;
-    p1.savop   = 0;
     assem(&p1);
     close(p1.pof);
     close(p1.fbfil);

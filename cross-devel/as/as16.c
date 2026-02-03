@@ -210,7 +210,7 @@ int address(struct pass1 *p1)
     case '-':
         readop(p1);
         if (p1->tok.i != '(') { // not really auto decrement
-            p1->savop = p1->tok.i;
+            p1->savop = p1->tok;
             p1->tok.i = '-';
             break;
         }

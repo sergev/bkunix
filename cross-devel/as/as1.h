@@ -45,7 +45,7 @@ struct pass1 {
 
     union token tok;
     int line;
-    int savop;
+    union token savop;
     char ch;
     int numval;
     int num_rtn;

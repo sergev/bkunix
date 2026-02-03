@@ -67,7 +67,7 @@ void pass2_init(struct pass2 *p2)
     p2->passno                                    = 0;
     p2->outmod                                    = 0777;
     p2->line                                      = 0;
-    p2->savop                                     = 0;
+    p2->savop.u                                   = 0;
     p2->xsymbol                                   = 0;
     p2->swapf                                     = 0;
     p2->rlimit                                    = 0;

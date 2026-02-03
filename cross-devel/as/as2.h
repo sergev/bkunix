@@ -77,7 +77,7 @@ struct pass2 {
     int passno;
     int outmod;
     int line;
-    int savop;
+    union token savop;
     void *xsymbol;
     int swapf;
     int rlimit;

@@ -21,8 +21,8 @@ void readop(struct pass1 *p1)
     unsigned char c;
     int i;
 
-    if ((p1->tok.i = p1->savop) != 0) {
-        p1->savop = 0;
+    if ((p1->tok = p1->savop).i != 0) {
+        p1->savop.i = 0;
         return;
     }
 

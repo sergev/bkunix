@@ -90,9 +90,9 @@ void p2_flush(struct pass2 *p2, struct out_buf *p)
 //
 void p2_readop(struct pass2 *p2)
 {
-    p2->tok.i = p2->savop;
+    p2->tok = p2->savop;
     if (p2->tok.i != 0) {
-        p2->savop = 0;
+        p2->savop.i = 0;
         return;
     }
     p2_agetw(p2);
@@ -117,9 +117,9 @@ int p2_agetw(struct pass2 *p2)
 {
     unsigned char buf[2];
 
-    p2->tok.u = p2->savop;
+    p2->tok = p2->savop;
     if (p2->tok.u != 0) {
-        p2->savop = 0;
+        p2->savop.u = 0;
         return (TRUE);
     }
     if (read(p2->fin, buf, 2) < 2) {

@@ -42,7 +42,7 @@ void p2_assem(struct pass2 *p2)
                 p2_docolon(p2, &ttok);
                 continue;
             default:
-                p2->savop = p2->tok.u;
+                p2->savop = p2->tok;
                 p2->tok.u = ttok.u;
                 break;
             }
