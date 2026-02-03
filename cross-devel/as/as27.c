@@ -53,7 +53,9 @@ struct value p2_expres1(struct pass2 *p2)
             goto operand;
         }
 
-        if (p2->tok.u >= FBBASE) {
+        // Temp labels only: 0b-9b (FBBASE..FBBASE+9), 0f-9f (FBFWD..FBFWD+9). Symbol tokens
+        // must not match here (they are > TOKSYMBOL or hold pointer after resolution).
+        if (p2->tok.u >= FBBASE && p2->tok.u < FBFWD + 10) {
             pfb       = p2->curfb[p2->tok.u - FBBASE];
             rv.val.i  = pfb->val;
             rv.type.i = (char)pfb->label;
