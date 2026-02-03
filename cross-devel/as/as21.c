@@ -44,7 +44,6 @@ int asm_pass2(int globflag, char *outfile)
     p2.atmp1   = atmp1;
     p2.atmp2   = atmp2;
     p2.atmp3   = atmp3;
-    p2.debug   = 0;
     p2.txtfil  = p2_ofile(&p2, p2.atmp1);
     p2.fbfil   = p2_ofile(&p2, p2.atmp2);
     p2.symf    = p2_ofile(&p2, p2.atmp3);
@@ -160,12 +159,12 @@ int asm_pass2(int globflag, char *outfile)
 //
 // Unlink temp files (unless debug) and exit with given code.
 // Called on error or normal completion of pass2.
-// Inputs: p2 (atmp1, atmp2, atmp3, debug), code (exit status).
+// Inputs: p2 (atmp1, atmp2, atmp3), code (exit status). Uses global debug_flag.
 // Outputs: None; process exits.
 //
 void p2_aexit(struct pass2 *p2, int code)
 {
-    if (!p2->debug) {
+    if (!debug_flag) {
         unlink(p2->atmp1);
         unlink(p2->atmp2);
         unlink(p2->atmp3);

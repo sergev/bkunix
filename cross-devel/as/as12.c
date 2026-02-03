@@ -17,7 +17,6 @@
 // Called from parser/expression code when syntax or semantic errors are found.
 // Inputs: p1 (curarg, line for location; errflg incremented), c (error code).
 // Outputs: Prints "file:line: message" to stdout; increments p1->errflg.
-// Switch maps c to message string; unknown c prints "Error 'c'".
 //
 void aerror(struct pass1 *p1, int c)
 {
@@ -80,13 +79,14 @@ void aerror(struct pass1 *p1, int c)
 // Called by scanner/symbol code to record token stream for pass2.
 // Inputs: p1 (pof, ifflg, tok).
 // Outputs: Writes 2-byte token to p1->pof when not suppressed by .if.
-// Suppresses non-newline tokens inside .if to keep line count; writes little-endian tok.i.
 //
 void aputw(struct pass1 *p1)
 {
     char buf[2];
 
     if (!p1->ifflg || p1->tok.i == '\n') {
+        if (debug_flag)
+            printf("--- write atmp1: tok=0x%04x (%o)\n", (unsigned)p1->tok.u, (unsigned)p1->tok.u);
         buf[0] = (unsigned char)p1->tok.i;
         buf[1] = (unsigned char)(p1->tok.i >> 8);
         if (write(p1->pof, buf, 2) != 2)

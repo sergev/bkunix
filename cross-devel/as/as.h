@@ -26,6 +26,7 @@
 #define PASS2  DESTDIR "/lib/pdp11/asm2"
 
 extern char atmp1[], atmp2[], atmp3[];
+extern int debug_flag;
 
 void asm_pass1(int globflag, int argc, char *argv[]);
 int asm_pass2(int globflag, char *outfile);

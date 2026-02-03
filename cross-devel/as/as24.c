@@ -124,5 +124,11 @@ int p2_agetw(struct pass2 *p2)
         return (FALSE);
     }
     p2->tok.u = buf[0] | buf[1] << 8;
+    if (debug_flag) {
+        const char *name = (p2->fin == p2->symf) ? "atmp3" :
+                          (p2->fin == p2->fbfil) ? "atmp2" :
+                          (p2->fin == p2->txtfil) ? "atmp1" : "?";
+        printf("--- read %s: 0x%04x (%o)\n", name, (unsigned)p2->tok.u, (unsigned)p2->tok.u);
+    }
     return (TRUE);
 }

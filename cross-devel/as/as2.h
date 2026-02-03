@@ -91,7 +91,6 @@ struct pass2 {
     char *atmp2;
     char *atmp3;
     char *outfile;
-    int debug;
 };
 
 // Accessors for values derived from struct fields

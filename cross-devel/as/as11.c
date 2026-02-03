@@ -13,6 +13,7 @@
 char atmp1[] = "/tmp/atm1XXXXXX";
 char atmp2[] = "/tmp/atm2XXXXXX";
 char atmp3[] = "/tmp/atm3XXXXXX";
+int debug_flag = 0;
 
 //
 // Print assembler usage to stderr and exit with failure.
@@ -29,11 +30,10 @@ void usage()
 // Invoked by the system; -u enables global, -o sets output, -D debug.
 // Inputs: argc, argv (optionally -u, -o outfile, input files).
 // Outputs: 0 on success; does not return on error or debug early exit.
-// Strips leading -options, runs asm_pass1 then asm_pass2; if -D, exits after pass1.
 //
 int main(int argc, char *argv[])
 {
-    int globflag = 0, debug = 0;
+    int globflag = 0;
     char *outfile = 0;
 
     while (argv[1] && argv[1][0] == '-') {
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
             globflag = TRUE;
             break;
         case 'D':
-            debug = 1;
+            debug_flag = 1;
             break;
         case 'o':
             outfile = argv[2];
@@ -58,8 +58,6 @@ int main(int argc, char *argv[])
         --argc;
     }
     asm_pass1(globflag, argc, argv);
-    if (debug)
-        exit(0);
     return asm_pass2(globflag, outfile);
 }
 
@@ -68,7 +66,6 @@ int main(int argc, char *argv[])
 // Called from main after option parsing.
 // Inputs: globflag, argc/argv (remaining args as input file list or stdin).
 // Outputs: Writes intermediate output to atmp1/atmp2; on error may call aexit.
-// Creates pass1 state, temp files for object and fb, runs setup() and assem(), then write_syms to atmp3.
 //
 void asm_pass1(int globflag, int argc, char *argv[])
 {
@@ -111,6 +108,9 @@ void write_syms(struct pass1 *p1, int fd)
     char buf[4];
 
     for (s = p1->usymtab; s < p1->symend; ++s) {
+        if (debug_flag)
+            printf("--- write atmp3: sym \"%.8s\" type=%o val=%o\n",
+                   s->name, s->v.type.u, s->v.val.u);
         write(fd, s->name, sizeof(s->name));
         buf[0] = s->v.type.u;
         buf[1] = s->v.type.u >> 8;
@@ -125,7 +125,6 @@ void write_syms(struct pass1 *p1, int fd)
 // Called when temp file creation or other file ops fail.
 // Inputs: p1 (unused), name (file path), msg (error description).
 // Outputs: None; prints to stderr and returns.
-// Prints message and returns; caller typically exits.
 //
 void filerr(struct pass1 *p1, char *name, char *msg)
 {
@@ -139,7 +138,6 @@ void filerr(struct pass1 *p1, char *name, char *msg)
 // Called when pass1 hits errors so pass2 is not run.
 // Inputs: p1 (unused).
 // Outputs: None; process exits with 1.
-// Unlinks atmp1, atmp2, atmp3 then exit(1).
 //
 void aexit(struct pass1 *p1)
 {
@@ -155,7 +153,6 @@ void aexit(struct pass1 *p1)
 // Called to create atmp1, atmp2, atmp3 for pass1 intermediates.
 // Inputs: p1 (for filerr), name (template e.g. /tmp/atm1XXXXXX).
 // Outputs: Open file descriptor (read/write); name is modified in place by mkstemp.
-// Uses mkstemp; on failure reports via filerr and exit(2).
 //
 int f_create(struct pass1 *p1, char *name)
 {
@@ -173,7 +170,6 @@ int f_create(struct pass1 *p1, char *name)
 // Called once at start of pass1 after temp files are created.
 // Inputs: p1 (symtab, hshtab); OPTABL file must exist.
 // Outputs: Fills symtab from file, pads names to 8 chars, enters each in hash via hash_enter.
-// Reads "name type val" triplets in octal; validates count and SYMBOLS limit; zero-pads names then hash_enter.
 //
 void setup(struct pass1 *p1)
 {
