@@ -67,7 +67,7 @@ void pass1_init(struct pass1 *p1);
 
 int address(struct pass1 *p1);
 void add_symbol(struct pass1 *p1, struct symtab *, char *);
-void aerror(struct pass1 *p1, int);
+void aerror(struct pass1 *p1, const char *);
 void aexit(struct pass1 *p1);
 void aputw(struct pass1 *p1);
 void assem(struct pass1 *p1);

@@ -152,7 +152,7 @@ unsigned char rch(struct pass1 *p1)
         if (--p1->nargs <= 0)
             return (TOKEOF);
         if (p1->ifflg) {
-            aerror(p1, 'i');
+            aerror(p1, "Unterminated .endif");
             aexit(p1);
         }
         ++p1->fileflg;

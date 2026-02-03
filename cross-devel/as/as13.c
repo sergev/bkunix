@@ -44,13 +44,13 @@ void assem(struct pass1 *p1)
             readop(p1);
             v = express(p1);
             if (savtok.u < TOKSYMBOL) {
-                aerror(p1, 'x');
+                aerror(p1, "Syntax error");
                 goto ealoop;
             }
             if (p1->tok.s == &p1->symtab[0]) {
                 v.type.u &= ~TYPEEXT;
                 if (v.type.i != dotrel(p1)) {
-                    aerror(p1, '.');
+                    aerror(p1, "Dot '.' expected");
                     p1->symtab[0].v.type.i = TYPETXT;
                     goto ealoop;
                 }
@@ -68,13 +68,13 @@ void assem(struct pass1 *p1)
             p1->tok = savtok;
             if (p1->tok.u >= TOKSYMBOL) {
                 if (p1->tok.v->type.u & 037)
-                    aerror(p1, 'm');
+                    aerror(p1, "Invalid label");
                 p1->tok.v->type.u |= dotrel(p1);
                 p1->tok.v->val.i = dot(p1);
                 continue;
             }
             if (p1->tok.i != TOKINT) {
-                aerror(p1, 'x');
+                aerror(p1, "Syntax error");
                 continue;
             }
             i               = fbcheck(p1, p1->numval); // n:
@@ -99,13 +99,13 @@ void assem(struct pass1 *p1)
             continue;
         }
         if (p1->tok.i != TOKEOF) {
-            aerror(p1, 'x');
+            aerror(p1, "Syntax error");
             while (!checkeos(p1))
                 readop(p1);
             continue;
         }
         if (p1->ifflg)
-            aerror(p1, 'x');
+            aerror(p1, "Syntax error");
         return;
     }
 }
@@ -142,7 +142,7 @@ void write_fb(struct pass1 *p1, int f, struct fb_tab *b)
 unsigned fbcheck(struct pass1 *p1, unsigned u)
 {
     if (u > 9) {
-        aerror(p1, 'f');
+        aerror(p1, "Invalid temporary label");
         u = 0;
     }
     return (u);

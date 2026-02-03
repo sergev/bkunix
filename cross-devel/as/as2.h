@@ -111,7 +111,7 @@ int *pass2_reltm2(struct pass2 *p2);
 int *pass2_relte2(struct pass2 *p2);
 
 void p2_addrovf(struct pass2 *p2);
-void p2_aerror(struct pass2 *p2, int);
+void p2_aerror(struct pass2 *p2, const char *);
 void p2_aexit(struct pass2 *p2, int);
 int p2_agetw(struct pass2 *p2);
 void p2_aputw(struct pass2 *p2, struct out_buf *, int);

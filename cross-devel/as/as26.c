@@ -76,7 +76,7 @@ void p2_opline(struct pass2 *p2)
                 if (DEBUG)
                     printf(" branch error val %d type %d dotrel %d ", v.val.i, v.type.u,
                            dotrel(p2));
-                p2_aerror(p2, 'b');
+                p2_aerror(p2, "Branch offset too big");
                 v.val.u = 0;
             } else {
                 v.val.u = ((v.val.u >> 1) - 1) & 0377;
@@ -103,7 +103,7 @@ void p2_opline(struct pass2 *p2)
     case TYPEOPSYS:
         v = p2_express(p2);
         if (v.val.u >= 64 || v.type.u > TYPEABS)
-            p2_aerror(p2, 'a');
+            p2_aerror(p2, "Incorrect operand value");
         v.val.u |= topcode;
         p2_outw(p2, v.type.u, v.val.u);
         return;
@@ -228,13 +228,13 @@ void p2_opline(struct pass2 *p2)
             v.val.u -= dot(p2);
             v.val.i = -v.val.i;
             if (v.val.i < -2 || v.val.i > 0175) {
-                p2_aerror(p2, 'b');
+                p2_aerror(p2, "Branch offset too big");
                 p2_outw(p2, 0, topcode);
                 return;
             }
             v.val.u += 4;
             if ((v.val.u & 1) || v.type.u != dotrel(p2)) {
-                p2_aerror(p2, 'b');
+                p2_aerror(p2, "Branch offset too big");
                 p2_outw(p2, 0, topcode);
                 return;
             }
@@ -318,7 +318,7 @@ void p2_op2b(struct pass2 *p2, unsigned a1, unsigned op)
     a1 = (a1 << 8) | ((a1 >> 8) & 0xff);
     a1 >>= 2;
     if (a1 >= (unsigned)p2->rlimit)
-        p2_aerror(p2, 'x');
+        p2_aerror(p2, "Data in .bss section");
     a2 |= a1 | op;
     p2_outw(p2, 0, a2);
     for (p = &p2->adrbuf[0]; p < p2->padrb; p += 3) {
@@ -392,7 +392,7 @@ unsigned p2_address(struct pass2 *p2)
 
         case '*':
             if (t != 0)
-                p2_aerror(p2, '*');
+                p2_aerror(p2, "Error at '*'");
             t = AMDEFERRED;
             p2_readop(p2);
             continue;
@@ -457,7 +457,7 @@ void p2_addrovf(struct pass2 *p2)
 void p2_checkreg(struct pass2 *p2, struct value *v)
 {
     if (v->val.u > 7 || (v->type.u > TYPEABS && v->type.u < TYPEOPFD)) {
-        p2_aerror(p2, 'a');
+        p2_aerror(p2, "Incorrect operand value");
         v->val.i  = 0;
         v->type.i = TYPEUNDEF;
     }
@@ -472,7 +472,7 @@ void p2_checkreg(struct pass2 *p2, struct value *v)
 void p2_checkrp(struct pass2 *p2)
 {
     if (p2->tok.i != ')') {
-        p2_aerror(p2, ')');
+        p2_aerror(p2, "Required ')'");
         return;
     }
     p2_readop(p2);

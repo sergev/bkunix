@@ -58,7 +58,7 @@ void opline(struct pass1 *p1)
     case TYPEOPMUL:
         address(p1);
         if (p1->tok.i != ',') {
-            aerror(p1, 'a');
+            aerror(p1, "Invalid register name");
             return;
         }
         readop(p1);
@@ -103,7 +103,7 @@ void opline(struct pass1 *p1)
     case TYPEOPIF: // .if
         v = express(p1);
         if (v.type.i == TYPEUNDEF)
-            aerror(p1, 'U');
+            aerror(p1, "Undefined identifier in .if");
         if (v.val.i == 0)
             ++p1->ifflg;
         return;
@@ -139,7 +139,7 @@ void opline(struct pass1 *p1)
     case TYPEOPSOB: // sob
         express(p1);
         if (p1->tok.u != ',')
-            aerror(p1, 'a');
+            aerror(p1, "Invalid register name");
         readop(p1);
         express(p1);
         p1->symtab[0].v.val.u += 2;
@@ -147,13 +147,13 @@ void opline(struct pass1 *p1)
 
     case TYPEOPCOM: // .common
         if (p1->tok.u < TOKSYMBOL) {
-            aerror(p1, 'x');
+            aerror(p1, "Syntax error");
             return;
         }
         p1->tok.v->type.u |= TYPEEXT;
         readop(p1);
         if (p1->tok.u != ',') {
-            aerror(p1, 'x');
+            aerror(p1, "Syntax error");
             return;
         }
         readop(p1);
@@ -179,7 +179,7 @@ void opline(struct pass1 *p1)
         break;
     }
 
-    aerror(p1, '~');
+    aerror(p1, "Internal error");
     fprintf(stderr, "opline: internal error, line %d\n", p1->line);
     aexit(p1);
 }
@@ -229,7 +229,7 @@ int address(struct pass1 *p1)
     case '*':
         readop(p1);
         if (p1->tok.i == '*')
-            aerror(p1, '*');
+            aerror(p1, "Error at '*'");
         i = address(p1);
         p1->symtab[0].v.val.u += i;
         return (i);
@@ -259,12 +259,12 @@ int address(struct pass1 *p1)
 // Verify value is a valid register (0..7) and not a section type; error otherwise.
 // Called from address after parsing (reg) or register operand.
 // Inputs: p1 (for aerror), v (value to check).
-// Outputs: None; calls aerror(p1,'a') if v.val.u>7 or v.type is section-like.
+// Outputs: None; calls aerror(p1,"Invalid register name") if v.val.u>7 or v.type is section-like.
 //
 void checkreg(struct pass1 *p1, struct value v)
 {
     if (v.val.u > 7 || (v.type.u != TYPEABS && v.type.u <= TYPEBSS))
-        aerror(p1, 'a');
+        aerror(p1, "Invalid register name");
 }
 
 //
@@ -276,7 +276,7 @@ void checkreg(struct pass1 *p1, struct value v)
 void checkrp(struct pass1 *p1)
 {
     if (p1->tok.i != ')') {
-        aerror(p1, ')');
+        aerror(p1, "Expected ')'");
         return;
     }
     readop(p1);

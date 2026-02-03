@@ -43,7 +43,7 @@ struct value p2_expres1(struct pass2 *p2)
     while (1) {
         if (p2->tok.i > TOKSYMBOL) {
             if ((rv.type.i = p2->tok.v->type.i) == TYPEUNDEF && p2->passno != 0)
-                p2_aerror(p2, 'u');
+                p2_aerror(p2, "Unknown symbol");
             if (rv.type.i == TYPEEXT) {
                 p2->xsymbol = (void *)(size_t)p2->tok.u;
                 rv.val.i    = 0;
@@ -75,7 +75,7 @@ struct value p2_expres1(struct pass2 *p2)
         case TOKLSH:
         case TOKRSH:
             if (oldop != '+')
-                p2_aerror(p2, 'e');
+                p2_aerror(p2, "Bad expression");
             oldop = p2->tok.u;
             p2_readop(p2);
             continue;
@@ -95,7 +95,7 @@ struct value p2_expres1(struct pass2 *p2)
             p2_readop(p2);
             rv = p2_expres1(p2);
             if (p2->tok.u != ']')
-                p2_aerror(p2, ']');
+                p2_aerror(p2, "Required ']'");
             goto operand;
 
         default:
@@ -199,7 +199,7 @@ int p2_combine(struct pass2 *p2, int left, int right, int *table)
     left       = table[p2_maprel(p2, right) * 6 + p2_maprel(p2, left)];
     if (left < 0) {
         if (left != -1)
-            p2_aerror(p2, 'r');
+            p2_aerror(p2, "Relocatable value not allowed");
         return (p2->maxtyp);
     }
     return (left);

@@ -93,7 +93,7 @@ void readop(struct pass1 *p1)
             return;
 
         case CHARGARB:
-            aerror(p1, 'g');
+            aerror(p1, "Unexpected character");
             continue;
 
         case CHARESCP:
@@ -130,7 +130,7 @@ char rsch(struct pass1 *p1)
     int i;
 
     if ((c = rch(p1)) == TOKEOF || c == '\n') {
-        aerror(p1, '<');
+        aerror(p1, "Unterminated <> string");
         aexit(p1);
     }
     p1->eos_flag = 0;

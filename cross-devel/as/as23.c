@@ -78,7 +78,7 @@ void p2_doequal(struct pass2 *p2, union token *t)
     if (t->v == &p2->symtab[0]) { // .=
         v.type.u &= ~TYPEEXT;
         if (v.type.u != dotrel(p2)) {
-            p2_aerror(p2, '.');
+            p2_aerror(p2, "Dot-relative expression required");
             return;
         }
         if (v.type.u == TYPEBSS) {
@@ -88,7 +88,7 @@ void p2_doequal(struct pass2 *p2, union token *t)
         }
         v.val.u -= dot(p2);
         if (v.val.i < 0) {
-            p2_aerror(p2, '.');
+            p2_aerror(p2, "Dot-relative expression required");
             return;
         }
         for (i = v.val.i - 1; i >= 0; --i)
@@ -98,7 +98,7 @@ void p2_doequal(struct pass2 *p2, union token *t)
     }
 
     if (v.type.u == TYPEEXT)
-        p2_aerror(p2, 'r');
+        p2_aerror(p2, "Relocatable value not allowed");
     t->v->type.u &= ~037;
     v.type.u &= 037;
     if (v.type.u == TYPEUNDEF)
@@ -120,7 +120,7 @@ void p2_docolon(struct pass2 *p2, union token *t)
     p2->tok.u = t->u;
     if (p2->tok.u < TOKSYMBOL) {
         if (p2->tok.u != 2) {
-            p2_aerror(p2, 'x');
+            p2_aerror(p2, "Data in .bss section");
             return;
         }
         p2->tok.u = p2->numval;
@@ -135,7 +135,7 @@ void p2_docolon(struct pass2 *p2, union token *t)
     if (p2->passno == 0) {
         ttype = p2->tok.v->type.u & 037;
         if (ttype != 0 && (ttype < TYPEOPEST || ttype > TYPEOPESD))
-            p2_aerror(p2, 'm');
+            p2_aerror(p2, "Invalid label");
         p2->tok.v->type.u &= ~037;
         p2->tok.v->type.u |= dotrel(p2);
         p2->brdelt       = p2->tok.v->val.u - dot(p2);
@@ -144,7 +144,7 @@ void p2_docolon(struct pass2 *p2, union token *t)
     }
 
     if (dot(p2) != p2->tok.v->val.u)
-        p2_aerror(p2, 'p');
+        p2_aerror(p2, "Phase error");
     return;
 }
 

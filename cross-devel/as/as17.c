@@ -42,7 +42,7 @@ struct value express(struct pass1 *p1)
             rv.type.i = p1->curfbr[p1->tok.i - FBBASE];
             rv.val.i  = p1->curfb[p1->tok.i - FBBASE];
             if (v.val.i < 0)
-                aerror(p1, 'f');
+                aerror(p1, "Invalid temporary label");
             goto operand;
         }
 
@@ -59,7 +59,7 @@ struct value express(struct pass1 *p1)
         case '^':
         case '!':
             if (oldop != '+')
-                aerror(p1, 'e');
+                aerror(p1, "Invalid expression");
             oldop = p1->tok.u;
             readop(p1);
             continue;
@@ -73,12 +73,12 @@ struct value express(struct pass1 *p1)
             readop(p1);
             rv = express(p1);
             if (p1->tok.u != ']')
-                aerror(p1, ']');
+                aerror(p1, "Expected ']'");
             break;
 
         default:
             if (!opfound)
-                aerror(p1, 'e');
+                aerror(p1, "Invalid expression");
             return (v);
         }
 
