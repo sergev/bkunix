@@ -52,6 +52,9 @@ void p2_aputw(struct pass2 *p2, struct out_buf *p, int v)
     if (DEBUG)
         printf("aputw  %s %o slot %d ", (p == &p2->relp) ? "rel" : "txt", v,
                (int)(p->slot - p->buf) / 2);
+    if (debug_flag)
+        printf("--- write outfile (%s): 0x%04x (%o)\n",
+               (p == &p2->relp) ? "rel" : "txt", (unsigned)v, (unsigned)v);
 }
 
 //
@@ -67,11 +70,11 @@ void p2_flush(struct pass2 *p2, struct out_buf *p)
 
     addr  = p->buf + (p->seek & 0777);
     bytes = p->slot - addr;
-
-    if (DEBUG)
-        printf("\nflush: write %d bytes, seek to %x\n", bytes, p->seek);
     if (bytes == 0)
         return;
+
+    if (debug_flag)
+        printf("--- write outfile (flush): %d bytes at offset 0x%x\n", bytes, p->seek);
     lseek(p2->fout, (long)p->seek, 0);
     write(p2->fout, addr, bytes);
 
