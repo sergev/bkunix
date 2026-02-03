@@ -8,10 +8,8 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
  *
- * You can redistribute this file and/or modify it under the terms of the GNU
- * General Public License (GPL) as published by the Free Software Foundation;
- * either version 2 of the License, or (at your discretion) any later version.
- * See the accompanying file "COPYING" for more details.
+ * This file is part of BKUNIX project, which is distributed under the terms
+ * of the MIT License. See the accompanying file "LICENSE" for more details.
  */
 #include <stdlib.h>
 #include <stdarg.h>

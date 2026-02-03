@@ -2,8 +2,8 @@
 // as - PDP/11 Assember, Part 1 - main program
 //
 // This file is part of BKUNIX project, which is distributed
-// under the terms of the GNU General Public License (GPL).
-// See the accompanying file "COPYING" for more details.
+// under the terms of the MIT License.
+// See the accompanying file "LICENSE" for more details.
 //
 #include <stdio.h>
 

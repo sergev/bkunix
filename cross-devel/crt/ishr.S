@@ -8,8 +8,8 @@
  * 	mov	r0, result
  *
  * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
+ * under the terms of the MIT License.
+ * See the accompanying file "LICENSE" for more details.
  */
 	.globl	ishr
 ishr:

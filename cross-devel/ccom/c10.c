@@ -5,8 +5,8 @@
  * allow both long and ulong at line ~341.  1996/6/19
  *
  * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
+ * under the terms of the MIT License.
+ * See the accompanying file "LICENSE" for more details.
  */
 #include <stdlib.h>
 #include "c1.h"

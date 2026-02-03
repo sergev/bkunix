@@ -4,8 +4,8 @@
  * Copyright (C) 2006 Serge Vakulenko, <vak@cronyx.ru>
  *
  * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
+ * under the terms of the MIT License.
+ * See the accompanying file "LICENSE" for more details.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,8 +53,6 @@ static struct option program_options[] = {
 static void print_help (char *progname)
 {
 	printf ("%s\n", program_version);
-	printf ("This program is free software; it comes with ABSOLUTELY NO WARRANTY;\n"
-		"see the GNU General Public License for more details.\n");
 	printf ("\n");
 	printf ("Usage:\n");
 	printf ("    %s filesys.bkd\n", progname);

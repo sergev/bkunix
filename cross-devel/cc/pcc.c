@@ -2,8 +2,8 @@
  * pcc - front end for Johnson's C compiler
  *
  * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
+ * under the terms of the MIT License.
+ * See the accompanying file "LICENSE" for more details.
  */
 #include <sys/param.h>
 #include <stdlib.h>
