@@ -1,17 +1,23 @@
-/*
- * as - PDP/11 Assember, Part I
- *
- * Main assembly control routine
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
+//
+// as - PDP/11 Assember, Part I
+//
+// Main assembly control routine
+//
+// This file is part of BKUNIX project, which is distributed
+// under the terms of the GNU General Public License (GPL).
+// See the accompanying file "COPYING" for more details.
+//
 #include <stdio.h>
 
 #include "as.h"
 #include "as1.h"
 
+//
+// Main pass1 loop: read tokens, handle labels/dot/equals, and dispatch to opline.
+// Called once from asm_pass1 after setup; drives entire first pass.
+// Inputs: p1 (full pass1 state; readop/checkeos/express/opline).
+// Outputs: Token stream and fb data written via aputw/write_fb; errflg set on errors.
+//
 void assem(struct pass1 *p1)
 {
     struct value v;
@@ -22,7 +28,7 @@ void assem(struct pass1 *p1)
         readop(p1);
         if (checkeos(p1))
             goto ealoop;
-        if (p1->ifflg) { /* Inside .if */
+        if (p1->ifflg) { // Inside .if
             if (p1->tok.u <= TOKSYMBOL)
                 continue;
             if (p1->tok.v->type.i == TYPEOPIF)
@@ -56,7 +62,7 @@ void assem(struct pass1 *p1)
             savtok.v->type.u |= v.type.u;
             savtok.v->val.i = v.val.i;
             goto ealoop;
-        } /* = */
+        } // =
 
         if (p1->tok.i == ':') {
             p1->tok = savtok;
@@ -71,14 +77,14 @@ void assem(struct pass1 *p1)
                 aerror(p1, 'x');
                 continue;
             }
-            i               = fbcheck(p1, p1->numval); /* n: */
+            i               = fbcheck(p1, p1->numval); // n:
             p1->curfbr[i]   = dotrel(p1);
             p1->nxtfb.label = i << 8 | dotrel(p1);
             p1->nxtfb.val   = dot(p1);
             p1->curfb[i]    = dot(p1);
             write_fb(p1, p1->fbfil, &p1->nxtfb);
             continue;
-        } /* : */
+        } // :
 
         p1->savop = p1->tok.i;
         p1->tok   = savtok;
@@ -104,6 +110,13 @@ void assem(struct pass1 *p1)
     }
 }
 
+//
+// Write one forward-branch table entry to the fb file for pass2.
+// Called from assem when a temporary label (n:) is defined.
+// Inputs: p1 (unused), f (fd of fb file), b (label and val to write).
+// Outputs: Four bytes (label, label>>8, val, val>>8) written to f.
+// Packs struct fb_tab into 4 bytes little-endian; errors to stderr on write failure.
+//
 void write_fb(struct pass1 *p1, int f, struct fb_tab *b)
 {
     char buf[4];
@@ -117,10 +130,12 @@ void write_fb(struct pass1 *p1, int f, struct fb_tab *b)
         fprintf(stderr, "assem: error writing to fb file.\n");
 }
 
-/*
-        Routine to check a number to see if it is in range for
-        a temporary label
-*/
+//
+// Ensure temporary label number is in 0..9; error and clamp otherwise.
+// Called when parsing n: or nb/nf temporary label references.
+// Inputs: p1 (for aerror), u (candidate label number).
+// Outputs: Returns u if 0..9, else 0 after reporting error.
+//
 unsigned fbcheck(struct pass1 *p1, unsigned u)
 {
     if (u > 9) {
@@ -130,10 +145,12 @@ unsigned fbcheck(struct pass1 *p1, unsigned u)
     return (u);
 }
 
-/*
-        Routine to check current token to see if we are at the end of
-        a statement
-*/
+//
+// Return whether the current token ends a statement (newline, semicolon, #, or EOF).
+// Called from assem loop to decide whether to continue or finish statement.
+// Inputs: p1 (tok).
+// Outputs: Non-zero if tok is \n, ;, #, or TOKEOF.
+//
 int checkeos(struct pass1 *p1)
 {
     return (p1->tok.i == '\n' || p1->tok.i == ';' || p1->tok.i == '#' || p1->tok.i == TOKEOF);

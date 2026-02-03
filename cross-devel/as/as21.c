@@ -1,26 +1,35 @@
-/*
- * AS - PDP/11 assember, Part II
- *
- * Main program and associated routines
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
+//
+// AS - PDP/11 assember, Part II
+//
+// Main program and associated routines
+//
+// This file is part of BKUNIX project, which is distributed
+// under the terms of the GNU General Public License (GPL).
+// See the accompanying file "COPYING" for more details.
+//
 #include <stdio.h>
 
 #include "as.h"
 #include "as2.h"
 
+//
+// Print pass2 usage to stderr and exit with failure.
+// Called when pass2 is invoked with bad or missing arguments.
+// Inputs: None.
+// Outputs: None; terminates with exit(1).
+//
 void p2_usage(void)
 {
     fprintf(stderr, "Usage: asm2 [-u] [-o outfile] tmpfile1 tmpfile2 tmpfile3\n");
     exit(1);
 }
 
-/*
-        Main program (entry point for pass2).
-*/
+//
+// Pass2 entry: read symbol table and fb table, run two assembly passes, write a.out.
+// Called from main after pass1; uses atmp1/atmp2/atmp3 and outfile.
+// Inputs: globflag (TYPEEXT for undefined), outfile (or "a.out"); temp files from pass1.
+// Outputs: Creates a.out (or outfile); returns 0; may call p2_aexit on error.
+//
 int asm_pass2(int globflag, char *outfile)
 {
     struct pass2 p2;
@@ -44,9 +53,7 @@ int asm_pass2(int globflag, char *outfile)
     if (p2.fout <= 0)
         p2_filerr(&p2, p2.outfile);
 
-    /*
-            Read in the symbol table, dropping the name part
-    */
+    // Read in the symbol table, dropping the name part
     sp = p2.usymtab;
     while (p2_agetw(&p2)) {
         p2.hdr.symsiz += 12;
@@ -67,9 +74,7 @@ int asm_pass2(int globflag, char *outfile)
         ++sp;
     }
 
-    /*
-            Read in forward branch table
-    */
+    // Read in forward branch table
     fp = p2.fbbufp = p2.fbtab;
     p2.fin         = p2.fbfil;
     while (p2_agetw(&p2)) {
@@ -84,18 +89,14 @@ int asm_pass2(int globflag, char *outfile)
     p2.endtable                  = fp;
     ((struct value *)fp)->type.u = ENDTABFLAG;
 
-    /*
-            Do pass 2	(pass 0 of second phase...)
-    */
+    // Do pass 2 (pass 0 of second phase...)
     p2_setup(&p2);
     p2.fin = p2.txtfil;
     p2_assem(&p2);
     if (p2.outmod != 0777)
         p2_aexit(&p2, 1);
 
-    /*
-            Now set up for pass 3, including header for a.out
-    */
+    // Now set up for pass 3, including header for a.out
     p2.symtab[0].val.u  = 0;
     p2.symtab[0].type.u = TYPETXT;
     p2.symtab[1].val.u  = 0;
@@ -130,9 +131,7 @@ int asm_pass2(int globflag, char *outfile)
 
     p2_assem(&p2);
 
-    /*
-            Flush buffers, append symbol table, close output
-    */
+    // Flush buffers, append symbol table, close output
     p2_flush(&p2, &p2.txtp);
     p2_flush(&p2, &p2.relp);
     p2.fin = p2.symf;
@@ -158,9 +157,12 @@ int asm_pass2(int globflag, char *outfile)
     return 0;
 }
 
-/*
-        Routine to delete temp files and exit
-*/
+//
+// Unlink temp files (unless debug) and exit with given code.
+// Called on error or normal completion of pass2.
+// Inputs: p2 (atmp1, atmp2, atmp3, debug), code (exit status).
+// Outputs: None; process exits.
+//
 void p2_aexit(struct pass2 *p2, int code)
 {
     if (!p2->debug) {
@@ -171,18 +173,24 @@ void p2_aexit(struct pass2 *p2, int code)
     exit(code);
 }
 
-/*
-        Routine to "handle" a file error
-*/
+//
+// Report file error (name) and exit pass2 with failure.
+// Called when a temp or output file cannot be opened.
+// Inputs: p2, name (path that failed).
+// Outputs: Prints message; calls p2_aexit(p2, 1).
+//
 void p2_filerr(struct pass2 *p2, char *name)
 {
     printf("filerr: File error in file %s\n", name);
     p2_aexit(p2, 1);
 }
 
-/*
-        Routine to add appropriate relocation factor to symbol value
-*/
+//
+// Apply relocation to a symbol or fb entry: add datbase/bssbase for DATA/BSS, or set defund for UNDEF.
+// Called for each usymtab entry and fbtab entry before final assembly pass.
+// Inputs: p2 (defund, datbase, bssbase), pv (value to relocate).
+// Outputs: pv->type and pv->val updated in place.
+//
 void p2_doreloc(struct pass2 *p2, struct value *pv)
 {
     int t;
@@ -195,9 +203,12 @@ void p2_doreloc(struct pass2 *p2, struct value *pv)
     pv->val.i += (t == TYPEDATA ? p2->datbase : p2->bssbase);
 }
 
-/*
-        Routine to set up for a pass
-*/
+//
+// Set up for an assembly pass: load opcode table on pass 0, reset nxtfb/curfb and advance fb for 0..9.
+// Called at start of each pass (0 and 1) from asm_pass2.
+// Inputs: p2 (passno, symtab, fbtab, nxtfb, curfb).
+// Outputs: symtab filled from OPTABL on pass 0; nxtfb/curfb initialized; p2_fbadv for each temp index.
+//
 void p2_setup(struct pass2 *p2)
 {
     int i;
@@ -236,9 +247,12 @@ void p2_setup(struct pass2 *p2)
     }
 }
 
-/*
-        Routine to open an input file
-*/
+//
+// Open a file for reading; abort pass2 on failure.
+// Called to open atmp1, atmp2, atmp3 (and symf) in asm_pass2.
+// Inputs: p2 (for p2_filerr), name (path).
+// Outputs: Returns open fd; or does not return (p2_filerr then exit).
+//
 int p2_ofile(struct pass2 *p2, char *name)
 {
     int fd;

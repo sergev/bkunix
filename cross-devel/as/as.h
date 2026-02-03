@@ -1,10 +1,10 @@
-/*
- * Common include file for C version of as
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
+//
+// Common include file for C version of as
+//
+// This file is part of BKUNIX project, which is distributed
+// under the terms of the GNU General Public License (GPL).
+// See the accompanying file "COPYING" for more details.
+//
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -12,16 +12,16 @@
 #include <string.h>
 #include <unistd.h>
 
-/*
-        Magic Numbers (Limits)
-*/
+//
+// Magic Numbers (Limits)
+//
 #define SYMBOLS     200
 #define USERSYMBOLS 700
 #define HSHSIZ      1553
 
-/*
-        Files
-*/
+//
+// Files
+//
 #define OPTABL DESTDIR "/lib/pdp11/opcode.tbl"
 #define PASS2  DESTDIR "/lib/pdp11/asm2"
 
@@ -30,23 +30,23 @@ extern char atmp1[], atmp2[], atmp3[];
 void asm_pass1(int globflag, int argc, char *argv[]);
 int asm_pass2(int globflag, char *outfile);
 
-/*
-        Special Flags
-*/
+//
+// Special Flags
+//
 #define USYMFLAG   04000
 #define PSYMFLAG   01000
 #define STRINGFLAG 00400
 #define ENDTABFLAG 0100000
 
-/*
-        Forward Branch Table constants
-*/
+//
+// Forward Branch Table constants
+//
 #define FBBASE 0141
-#define FBFWD  0153 /* FBBASE + 10. */
+#define FBFWD  0153 // FBBASE + 10.
 
-/*
-        Tokens
-*/
+//
+// Tokens
+//
 #define TOKEOF    04
 #define TOKINT    01
 #define TOKFILE   05
@@ -55,9 +55,9 @@ int asm_pass2(int globflag, char *outfile);
 #define TOKVBAR   037
 #define TOKSYMBOL 0200
 
-/*
-        Special Character / Token values
-*/
+//
+// Special Character / Token values
+//
 #define CHARSTRING 0
 #define CHARLF     0376
 #define CHARNUM    0374
@@ -71,9 +71,9 @@ int asm_pass2(int globflag, char *outfile);
 #define CHARESCP   0354
 #define CHARFIXOR  0352
 
-/*
-        Relocation Types
-*/
+//
+// Relocation Types
+//
 #define TYPEUNDEF 0
 #define TYPEABS   1
 #define TYPETXT   2
@@ -82,9 +82,9 @@ int asm_pass2(int globflag, char *outfile);
 #define TYPEEXT   040
 #define TYPEREGIS 024
 
-/*
-        Permanent Symbol / Opcode Classes
-*/
+//
+// Permanent Symbol / Opcode Classes
+//
 #define TYPEOPFD   005
 #define TYPEOPBR   006
 #define TYPEOPJSR  007
@@ -112,15 +112,15 @@ int asm_pass2(int globflag, char *outfile);
 #define TYPEOPWORD 036
 #define TYPEOPJCC  037
 
-/*
-        Certain Opcode values
-*/
+//
+// Certain Opcode values
+//
 #define OPCODBR  0400
 #define OPCODJMP 0100
 
-/*
-        Addressing Modes
-*/
+//
+// Addressing Modes
+//
 #define AMDEFERRED 010
 #define AMAUTOINCR 020
 #define AMAUTODECR 040
@@ -129,9 +129,9 @@ int asm_pass2(int globflag, char *outfile);
 #define AMIMMED    027
 #define AMRELATIVE 067
 
-/*
-        Common Data Types
-*/
+//
+// Common Data Types
+//
 
 struct value {
     union {

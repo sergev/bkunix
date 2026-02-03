@@ -1,18 +1,21 @@
-/*
- * as - PDP/11 assembler, Part I
- *
- * Main scanner routine and some subroutines
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
+//
+// as - PDP/11 assembler, Part I
+//
+// Main scanner routine and some subroutines
+//
+// This file is part of BKUNIX project, which is distributed
+// under the terms of the GNU General Public License (GPL).
+// See the accompanying file "COPYING" for more details.
+//
 #include "as.h"
 #include "as1.h"
 
-/*
-        Main scanner routine
-*/
+//
+// Read next token from input and set p1->tok (and numval where needed); emit token to pass1 output.
+// Called from assem and opline/express to get operands and punctuation.
+// Inputs: p1 (chartab, savop, eos_flag, schar, esctab); input via rch.
+// Outputs: p1->tok set to next token; token written via aputw; numval set for strings/ints.
+//
 void readop(struct pass1 *p1)
 {
     unsigned char c;
@@ -30,7 +33,7 @@ void readop(struct pass1 *p1)
             goto rdname;
 
         switch (c) {
-        case CHARSTRING: /* <...>	*/
+        case CHARSTRING: // <...>
             p1->tok.i = '<';
             aputw(p1);
             p1->numval = 0;
@@ -44,14 +47,14 @@ void readop(struct pass1 *p1)
             p1->tok.i = '<';
             return;
 
-        case CHARLF: /* character is the token */
+        case CHARLF: // character is the token
         case CHARTOKEN:
             break;
 
-        case CHARSKIP: /* / - comment */
+        case CHARSKIP: // / - comment
             while ((c = rch(p1)) != TOKEOF && c != '\n')
                 ;
-            p1->tok.i = c; /* newline or eof */
+            p1->tok.i = c; // newline or eof
             break;
 
         case CHARNAME:
@@ -61,11 +64,11 @@ void readop(struct pass1 *p1)
                 rname(p1, c);
                 return;
             }
-            /* fall thru since it is a number */
+            // fall thru since it is a number
 
         case CHARNUM:
             if (!number(p1))
-                break; /* really a temporary label */
+                break; // really a temporary label
             p1->numval = p1->num_rtn;
             p1->tok.i  = TOKINT;
             aputw(p1);
@@ -113,9 +116,13 @@ void readop(struct pass1 *p1)
     }
 }
 
-/*
-        Routine to read a character inside a string ( <...> )
-*/
+//
+// Read one character inside a <...> string; handle escape and set eos_flag on '>'.
+// Called from readop when inside CHARSTRING to get string content.
+// Inputs: p1 (schar, eos_flag); next char from input.
+// Outputs: Returns character value (or escape replacement); eos_flag set if char is '>'.
+// TOKEOF or newline triggers aerror and aexit; backslash uses schar table; otherwise eos_flag = (c == '>').
+//
 char rsch(struct pass1 *p1)
 {
     char c;

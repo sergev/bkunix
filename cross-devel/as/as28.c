@@ -1,20 +1,20 @@
-/*
- * AS - PDP/11 Assembler part 2
- *
- * Global data and init (now in struct pass2)
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
+//
+// AS - PDP/11 Assembler part 2
+//
+// Global data and init (now in struct pass2)
+//
+// This file is part of BKUNIX project, which is distributed
+// under the terms of the GNU General Public License (GPL).
+// See the accompanying file "COPYING" for more details.
+//
 #include <stdio.h>
 
 #include "as.h"
 #include "as2.h"
 
-/*
-        Relocation combination tables for various operators
-*/
+//
+// Relocation combination tables for various operators
+//
 static int reltp2[] = {
     0, 0,   0,  0,  0,  0,   //
     0, -1,  2,  3,  4,  040, //
@@ -42,6 +42,12 @@ static int relte2[] = {
     0, -2, -2, -2, -2, -2, //
 };
 
+//
+// Initialize pass2 state: header magic/sizes, seek pointers, brtab, flags, zero counters.
+// Called once from asm_pass2 before opening files.
+// Inputs: p2 (struct pass2 to fill).
+// Outputs: p2 fully initialized (hdr, tseekp, rseekp, nxtfb, brtab, passno 0, outmod 0777, etc.).
+//
 void pass2_init(struct pass2 *p2)
 {
     int i;
@@ -74,16 +80,36 @@ void pass2_init(struct pass2 *p2)
         p2->brtab[i] = 0;
 }
 
+//
+// Return pointer to add-type relocation table (pass 1 expression combine).
+// Passed to p2_combine for '+' operator.
+// Inputs: p2 (unused).
+// Outputs: reltp2 table pointer.
+//
 int *pass2_reltp2(struct pass2 *p2)
 {
     (void)p2;
     return reltp2;
 }
+
+//
+// Return pointer to subtract-type relocation table (pass 1 expression combine).
+// Passed to p2_combine for '-' operator.
+// Inputs: p2 (unused).
+// Outputs: reltm2 table pointer.
+//
 int *pass2_reltm2(struct pass2 *p2)
 {
     (void)p2;
     return reltm2;
 }
+
+//
+// Return pointer to multiply/and/or-type relocation table (pass 1 expression combine).
+// Passed to p2_combine for *, /, &, |, <<, >>, %, !.
+// Inputs: p2 (unused).
+// Outputs: relte2 table pointer.
+//
 int *pass2_relte2(struct pass2 *p2)
 {
     (void)p2;

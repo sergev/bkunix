@@ -1,20 +1,24 @@
-/*
- * as - PDP/11 assember, Part 1
- *
- * Some support routines
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
+//
+// as - PDP/11 assember, Part 1
+//
+// Some support routines
+//
+// This file is part of BKUNIX project, which is distributed
+// under the terms of the GNU General Public License (GPL).
+// See the accompanying file "COPYING" for more details.
+//
 #include <stdio.h>
 
 #include "as.h"
 #include "as1.h"
 
-/*
-        Print an error message
-*/
+//
+// Print an assembler error message keyed by character code and set errflg.
+// Called from parser/expression code when syntax or semantic errors are found.
+// Inputs: p1 (curarg, line for location; errflg incremented), c (error code).
+// Outputs: Prints "file:line: message" to stdout; increments p1->errflg.
+// Switch maps c to message string; unknown c prints "Error 'c'".
+//
 void aerror(struct pass1 *p1, int c)
 {
     char *msg = 0;
@@ -71,10 +75,13 @@ void aerror(struct pass1 *p1, int c)
     ++p1->errflg;
 }
 
-/*
-        Put current token to token output, except when
-        inside a .if and it isn't a newline (to keep line count)
-*/
+//
+// Write current token (2 bytes) to pass1 output file, unless inside .if and not newline.
+// Called by scanner/symbol code to record token stream for pass2.
+// Inputs: p1 (pof, ifflg, tok).
+// Outputs: Writes 2-byte token to p1->pof when not suppressed by .if.
+// Suppresses non-newline tokens inside .if to keep line count; writes little-endian tok.i.
+//
 void aputw(struct pass1 *p1)
 {
     char buf[2];

@@ -1,20 +1,24 @@
-/*
- * AS - PDP/11 Assembler, Part II
- *
- * More miscellaneous support routines
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
+//
+// AS - PDP/11 Assembler, Part II
+//
+// More miscellaneous support routines
+//
+// This file is part of BKUNIX project, which is distributed
+// under the terms of the GNU General Public License (GPL).
+// See the accompanying file "COPYING" for more details.
+//
 #include <stdio.h>
 
 #include "as.h"
 #include "as2.h"
 
-/*
-        Routine to set up a buffered file, with an initial offset
-*/
+//
+// Initialize an output buffer at a given seek offset; slot at offset within 512-byte buffer.
+// Called to set txtp/relp before writing header or at symseek for symbol table.
+// Inputs: p2 (unused), p (out_buf), o (seek offset).
+// Outputs: p->slot, p->max, p->seek set (slot = buf + (o & 0777)).
+// Buffer is 512 bytes; slot placed at offset mod 512 for direct indexing.
+//
 void p2_oset(struct pass2 *p2, struct out_buf *p, int o)
 {
     (void)p2;
@@ -25,9 +29,12 @@ void p2_oset(struct pass2 *p2, struct out_buf *p, int o)
         printf("\noset: offset %x slot %d seek %d\n", o, (int)(p->slot - p->buf) / 2, p->seek);
 }
 
-/*
-        Routine to write a word to a buffered file
-*/
+//
+// Append a 16-bit word to a buffered output; flush buffer if full.
+// Used for text and relocation output; little-endian write.
+// Inputs: p2 (for p2_flush), p (out_buf), v (word value).
+// Outputs: v written to p->slot (2 bytes); slot advanced; buffer flushed if at max.
+//
 void p2_aputw(struct pass2 *p2, struct out_buf *p, int v)
 {
     char *pi;
@@ -47,9 +54,12 @@ void p2_aputw(struct pass2 *p2, struct out_buf *p, int v)
                (int)(p->slot - p->buf) / 2);
 }
 
-/*
-        Routine to flush a buferred file
-*/
+//
+// Write buffered data to fout at current seek and advance seek to next block.
+// Called before appending symbol table or at end of pass2.
+// Inputs: p2 (fout), p (out_buf with slot and seek).
+// Outputs: Bytes from (seek&0777) to slot written at seek; seek rounded up to next 512.
+//
 void p2_flush(struct pass2 *p2, struct out_buf *p)
 {
     char *addr;
@@ -69,10 +79,12 @@ void p2_flush(struct pass2 *p2, struct out_buf *p)
     p->slot = p->buf;
 }
 
-/*
-        Routine to read a token from the token file created in
-        the first pass
-*/
+//
+// Read next token from pass1 token file into p2->tok; resolve symbol pointers.
+// Called from p2_assem and p2_opline to get operands.
+// Inputs: p2 (savop, fin); token file position.
+// Outputs: p2->tok set; savop consumed if set; tok.v set for symbol tokens.
+//
 void p2_readop(struct pass2 *p2)
 {
     p2->tok.i = p2->savop;
@@ -92,9 +104,12 @@ void p2_readop(struct pass2 *p2)
     }
 }
 
-/*
-        Routine to read a word from token file created in pass 1
-*/
+//
+// Read one 16-bit word from token file into p2->tok.u; return FALSE on EOF.
+// Called by p2_readop and asm_pass2 when reading token stream or symbol/fb data.
+// Inputs: p2 (savop, fin).
+// Outputs: tok.u = word (or TOKEOF); savop cleared if was set; returns TRUE if word read.
+//
 int p2_agetw(struct pass2 *p2)
 {
     unsigned char buf[2];

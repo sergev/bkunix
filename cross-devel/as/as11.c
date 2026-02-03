@@ -1,10 +1,10 @@
-/*
- * as - PDP/11 Assember, Part 1 - main program
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
+//
+// as - PDP/11 Assember, Part 1 - main program
+//
+// This file is part of BKUNIX project, which is distributed
+// under the terms of the GNU General Public License (GPL).
+// See the accompanying file "COPYING" for more details.
+//
 #include <stdio.h>
 
 #include "as.h"
@@ -14,12 +14,23 @@ char atmp1[] = "/tmp/atm1XXXXXX";
 char atmp2[] = "/tmp/atm2XXXXXX";
 char atmp3[] = "/tmp/atm3XXXXXX";
 
+//
+// Print assembler usage to stderr and exit with failure.
+// Called when invalid options are given or -o has no argument.
+//
 void usage()
 {
     fprintf(stderr, "Usage: asm [-u] [-o outfile] [infile...]\n");
     exit(1);
 }
 
+//
+// Assembler entry point: parse options, run pass1 then pass2.
+// Invoked by the system; -u enables global, -o sets output, -D debug.
+// Inputs: argc, argv (optionally -u, -o outfile, input files).
+// Outputs: 0 on success; does not return on error or debug early exit.
+// Strips leading -options, runs asm_pass1 then asm_pass2; if -D, exits after pass1.
+//
 int main(int argc, char *argv[])
 {
     int globflag = 0, debug = 0;
@@ -52,6 +63,13 @@ int main(int argc, char *argv[])
     return asm_pass2(globflag, outfile);
 }
 
+//
+// Run pass 1: assemble sources into temp files and collect user symbols.
+// Called from main after option parsing.
+// Inputs: globflag, argc/argv (remaining args as input file list or stdin).
+// Outputs: Writes intermediate output to atmp1/atmp2; on error may call aexit.
+// Creates pass1 state, temp files for object and fb, runs setup() and assem(), then write_syms to atmp3.
+//
 void asm_pass1(int globflag, int argc, char *argv[])
 {
     struct pass1 p1;
@@ -80,6 +98,13 @@ void asm_pass1(int globflag, int argc, char *argv[])
     close(fsym);
 }
 
+//
+// Write user symbol table to a file descriptor for pass2.
+// Called at end of pass1 to dump p1->usymtab into atmp3.
+// Inputs: p1 (usymtab, symend), fd (open for writing).
+// Outputs: For each user symbol, writes 8-byte name then 4-byte type/val (little-endian).
+// Iterates usymtab to symend; packs type and val into 4 bytes each.
+//
 void write_syms(struct pass1 *p1, int fd)
 {
     struct symtab *s;
@@ -95,9 +120,13 @@ void write_syms(struct pass1 *p1, int fd)
     }
 }
 
-/*
-        Routine to "handle" an error on a file
-*/
+//
+// Report a file-related error to stderr (name and message).
+// Called when temp file creation or other file ops fail.
+// Inputs: p1 (unused), name (file path), msg (error description).
+// Outputs: None; prints to stderr and returns.
+// Prints message and returns; caller typically exits.
+//
 void filerr(struct pass1 *p1, char *name, char *msg)
 {
     (void)p1;
@@ -105,9 +134,13 @@ void filerr(struct pass1 *p1, char *name, char *msg)
     return;
 }
 
-/*
-        Routine to exit program (without doing pass 2)
-*/
+//
+// Abort without pass2: unlink temp files and exit with failure.
+// Called when pass1 hits errors so pass2 is not run.
+// Inputs: p1 (unused).
+// Outputs: None; process exits with 1.
+// Unlinks atmp1, atmp2, atmp3 then exit(1).
+//
 void aexit(struct pass1 *p1)
 {
     (void)p1;
@@ -117,9 +150,13 @@ void aexit(struct pass1 *p1)
     exit(1);
 }
 
-/*
-        Routine to create one of the temporary files
-*/
+//
+// Create a temporary file with a unique name; abort on failure.
+// Called to create atmp1, atmp2, atmp3 for pass1 intermediates.
+// Inputs: p1 (for filerr), name (template e.g. /tmp/atm1XXXXXX).
+// Outputs: Open file descriptor (read/write); name is modified in place by mkstemp.
+// Uses mkstemp; on failure reports via filerr and exit(2).
+//
 int f_create(struct pass1 *p1, char *name)
 {
     int fd;
@@ -131,9 +168,13 @@ int f_create(struct pass1 *p1, char *name)
     return (fd);
 }
 
-/*
-        Routine to build permanent symbol table
-*/
+//
+// Build the permanent (opcode) symbol table from OPTABL and hash it.
+// Called once at start of pass1 after temp files are created.
+// Inputs: p1 (symtab, hshtab); OPTABL file must exist.
+// Outputs: Fills symtab from file, pads names to 8 chars, enters each in hash via hash_enter.
+// Reads "name type val" triplets in octal; validates count and SYMBOLS limit; zero-pads names then hash_enter.
+//
 void setup(struct pass1 *p1)
 {
     int n;

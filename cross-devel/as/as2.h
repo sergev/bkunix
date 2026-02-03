@@ -1,44 +1,44 @@
-/*
- * AS - PDP/11 Assembler part 2
- *
- * Header file
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
+//
+// AS - PDP/11 Assembler part 2
+//
+// Header file
+//
+// This file is part of BKUNIX project, which is distributed
+// under the terms of the GNU General Public License (GPL).
+// See the accompanying file "COPYING" for more details.
+//
 #define DEBUG 0
 
-/*
-        br/jmp table length
-*/
-#define BRLEN 1024 /* max number of jbr/jcc  */
+//
+// br/jmp table length
+//
+#define BRLEN 1024 // max number of jbr/jcc
 
-/*
-        a.out header structure
-*/
+//
+// a.out header structure
+//
 struct hdr {
-    int txtmagic;        /* magic number (br)	  */
-    unsigned atxtsiz[3]; /* segment sizes		  */
-    unsigned symsiz;     /* size of symbol table	  */
-    unsigned stksiz;     /* entry location (0)	  */
-    unsigned exorig;     /* unused				  */
-    unsigned unused;     /* relocation supressed	  */
+    int txtmagic;        // magic number (br)
+    unsigned atxtsiz[3]; // segment sizes
+    unsigned symsiz;     // size of symbol table
+    unsigned stksiz;     // entry location (0)
+    unsigned exorig;     // unused
+    unsigned unused;     // relocation supressed
 };
 
-/*
-        output buffer structure
-*/
+//
+// output buffer structure
+//
 struct out_buf {
-    char *slot;    /* current word in buffer */
-    char *max;     /* &(end of buffer)		  */
-    unsigned seek; /* file seek location	  */
-    char buf[512]; /* data buffer			  */
+    char *slot;    // current word in buffer
+    char *max;     // &(end of buffer)
+    unsigned seek; // file seek location
+    char buf[512]; // data buffer
 };
 
-/*
-        Pass2 context - all former globals
-*/
+//
+// Pass2 context - all former globals
+//
 struct pass2 {
     struct value symtab[SYMBOLS];
     struct value usymtab[USERSYMBOLS];
@@ -94,7 +94,7 @@ struct pass2 {
     int debug;
 };
 
-/* Accessors for values derived from struct fields */
+// Accessors for values derived from struct fields
 #define dotrel(p2)   ((p2)->symtab[0].type.u)
 #define dot(p2)      ((p2)->symtab[0].val.u)
 #define dotdot(p2)   ((p2)->symtab[1].val.u)

@@ -1,17 +1,23 @@
-/*
- * AS - PDP/11 Assembler, Part II
- *
- * opline - statment processing
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
+//
+// AS - PDP/11 Assembler, Part II
+//
+// opline - statment processing
+//
+// This file is part of BKUNIX project, which is distributed
+// under the terms of the GNU General Public License (GPL).
+// See the accompanying file "COPYING" for more details.
+//
 #include <stdio.h>
 
 #include "as.h"
 #include "as2.h"
 
+//
+// Process one statement: expression, pseudo-op, or instruction; emit words/bytes and update dot.
+// Called from p2_assem for each statement (after = and : handling).
+// Inputs: p2 (tok, symtab, padrb, adrbuf, rlimit, swapf, passno, brtab); token stream.
+// Outputs: p2_outw/p2_outb; symtab[0] and section state updated; TOKFILE fills argb.
+//
 void p2_opline(struct pass2 *p2)
 {
     struct value v;
@@ -19,9 +25,7 @@ void p2_opline(struct pass2 *p2)
     char *pf;
     struct value *ttok;
 
-    /*
-            Handle non symbol tokens
-    */
+    // Handle non symbol tokens
     if (p2->tok.u < TOKSYMBOL) {
         if (p2->tok.u == TOKFILE) {
             p2->line = 1;
@@ -39,9 +43,7 @@ void p2_opline(struct pass2 *p2)
         goto opl17;
     }
 
-    /*
-            Handle non-opcode symbols
-    */
+    // Handle non-opcode symbols
     tb = p2->tok.v->type.u;
     if (tb == TYPEREGIS || tb == TYPEOPEST || tb == TYPEOPESD || tb < TYPEOPFD || tb > TYPEOPJCC) {
         v = p2_express(p2);
@@ -49,9 +51,7 @@ void p2_opline(struct pass2 *p2)
         return;
     }
 
-    /*
-            Handle op codes
-    */
+    // Handle op codes
     topcode = p2->tok.v->val.u;
     ttype   = tb;
     p2_readop(p2);
@@ -282,9 +282,12 @@ void p2_opline(struct pass2 *p2)
     }
 }
 
-/*
-        Routine to do a 2 operand op code
-*/
+//
+// Parse first operand of two-operand instruction, then second, and emit combined word plus deferred words.
+// Called for TYPEOPFD, TYPEOPDO, TYPEOPFF, TYPEOPMUL style instructions.
+// Inputs: p2 (padrb, adrbuf, rlimit, swapf), op (opcode bits).
+// Outputs: p2_address for both operands; p2_op2b emits instruction word and any padrb entries.
+//
 void p2_op2a(struct pass2 *p2, unsigned op)
 {
     unsigned a1;
@@ -294,9 +297,12 @@ void p2_op2a(struct pass2 *p2, unsigned op)
     p2_op2b(p2, a1, op);
 }
 
-/*
-        routine to do second (or only) operand
-*/
+//
+// Emit second (or only) operand word: combine a1/a2 into PDP-11 mode word, then emit deferred words from adrbuf.
+// Called from p2_op2a and for single second operand (e.g. JSR); swapf may swap a1/a2.
+// Inputs: p2 (padrb, adrbuf, rlimit, swapf, xsymbol), a1 (first mode), op (opcode), second operand from p2_address.
+// Outputs: One instruction word via p2_outw(0, a2); then p2_outw for each adrbuf triple (val, type, xsymbol).
+//
 void p2_op2b(struct pass2 *p2, unsigned a1, unsigned op)
 {
     unsigned a2, t;
@@ -321,9 +327,12 @@ void p2_op2b(struct pass2 *p2, unsigned a1, unsigned op)
     return;
 }
 
-/*
-        Routine to process an address operand
-*/
+//
+// Parse one addressing mode; return PDP-11 mode byte; deferred values appended to padrb.
+// Called from p2_opline/p2_op2a/p2_op2b for instruction operands.
+// Inputs: p2 (tok, padrb, adrbuf, xsymbol); readop/express/checkrp/checkreg.
+// Outputs: Returns mode value (register, (reg), -(reg), $imm, *expr, expr, expr(reg)); padrb filled for deferred/imm/indexed.
+//
 unsigned p2_address(struct pass2 *p2)
 {
     struct value v;
@@ -389,7 +398,7 @@ unsigned p2_address(struct pass2 *p2)
         default:
             break;
         }
-        break; /* only continue statement loops... */
+        break; // only continue statement loops...
     }
 
     v = p2_express(p2);
@@ -413,7 +422,7 @@ unsigned p2_address(struct pass2 *p2)
         return (v.val.u);
     }
 
-    v.type.u |= 0100000; /* relative address */
+    v.type.u |= 0100000; // relative address
     v.val.u -= (dot(p2) + 4);
     if (p2->padrb != &p2->adrbuf[0])
         v.val.u -= 2;
@@ -425,19 +434,24 @@ unsigned p2_address(struct pass2 *p2)
     return (AMRELATIVE | t);
 }
 
-/*
-        Routine to "handle" attempt to load more than two adresses
-        in adrbuf
-*/
+//
+// Report address buffer overflow and exit pass2.
+// Called when more than two deferred addresses would be needed in adrbuf.
+// Inputs: p2 (line).
+// Outputs: Message to stdout; p2_aexit(p2, 1).
+//
 void p2_addrovf(struct pass2 *p2)
 {
     printf("addrovf: address over flow, line %d\n", p2->line);
     p2_aexit(p2, 1);
 }
 
-/*
-        Routine to check that a value is a valid register
-*/
+//
+// Verify value is a valid register (0..7); if not, error and set value to 0/UNDEF.
+// Called from p2_opline and p2_address after parsing (reg) or register operand.
+// Inputs: p2 (for p2_aerror), v (value to check and possibly clobber).
+// Outputs: v->val.i = 0, v->type.i = TYPEUNDEF on error.
+//
 void p2_checkreg(struct pass2 *p2, struct value *v)
 {
     if (v->val.u > 7 || (v->type.u > TYPEABS && v->type.u < TYPEOPFD)) {
@@ -447,9 +461,12 @@ void p2_checkreg(struct pass2 *p2, struct value *v)
     }
 }
 
-/*
-        Routine to check for an expected right paren
-*/
+//
+// Require current token to be ')' and advance.
+// Called after parsing expression inside parentheses in p2_address.
+// Inputs: p2 (tok).
+// Outputs: If ')', p2_readop; else p2_aerror and return.
+//
 void p2_checkrp(struct pass2 *p2)
 {
     if (p2->tok.i != ')') {
@@ -460,28 +477,31 @@ void p2_checkrp(struct pass2 *p2)
     return;
 }
 
-/*
-        Routine to set an entry in jmp/br table and return
-        the number of types used in the instruction.  A 1 bit
-        means that a branch over a jmp must be used.
-*/
+//
+// Record branch target in brtab; return 0 if short branch fits, 2 if long form needed.
+// Called on pass 0 for jbr/jcc to decide instruction size.
+// Inputs: p2 (brtab, brtabp, brdelt, dot), v (target address).
+// Outputs: Returns 0 if offset in -254..256 (word), 2 if out of range (need jmp); sets brtab bit when long.
+//
 int p2_setbr(struct pass2 *p2, int v)
 {
-    if (p2->brtabp > BRLEN) /* no more room in table... */
+    if (p2->brtabp > BRLEN) // no more room in table...
         return (2);
     ++p2->brtabp;
     if ((v -= dot(p2)) > 0)
         v -= p2->brdelt;
-    if (v >= -254 && v <= 256) /* in range... */
+    if (v >= -254 && v <= 256) // in range...
         return (0);
-    p2->brtab[(p2->brtabp - 1) >> 3] |= (1 << ((p2->brtabp - 1) & 7)); /* out */
+    p2->brtab[(p2->brtabp - 1) >> 3] |= (1 << ((p2->brtabp - 1) & 7)); // out
     return (2);
 }
 
-/*
-        Routine to check the current entry in jmp/br table.
-        Return of 0 means that a br can be used.
-*/
+//
+// Check whether current brtab entry requires long branch (jmp); advance brtabp.
+// Called on pass 1 for jbr/jcc to decide short vs long form.
+// Inputs: p2 (brtab, brtabp).
+// Outputs: Returns 0 if short branch ok, 1 if long; increments brtabp.
+//
 int p2_getbr(struct pass2 *p2)
 {
     int t;

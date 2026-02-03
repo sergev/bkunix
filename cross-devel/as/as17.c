@@ -1,19 +1,21 @@
-/*
- * as - PDP/11 assembler, Part I
- *
- * expression evaluator
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
+//
+// as - PDP/11 assembler, Part I
+//
+// expression evaluator
+//
+// This file is part of BKUNIX project, which is distributed
+// under the terms of the GNU General Public License (GPL).
+// See the accompanying file "COPYING" for more details.
+//
 #include "as.h"
 #include "as1.h"
 
-/*
-        Routine to parse and evaluate an expression
-        Returns value as a type/value structure
-*/
+//
+// Parse and evaluate a single expression; support + - * / & | << >> % ^ ! and operands.
+// Called from opline, address, assem for operands and .if expressions.
+// Inputs: p1 (tok, numval, symtab, curfb/curfbr, usymtab/symend); readop, combine.
+// Outputs: Returns struct value (type and val); consumes tokens.
+//
 struct value express(struct pass1 *p1)
 {
     struct value v, rv;
@@ -26,12 +28,12 @@ struct value express(struct pass1 *p1)
     v.type.i = TYPEABS;
 
     while (1) {
-        if (p1->tok.v >= &p1->symtab[0].v && p1->tok.v < &p1->symend->v) { /* name/opcode */
+        if (p1->tok.v >= &p1->symtab[0].v && p1->tok.v < &p1->symend->v) { // name/opcode
             rv.type.i = p1->tok.v->type.i;
             rv.val.i  = p1->tok.v->val.i;
             goto operand;
         }
-        if (p1->tok.u >= FBBASE) { /* local symbol reference */
+        if (p1->tok.u >= FBBASE) { // local symbol reference
             if (p1->tok.u >= FBFWD) {
                 v.type.i = TYPEUNDEF;
                 v.val.i  = 0;
@@ -83,7 +85,7 @@ struct value express(struct pass1 *p1)
     operand:
 
         ++opfound;
-        ttype = combine(p1, v.type.i, rv.type.i, 0); /* tentative */
+        ttype = combine(p1, v.type.i, rv.type.i, 0); // tentative
         switch (oldop) {
         case '+':
             v.type.i = ttype;
@@ -146,12 +148,15 @@ struct value express(struct pass1 *p1)
         oldop = '+';
         readop(p1);
     }
-    return (v); /* dummy... */
+    return (v); // dummy...
 }
 
-/*
-        Routine to determine type after combining to operands
-*/
+//
+// Compute result type when combining two operand types (add/subtract rules for relocation).
+// Called from express when applying + or - to get resultant type.
+// Inputs: p1 (unused), left/right (type values), sflag (1 for subtraction).
+// Outputs: Returns combined type (TYPEEXT preserved; UNDEF propagates; subtract same type → ABS).
+//
 int combine(struct pass1 *p1, int left, int right, int sflag)
 {
     int ext, t;
@@ -160,16 +165,16 @@ int combine(struct pass1 *p1, int left, int right, int sflag)
     ext = (left | right) & TYPEEXT;
     left &= 037;
     right &= 037;
-    if (right > left) { /* highest type on left */
+    if (right > left) { // highest type on left
         t     = right;
         right = left;
         left  = t;
     }
-    if (right == TYPEUNDEF) /* if either one was undef */
+    if (right == TYPEUNDEF) // if either one was undef
         return (ext);
-    if (!sflag) /* not subtract */
+    if (!sflag) // not subtract
         return (left | ext);
-    if (left != right) /* subtract unlike types */
+    if (left != right) // subtract unlike types
         return (left | ext);
-    return (ext | TYPEABS); /* subtract like types */
+    return (ext | TYPEABS); // subtract like types
 }

@@ -1,16 +1,16 @@
-/*
- * as - PDP/11 assembler part 1 global data and init (now in struct pass1)
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
+//
+// as - PDP/11 assembler part 1 global data and init (now in struct pass1)
+//
+// This file is part of BKUNIX project, which is distributed
+// under the terms of the GNU General Public License (GPL).
+// See the accompanying file "COPYING" for more details.
+//
 #include "as.h"
 #include "as1.h"
 
-/*
-        Scanner character table, values match preprocessor vars CHAR*
-*/
+//
+// Scanner character table, values match preprocessor vars CHAR*
+//
 static const char chartab_init[] = {
     -014, -014, -014, -014, -002, -014, -014, -014, //
     -014, -022, -02,  -014, -014, -022, -014, -014, //
@@ -35,6 +35,12 @@ static const char schar_init[] = { 'n', 012, 't', 011, 'e', TOKEOF, '0', 0,
 
 static const char esctab_init[] = { '/', '/', '<', TOKLSH, '>', TOKRSH, '%', TOKVBAR, 0, 0 };
 
+//
+// Initialize pass1 state: clear hash table, set symtab bounds, zero savdot/curfb/ifflg/etc., copy tables.
+// Called once from asm_pass1 before processing.
+// Inputs: p1 (struct pass1 to fill).
+// Outputs: p1 fully initialized for first pass (hshtab, usymtab, symend, chartab, schar, esctab).
+//
 void pass1_init(struct pass1 *p1)
 {
     int i;

@@ -1,20 +1,23 @@
-/*
- * AS - PDP/11 Assembler, Part II
- *
- * Miscellaneous support routines
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
+//
+// AS - PDP/11 Assembler, Part II
+//
+// Miscellaneous support routines
+//
+// This file is part of BKUNIX project, which is distributed
+// under the terms of the GNU General Public License (GPL).
+// See the accompanying file "COPYING" for more details.
+//
 #include <stdio.h>
 
 #include "as.h"
 #include "as2.h"
 
-/*
-        Routine to output a word to output, with relocation
-*/
+//
+// Emit a word to text and relocation buffers with type/relocation encoding.
+// Called from p2_opline and expression output when emitting instruction words or constants.
+// Inputs: p2 (passno, txtp, relp, symtab[0], tseekp, rseekp, xsymbol), type (reloc type), val (word value).
+// Outputs: symtab[0].val.u += 2; on pass 1 writes word and relocation; BSS/odd checks may call p2_aerror.
+//
 void p2_outw(struct pass2 *p2, int type, int val)
 {
     unsigned t;
@@ -63,9 +66,12 @@ void p2_outw(struct pass2 *p2, int type, int val)
     return;
 }
 
-/*
-        Routine to output a byte value
-*/
+//
+// Emit a single byte; pairs with previous word when at odd address.
+// Called for .byte or when p2_outw fixes odd address with a padding byte.
+// Inputs: p2 (passno, txtp, relp, symtab[0], tseekp, rseekp), type (must be ABS or error), val (low byte).
+// Outputs: symtab[0].val.u += 1; on pass 1 either appends byte to current word or writes new word+reloc.
+//
 void p2_outb(struct pass2 *p2, int type, int val)
 {
     if (dotrel(p2) == TYPEBSS) {
@@ -87,9 +93,12 @@ void p2_outb(struct pass2 *p2, int type, int val)
     p2->symtab[0].val.u++;
 }
 
-/*
-        Display file, line and error code for errors
-*/
+//
+// Print pass2 error (file:line and message) and mark output as not executable.
+// Called when operand, branch range, or section errors are detected.
+// Inputs: p2 (argb, line, outmod), c (error code for message).
+// Outputs: Prints to stdout; sets p2->outmod = 0666.
+//
 void p2_aerror(struct pass2 *p2, int c)
 {
     char *msg = 0;
@@ -132,5 +141,5 @@ void p2_aerror(struct pass2 *p2, int c)
     else
         printf("Error '%c'\n", c);
 
-    p2->outmod = 0666; /* not executable */
+    p2->outmod = 0666; // not executable
 }

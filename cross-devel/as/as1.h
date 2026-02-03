@@ -1,22 +1,22 @@
-/*
- * Header file for first part of as - PDP/11 Assember
- *
- * This file is part of BKUNIX project, which is distributed
- * under the terms of the GNU General Public License (GPL).
- * See the accompanying file "COPYING" for more details.
- */
+//
+// Header file for first part of as - PDP/11 Assember
+//
+// This file is part of BKUNIX project, which is distributed
+// under the terms of the GNU General Public License (GPL).
+// See the accompanying file "COPYING" for more details.
+//
 
-/*
-        Symbol Table
-*/
+//
+// Symbol Table
+//
 struct symtab {
     char name[8];
     struct value v;
 };
 
-/*
-        Pass1 context - all former globals
-*/
+//
+// Pass1 context - all former globals
+//
 #define PASS1_CHARTAB_SIZE 128
 #define PASS1_SCHAR_SIZE   16
 #define PASS1_ESCTAB_SIZE  16
@@ -58,7 +58,7 @@ struct pass1 {
     char esctab[PASS1_ESCTAB_SIZE];
 };
 
-/* Accessors for values derived from struct fields */
+// Accessors for values derived from struct fields
 #define dotrel(p1) ((p1)->symtab[0].v.type.i)
 #define dot(p1)    ((p1)->symtab[0].v.val.u)
 #define dotdot(p1) ((p1)->symtab[1].v.val.u)
