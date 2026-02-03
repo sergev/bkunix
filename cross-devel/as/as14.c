@@ -16,8 +16,8 @@
 //
 // Read an identifier starting with c, lookup or create in symbol table, set tok.
 // Called from readop when first character of a name is already read (e.g. letter).
-// Inputs: p1 (chartab, symbol, hshtab, symend, usymtab); c (first character, or '~' for new symbol).
-// Outputs: p1->tok set to symbol token; symbol stored; aputw called to emit token.
+// Inputs: p1 (chartab, symbol, hshtab, symend, usymtab); c (first character, or '~' for new
+// symbol). Outputs: p1->tok set to symbol token; symbol stored; aputw called to emit token.
 // Accumulates name via chartab (max 8 chars), hashes; ~ forces new symbol;
 // else linear probe (next = hv/HSHSIZ+1) for lookup/insert.
 // Sets tok.i to PSYMFLAG or USYMFLAG offset.
@@ -83,9 +83,9 @@ void rname(struct pass1 *p1, unsigned char c)
 // Parse a number or temporary label (nb/nf); set numval or tok for fb reference.
 // Called from readop when a digit is seen; 0-prefix octal, 0x hex, else decimal.
 // Inputs: p1 (ch, numval, num_rtn); next char from input.
-// Returns TRUE for plain number (num_rtn set, numval for expression); FALSE for nb/nf (tok set to FBBASE/FBFWD index).
-// Base 8/10/16 by prefix; accumulate until non-digit.
-// Trailing 'b' or 'f' makes temporary label ref via fbcheck.
+// Returns TRUE for plain number (num_rtn set, numval for expression); FALSE for nb/nf (tok set to
+// FBBASE/FBFWD index). Base 8/10/16 by prefix; accumulate until non-digit. Trailing 'b' or 'f'
+// makes temporary label ref via fbcheck.
 //
 char number(struct pass1 *p1)
 {

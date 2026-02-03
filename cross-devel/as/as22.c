@@ -15,8 +15,9 @@
 //
 // Emit a word to text and relocation buffers with type/relocation encoding.
 // Called from p2_opline and expression output when emitting instruction words or constants.
-// Inputs: p2 (passno, txtp, relp, symtab[0], tseekp, rseekp, xsymbol), type (reloc type), val (word value).
-// Outputs: symtab[0].val.u += 2; on pass 1 writes word and relocation; BSS/odd checks may call p2_aerror.
+// Inputs: p2 (passno, txtp, relp, symtab[0], tseekp, rseekp, xsymbol), type (reloc type), val (word
+// value). Outputs: symtab[0].val.u += 2; on pass 1 writes word and relocation; BSS/odd checks may
+// call p2_aerror.
 //
 void p2_outw(struct pass2 *p2, int type, int val)
 {
@@ -69,8 +70,9 @@ void p2_outw(struct pass2 *p2, int type, int val)
 //
 // Emit a single byte; pairs with previous word when at odd address.
 // Called for .byte or when p2_outw fixes odd address with a padding byte.
-// Inputs: p2 (passno, txtp, relp, symtab[0], tseekp, rseekp), type (must be ABS or error), val (low byte).
-// Outputs: symtab[0].val.u += 1; on pass 1 either appends byte to current word or writes new word+reloc.
+// Inputs: p2 (passno, txtp, relp, symtab[0], tseekp, rseekp), type (must be ABS or error), val (low
+// byte). Outputs: symtab[0].val.u += 1; on pass 1 either appends byte to current word or writes new
+// word+reloc.
 //
 void p2_outb(struct pass2 *p2, int type, int val)
 {

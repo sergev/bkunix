@@ -123,8 +123,8 @@ void write_fb(struct pass1 *p1, int f, struct fb_tab *b)
 
     (void)p1;
     if (debug_flag)
-        printf("--- write atmp2: fb label=0x%04x val=0x%04x\n",
-               (unsigned)(b->label & 0xffff), (unsigned)(b->val & 0xffff));
+        printf("--- write atmp2: fb label=0x%04x val=0x%04x\n", (unsigned)(b->label & 0xffff),
+               (unsigned)(b->val & 0xffff));
     buf[0] = b->label;
     buf[1] = b->label >> 8;
     buf[2] = b->val;

@@ -10,9 +10,9 @@
 #include "as.h"
 #include "as1.h"
 
-char atmp1[] = "/tmp/atm1XXXXXX";
-char atmp2[] = "/tmp/atm2XXXXXX";
-char atmp3[] = "/tmp/atm3XXXXXX";
+char atmp1[]   = "/tmp/atm1XXXXXX";
+char atmp2[]   = "/tmp/atm2XXXXXX";
+char atmp3[]   = "/tmp/atm3XXXXXX";
 int debug_flag = 0;
 
 //
@@ -33,7 +33,7 @@ void usage()
 //
 int main(int argc, char *argv[])
 {
-    int globflag = 0;
+    int globflag  = 0;
     char *outfile = 0;
 
     while (argv[1] && argv[1][0] == '-') {
@@ -110,8 +110,8 @@ void write_syms(struct pass1 *p1, int fd)
 
     for (s = p1->usymtab; s < p1->symend; ++s) {
         if (debug_flag)
-            printf("--- write atmp3: sym \"%.8s\" type=%o val=%o\n",
-                   s->name, s->v.type.u, s->v.val.u);
+            printf("--- write atmp3: sym \"%.8s\" type=%o val=%o\n", s->name, s->v.type.u,
+                   s->v.val.u);
         write(fd, s->name, sizeof(s->name));
         buf[0] = s->v.type.u;
         buf[1] = s->v.type.u >> 8;
@@ -167,38 +167,30 @@ int f_create(struct pass1 *p1, char *name)
 }
 
 //
-// Build the permanent (opcode) symbol table from OPTABL and hash it.
+// Build the permanent (opcode) symbol table from embedded opcode_table and hash it.
 // Called once at start of pass1 after temp files are created.
-// Inputs: p1 (symtab, hshtab); OPTABL file must exist.
-// Outputs: Fills symtab from file, pads names to 8 chars, enters each in hash via hash_enter.
+// Inputs: p1 (symtab, hshtab).
+// Outputs: Fills symtab from opcode_table, pads names to 8 chars, enters each in hash via
+// hash_enter.
 //
 void setup(struct pass1 *p1)
 {
-    int n;
-    struct symtab *p, *e;
-    FILE *fd;
+    int i;
+    struct symtab *p;
 
-    if ((fd = fopen(OPTABL, "r")) == 0) {
-        fprintf(stderr, "setup: can't open %s.\n", OPTABL);
-        exit(2);
-    }
-    p = p1->symtab;
-    while (p - p1->symtab < SYMBOLS &&
-           (n = fscanf(fd, "%s %o %o", p->name, &p->v.type.i, &p->v.val.i)) == 3) {
-        ++p;
-    }
-    if (p - p1->symtab > SYMBOLS) {
+    if (opcode_table_size > SYMBOLS) {
         fprintf(stderr, "setup: permanent symbol table overflow.\n");
         exit(2);
     }
-    if (n != -1) {
-        fprintf(stderr, "setup: scanned only %d elements after %d symbols.\n", n,
-                (int)(p - p1->symtab));
-        exit(2);
-    }
-    for (e = p, p = p1->symtab; p < e; ++p) {
-        memset(p->name + strlen(p->name), 0, 8 - strlen(p->name));
+    p = p1->symtab;
+    for (i = 0; i < opcode_table_size; ++i, ++p) {
+        size_t len;
+        strncpy(p->name, opcode_table[i].name, 8);
+        len = strlen(p->name);
+        if (len < 8)
+            memset(p->name + len, 0, 8 - len);
+        p->v.type.u = opcode_table[i].type;
+        p->v.val.u  = opcode_table[i].val;
         hash_enter(p1, p);
     }
-    fclose(fd);
 }

@@ -25,10 +25,10 @@ struct value p2_express(struct pass2 *p2)
 }
 
 //
-// Parse and evaluate expression with + - * / & | << >> % ^ ! ; operands from symbol, TOKINT, 2, [...].
-// Called by p2_express; recursive for subexpressions in brackets.
-// Inputs: p2 (tok, passno, numval, curfb, symtab, usymtab); p2_combine, pass2_relt* tables.
-// Outputs: Returns accumulated value; sets p2->xsymbol for TYPEEXT operands.
+// Parse and evaluate expression with + - * / & | << >> % ^ ! ; operands from symbol, TOKINT, 2,
+// [...]. Called by p2_express; recursive for subexpressions in brackets. Inputs: p2 (tok, passno,
+// numval, curfb, symtab, usymtab); p2_combine, pass2_relt* tables. Outputs: Returns accumulated
+// value; sets p2->xsymbol for TYPEEXT operands.
 //
 struct value p2_expres1(struct pass2 *p2)
 {

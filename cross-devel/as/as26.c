@@ -283,10 +283,10 @@ void p2_opline(struct pass2 *p2)
 }
 
 //
-// Parse first operand of two-operand instruction, then second, and emit combined word plus deferred words.
-// Called for TYPEOPFD, TYPEOPDO, TYPEOPFF, TYPEOPMUL style instructions.
-// Inputs: p2 (padrb, adrbuf, rlimit, swapf), op (opcode bits).
-// Outputs: p2_address for both operands; p2_op2b emits instruction word and any padrb entries.
+// Parse first operand of two-operand instruction, then second, and emit combined word plus deferred
+// words. Called for TYPEOPFD, TYPEOPDO, TYPEOPFF, TYPEOPMUL style instructions. Inputs: p2 (padrb,
+// adrbuf, rlimit, swapf), op (opcode bits). Outputs: p2_address for both operands; p2_op2b emits
+// instruction word and any padrb entries.
 //
 void p2_op2a(struct pass2 *p2, unsigned op)
 {
@@ -298,10 +298,11 @@ void p2_op2a(struct pass2 *p2, unsigned op)
 }
 
 //
-// Emit second (or only) operand word: combine a1/a2 into PDP-11 mode word, then emit deferred words from adrbuf.
-// Called from p2_op2a and for single second operand (e.g. JSR); swapf may swap a1/a2.
-// Inputs: p2 (padrb, adrbuf, rlimit, swapf, xsymbol), a1 (first mode), op (opcode), second operand from p2_address.
-// Outputs: One instruction word via p2_outw(0, a2); then p2_outw for each adrbuf triple (val, type, xsymbol).
+// Emit second (or only) operand word: combine a1/a2 into PDP-11 mode word, then emit deferred words
+// from adrbuf. Called from p2_op2a and for single second operand (e.g. JSR); swapf may swap a1/a2.
+// Inputs: p2 (padrb, adrbuf, rlimit, swapf, xsymbol), a1 (first mode), op (opcode), second operand
+// from p2_address. Outputs: One instruction word via p2_outw(0, a2); then p2_outw for each adrbuf
+// triple (val, type, xsymbol).
 //
 void p2_op2b(struct pass2 *p2, unsigned a1, unsigned op)
 {
@@ -331,7 +332,8 @@ void p2_op2b(struct pass2 *p2, unsigned a1, unsigned op)
 // Parse one addressing mode; return PDP-11 mode byte; deferred values appended to padrb.
 // Called from p2_opline/p2_op2a/p2_op2b for instruction operands.
 // Inputs: p2 (tok, padrb, adrbuf, xsymbol); readop/express/checkrp/checkreg.
-// Outputs: Returns mode value (register, (reg), -(reg), $imm, *expr, expr, expr(reg)); padrb filled for deferred/imm/indexed.
+// Outputs: Returns mode value (register, (reg), -(reg), $imm, *expr, expr, expr(reg)); padrb filled
+// for deferred/imm/indexed.
 //
 unsigned p2_address(struct pass2 *p2)
 {
@@ -481,7 +483,8 @@ void p2_checkrp(struct pass2 *p2)
 // Record branch target in brtab; return 0 if short branch fits, 2 if long form needed.
 // Called on pass 0 for jbr/jcc to decide instruction size.
 // Inputs: p2 (brtab, brtabp, brdelt, dot), v (target address).
-// Outputs: Returns 0 if offset in -254..256 (word), 2 if out of range (need jmp); sets brtab bit when long.
+// Outputs: Returns 0 if offset in -254..256 (word), 2 if out of range (need jmp); sets brtab bit
+// when long.
 //
 int p2_setbr(struct pass2 *p2, int v)
 {

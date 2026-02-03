@@ -36,10 +36,9 @@ static const char schar_init[] = { 'n', 012, 't', 011, 'e', TOKEOF, '0', 0,
 static const char esctab_init[] = { '/', '/', '<', TOKLSH, '>', TOKRSH, '%', TOKVBAR, 0, 0 };
 
 //
-// Initialize pass1 state: clear hash table, set symtab bounds, zero savdot/curfb/ifflg/etc., copy tables.
-// Called once from asm_pass1 before processing.
-// Inputs: p1 (struct pass1 to fill).
-// Outputs: p1 fully initialized for first pass (hshtab, usymtab, symend, chartab, schar, esctab).
+// Initialize pass1 state: clear hash table, set symtab bounds, zero savdot/curfb/ifflg/etc., copy
+// tables. Called once from asm_pass1 before processing. Inputs: p1 (struct pass1 to fill). Outputs:
+// p1 fully initialized for first pass (hshtab, usymtab, symend, chartab, schar, esctab).
 //
 void pass1_init(struct pass1 *p1)
 {

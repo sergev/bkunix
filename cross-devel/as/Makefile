@@ -4,15 +4,14 @@ CFLAGS		= -g -Wall -DDESTDIR=\"$(DESTDIR)\"
 
 all:		pdp11-asm
 
-install:	pdp11-asm opcode.tbl
+install:	pdp11-asm
 		install -s pdp11-asm ${DESTDIR}/bin/pdp11-asm
-		install opcode.tbl ${DESTDIR}/lib/pdp11/opcode.tbl
 
 clean:
 		rm -f *~ *.o pdp11-asm
 
-pdp11-asm: as11.o as12.o as13.o as14.o as15.o as16.o as17.o as18.o as21.o as22.o as23.o as24.o as26.o as27.o as28.o
-		$(CC) $(CFLAGS) -o $@ as11.o as12.o as13.o as14.o as15.o as16.o as17.o as18.o as21.o as22.o as23.o as24.o as26.o as27.o as28.o
+pdp11-asm: as11.o as12.o as13.o as14.o as15.o as16.o as17.o as18.o as21.o as22.o as23.o as24.o as26.o as27.o as28.o opcode.o
+		$(CC) $(CFLAGS) -o $@ as11.o as12.o as13.o as14.o as15.o as16.o as17.o as18.o as21.o as22.o as23.o as24.o as26.o as27.o as28.o opcode.o
 
 depend:
 		@cp Makefile Makefile~~
@@ -35,6 +34,7 @@ as16.o: as16.c as.h as1.h
 as17.o: as17.c as.h as1.h
 as18.o: as18.c as.h as1.h
 as21.o: as21.c as.h as2.h
+opcode.o: opcode.c as.h
 as22.o: as22.c as.h as2.h
 as23.o: as23.c as.h as2.h
 as24.o: as24.c as.h as2.h

@@ -53,8 +53,8 @@ void p2_aputw(struct pass2 *p2, struct out_buf *p, int v)
         printf("aputw  %s %o slot %d ", (p == &p2->relp) ? "rel" : "txt", v,
                (int)(p->slot - p->buf) / 2);
     if (debug_flag)
-        printf("--- write outfile (%s): 0x%04x (%o)\n",
-               (p == &p2->relp) ? "rel" : "txt", (unsigned)v, (unsigned)v);
+        printf("--- write outfile (%s): 0x%04x (%o)\n", (p == &p2->relp) ? "rel" : "txt",
+               (unsigned)v, (unsigned)v);
 }
 
 //
@@ -128,9 +128,10 @@ int p2_agetw(struct pass2 *p2)
     }
     p2->tok.u = buf[0] | buf[1] << 8;
     if (debug_flag) {
-        const char *name = (p2->fin == p2->symf) ? "atmp3" :
-                          (p2->fin == p2->fbfil) ? "atmp2" :
-                          (p2->fin == p2->txtfil) ? "atmp1" : "?";
+        const char *name = (p2->fin == p2->symf)     ? "atmp3"
+                           : (p2->fin == p2->fbfil)  ? "atmp2"
+                           : (p2->fin == p2->txtfil) ? "atmp1"
+                                                     : "?";
         printf("--- read %s: 0x%04x (%o)\n", name, (unsigned)p2->tok.u, (unsigned)p2->tok.u);
     }
     return (TRUE);

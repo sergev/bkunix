@@ -186,10 +186,10 @@ void p2_filerr(struct pass2 *p2, char *name)
 }
 
 //
-// Apply relocation to a symbol or fb entry: add datbase/bssbase for DATA/BSS, or set defund for UNDEF.
-// Called for each usymtab entry and fbtab entry before final assembly pass.
-// Inputs: p2 (defund, datbase, bssbase), pv (value to relocate).
-// Outputs: pv->type and pv->val updated in place.
+// Apply relocation to a symbol or fb entry: add datbase/bssbase for DATA/BSS, or set defund for
+// UNDEF. Called for each usymtab entry and fbtab entry before final assembly pass. Inputs: p2
+// (defund, datbase, bssbase), pv (value to relocate). Outputs: pv->type and pv->val updated in
+// place.
 //
 void p2_doreloc(struct pass2 *p2, struct value *pv)
 {
@@ -204,39 +204,24 @@ void p2_doreloc(struct pass2 *p2, struct value *pv)
 }
 
 //
-// Set up for an assembly pass: load opcode table on pass 0, reset nxtfb/curfb and advance fb for 0..9.
-// Called at start of each pass (0 and 1) from asm_pass2.
-// Inputs: p2 (passno, symtab, fbtab, nxtfb, curfb).
-// Outputs: symtab filled from OPTABL on pass 0; nxtfb/curfb initialized; p2_fbadv for each temp index.
+// Set up for an assembly pass: fill symtab from embedded opcode table on pass 0, reset nxtfb/curfb
+// and advance fb for 0..9. Called at start of each pass (0 and 1) from asm_pass2. Inputs: p2
+// (passno, symtab, fbtab, nxtfb, curfb). Outputs: symtab filled from opcode_table on pass 0;
+// nxtfb/curfb initialized; p2_fbadv for each temp index.
 //
 void p2_setup(struct pass2 *p2)
 {
     int i;
-    int n;
-    FILE *fd;
-    struct value *p;
-    char dummy[12];
 
     if (p2->passno == 0) {
-        if ((fd = fopen(OPTABL, "r")) == NULL) {
-            fprintf(stderr, "setup: can't open %s\n", OPTABL);
-            p2_aexit(p2, 1);
-        }
-        p = &p2->symtab[0];
-        while (p - p2->symtab < SYMBOLS &&
-               (n = fscanf(fd, "%s %o %o", dummy, &p->type.u, &p->val.u)) == 3) {
-            ++p;
-        }
-        if (p - p2->symtab >= SYMBOLS) {
+        if (opcode_table_size > SYMBOLS) {
             fprintf(stderr, "setup: Permanent symbol table overflow\n");
             p2_aexit(p2, 1);
         }
-        if (n != -1) {
-            fprintf(stderr, "setup: scanned only %d elements after %d symbols\n", n,
-                    (int)(p - p2->symtab));
-            p2_aexit(p2, 1);
+        for (i = 0; i < opcode_table_size; ++i) {
+            p2->symtab[i].type.u = opcode_table[i].type;
+            p2->symtab[i].val.u  = opcode_table[i].val;
         }
-        fclose(fd);
     }
 
     for (i = 0; i < 10; ++i)

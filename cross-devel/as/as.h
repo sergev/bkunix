@@ -20,10 +20,15 @@
 #define HSHSIZ      1553
 
 //
-// Files
+// Embedded opcode table (see opcode.c)
 //
-#define OPTABL DESTDIR "/lib/pdp11/opcode.tbl"
-#define PASS2  DESTDIR "/lib/pdp11/asm2"
+struct opcode_entry {
+    const char *name;
+    unsigned type;
+    unsigned val;
+};
+extern const struct opcode_entry opcode_table[];
+extern const int opcode_table_size;
 
 extern char atmp1[], atmp2[], atmp3[];
 extern int debug_flag;

@@ -121,7 +121,8 @@ void readop(struct pass1 *p1)
 // Called from readop when inside CHARSTRING to get string content.
 // Inputs: p1 (schar, eos_flag); next char from input.
 // Outputs: Returns character value (or escape replacement); eos_flag set if char is '>'.
-// TOKEOF or newline triggers aerror and aexit; backslash uses schar table; otherwise eos_flag = (c == '>').
+// TOKEOF or newline triggers aerror and aexit; backslash uses schar table; otherwise eos_flag = (c
+// == '>').
 //
 char rsch(struct pass1 *p1)
 {
