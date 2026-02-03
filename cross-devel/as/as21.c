@@ -78,6 +78,16 @@ int asm_pass2(int globflag, char *outfile)
     ((struct value *)fp)->type.u = ENDTABFLAG;
 
     // Do pass 2 (pass 0 of second phase...)
+    //
+    // Reset location counter and section before starting pass 0.
+    // Pass1 leaves global_symtab[0] ('.') in whatever section it ended in
+    // (often .data/.bss). If we don't reset here, pass 0 and pass 1 of pass2
+    // will start from different dot/section states and labels will trigger
+    // spurious "Phase error".
+    global_symtab[0].v.val.u  = 0;
+    global_symtab[0].v.type.u = TYPETXT;
+    global_symtab[1].v.val.u  = 0;
+
     p2_setup(&p2);
     p2.fin = p2.txtfil;
     p2_assem(&p2);
