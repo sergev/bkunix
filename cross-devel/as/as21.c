@@ -50,6 +50,16 @@ int asm_pass2(int globflag, char *outfile)
     if (p2.fout <= 0)
         p2_filerr(&p2, p2.outfile);
 
+    // Undefine user symbols
+    for (s = global_symtab + SYMBOLS; s < global_symend; ++s) {
+        if (s->v.type.i < TYPETXT || s->v.type.i > TYPEDATA) {
+            s->v.type.i = TYPEUNDEF;
+            s->v.val.i  = 0;
+        } else {
+            s->v.type.i += TYPEOPEST - TYPETXT;
+        }
+    }
+
     // User symbol table from global (no file read)
     p2.hdr.symsiz = (unsigned)(global_symend - (global_symtab + SYMBOLS)) * 12;
 
