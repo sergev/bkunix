@@ -50,7 +50,7 @@ int u6fs_block_free (u6fs_t *fs, unsigned int bno)
 		buf[0] = lsb_short (fs->nfree);
 		for (i=0; i<100; i++)
 			buf[i+1] = lsb_short (fs->free[i]);
-		if (! u6fs_write_block (fs, bno, (char*) buf)) {
+		if (! u6fs_write_block (fs, bno, (unsigned char *) buf)) {
 			fprintf (stderr, "block_free: write error at block %d\n", bno);
 			return 0;
 		}
@@ -122,7 +122,7 @@ again:
 	fs->free [fs->nfree] = 0;
 	fs->dirty = 1;
 	if (fs->nfree <= 0) {
-		if (! u6fs_read_block (fs, *bno, (char*) buf))
+		if (! u6fs_read_block (fs, *bno, (unsigned char *) buf))
 			return 0;
 		fs->nfree = lsb_short (buf[0]);
 		for (i=0; i<100; i++)

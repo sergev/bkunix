@@ -1,7 +1,7 @@
 CC		= gcc -g
-CFLAGS		= -O -Wall
+CFLAGS		= -O -Wall -Werror
 DESTDIR		= /usr/local
-OBJS		= fsutil.o superblock.o block.c inode.o create.o check.o file.o
+OBJS		= fsutil.o superblock.o block.o inode.o create.o check.o file.o
 PROG		= u6-fsutil
 
 # For Mac OS X

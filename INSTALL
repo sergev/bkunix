@@ -3,12 +3,11 @@
 
 This file describes how to build BKUNIX from the source package.
 
-1.  Install the cross-development system.
+1.  Install the cross-development system:
 
-    Just `cd' to the directory cross-devel/ and type
-
-	make
-	make install
+	make -C cross-devel install
+	make -C src/libc install
+	make -C fsutil install
 
     The following utilities will be installed to /usr/local/bin:
 
@@ -21,6 +20,7 @@ This file describes how to build BKUNIX from the source package.
 	pdp11-nm	- object name list utility
 	pdp11-size	- object size utility
 	pdp11-strip	- object strip utility
+        u6-fsutil       - filesystem utility
 
     Some files will be installed to /usr/local/lib/pdp11:
 
@@ -29,34 +29,17 @@ This file describes how to build BKUNIX from the source package.
 	ccom		- Johnson's portable C compiler
 	cpp		- C preprocessor
 	c2		- optimizer for assembler output of C compilers
-	asm2		- second pass of AT&T assembler
-	opcode.tbl	- instruction code table for AT&T assembler
 	libcrt.a	- run time library for long and unsigned arithmetic
-
-    You want to install to another directory, edit the cross-devel/Makefile
-    and set DESTDIR to the name of target directory.
-
-2.  Build and install the C library for target system.
-    Enter src/libc/ directory and type
-
-	make
-	make install
-
-    The following files will be installed into /usr/local/lib/pdp11:
-
 	crt0.o		- C runtime startoff routine
 	libc.a		- standard C library
 
-3.  Install the filesystem utility. Go to fsutil/ directory and type
+    You want to install to directory other than /usr/local, use DESTDIR=path option:
 
-	make
-	make install
+	make -C cross-devel install DESTDIR=~/.local
+	make -C src/libc install DESTDIR=~/.local
+	make -C fsutil install DESTDIR=~/.local
 
-    The "u6-fsutil" binary will be installed to /usr/local/bin.
-    If you want to install to another directory, edit the fsutil/Makefile
-    and set DESTDIR to the name of target directory.
-
-4.  To build BKUNIX disk images, enter src/ directory and type
+2.  To build BKUNIX disk images, enter src/ directory and type
 
 	make
 
@@ -69,7 +52,7 @@ This file describes how to build BKUNIX from the source package.
 
 	u6-fsutil -v root.bkd
 
-5.  To run the system you will need BK emulator installed
+3.  To run the system you will need BK emulator installed
     somewhere in the path. Enter src/ directory and type:
 
 	make run

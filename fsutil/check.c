@@ -43,6 +43,9 @@ extern int verbose;
 /* block scan function, called by scan_inode for every file block */
 typedef int scanner_t (u6fs_inode_t *inode, unsigned short blk, void *arg);
 
+/* directory entry handler, called by scan_directory for every dir entry */
+typedef int dirent_handler_t (u6fs_t *fs, u6fs_dirent_t *dirp);
+
 static unsigned char	buf_data [LSXFS_BSIZE];	/* buffer data for scan_directory */
 static unsigned short	buf_bno;		/* buffer block number */
 static int		buf_dirty;		/* buffer data modified */
@@ -320,7 +323,7 @@ static int scan_directory (u6fs_inode_t *inode, unsigned short blk, void *arg)
 {
 	u6fs_dirent_t direntry;
 	unsigned char *dirp;
-	int (*func) () = arg;
+	dirent_handler_t *func = arg;
 	int n;
 
 /*printf ("scan_directory: I=%d, blk=%d\n", inode->number, blk);*/
