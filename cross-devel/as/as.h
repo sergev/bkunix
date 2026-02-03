@@ -12,6 +12,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#define TRUE  (1)
+#define FALSE (0)
+
 //
 // Magic Numbers (Limits)
 //
@@ -19,18 +22,7 @@
 #define USERSYMBOLS 700
 #define HSHSIZ      1553
 
-//
-// Embedded opcode table (see opcode.c)
-//
-struct opcode_entry {
-    const char *name;
-    unsigned type;
-    unsigned val;
-};
-extern const struct opcode_entry opcode_table[];
-extern const int opcode_table_size;
-
-extern char atmp1[], atmp2[], atmp3[];
+extern char atmp1[], atmp2[];
 extern int debug_flag;
 
 void asm_pass1(int globflag, int argc, char *argv[]);
@@ -163,5 +155,32 @@ struct fb_tab {
     int val;
 };
 
-#define TRUE  (1)
-#define FALSE (0)
+//
+// Symbol Table
+//
+struct symtab {
+    char name[8];
+    struct value v;
+};
+
+//
+// Global symbol table (opcodes + user symbols), shared by pass 1 and pass 2
+//
+extern struct symtab global_symtab[SYMBOLS + USERSYMBOLS];
+extern struct symtab *global_symend;
+
+// Accessors for values derived from struct fields
+#define dotrel(p1) (global_symtab[0].v.type.i)
+#define dot(p1)    (global_symtab[0].v.val.u)
+#define dotdot(p1) (global_symtab[1].v.val.u)
+
+//
+// Embedded opcode table (see opcode.c)
+//
+struct opcode_entry {
+    const char *name;
+    unsigned type;
+    unsigned val;
+};
+extern const struct opcode_entry opcode_table[];
+extern const int opcode_table_size;

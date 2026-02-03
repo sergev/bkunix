@@ -47,11 +47,11 @@ void assem(struct pass1 *p1)
                 aerror(p1, "Syntax error");
                 goto ealoop;
             }
-            if (p1->tok.s == &p1->symtab[0]) {
+            if (p1->tok.s == &global_symtab[0]) {
                 v.type.u &= ~TYPEEXT;
                 if (v.type.i != dotrel(p1)) {
                     aerror(p1, "Dot '.' expected");
-                    p1->symtab[0].v.type.i = TYPETXT;
+                    global_symtab[0].v.type.i = TYPETXT;
                     goto ealoop;
                 }
             }

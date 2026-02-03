@@ -75,14 +75,14 @@ void p2_doequal(struct pass2 *p2, union token *t)
 
     p2_readop(p2);
     v = p2_express(p2);
-    if (t->v == &p2->symtab[0]) { // .=
+    if (t->v == &global_symtab[0].v) { // .=
         v.type.u &= ~TYPEEXT;
         if (v.type.u != dotrel(p2)) {
             p2_aerror(p2, "Dot-relative expression required");
             return;
         }
         if (v.type.u == TYPEBSS) {
-            p2->symtab[0].val.u = v.val.u;
+            global_symtab[0].v.val.u = v.val.u;
             p2_dotmax(p2);
             return;
         }

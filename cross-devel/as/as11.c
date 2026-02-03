@@ -12,8 +12,10 @@
 
 char atmp1[]   = "/tmp/atm1XXXXXX";
 char atmp2[]   = "/tmp/atm2XXXXXX";
-char atmp3[]   = "/tmp/atm3XXXXXX";
 int debug_flag = 0;
+
+struct symtab  global_symtab[SYMBOLS + USERSYMBOLS];
+struct symtab *global_symend;
 
 //
 // Print assembler usage to stderr and exit with failure.
@@ -71,7 +73,6 @@ void asm_pass1(int globflag, int argc, char *argv[])
 {
     struct pass1 p1;
     memset(&p1, 0, sizeof(p1));
-    int fsym;
 
     pass1_init(&p1);
     p1.globflag = globflag;
@@ -90,34 +91,6 @@ void asm_pass1(int globflag, int argc, char *argv[])
     close(p1.fbfil);
     if (p1.errflg)
         aexit(&p1);
-    fsym = f_create(&p1, atmp3);
-    write_syms(&p1, fsym);
-    close(fsym);
-}
-
-//
-// Write user symbol table to a file descriptor for pass2.
-// Called at end of pass1 to dump p1->usymtab into atmp3.
-// Inputs: p1 (usymtab, symend), fd (open for writing).
-// Outputs: For each user symbol, writes 8-byte name then 4-byte type/val (little-endian).
-// Iterates usymtab to symend; packs type and val into 4 bytes each.
-//
-void write_syms(struct pass1 *p1, int fd)
-{
-    struct symtab *s;
-    char buf[4];
-
-    for (s = p1->usymtab; s < p1->symend; ++s) {
-        if (debug_flag)
-            printf("--- write atmp3: sym \"%.8s\" type=%o val=%o\n", s->name, s->v.type.u,
-                   s->v.val.u);
-        write(fd, s->name, sizeof(s->name));
-        buf[0] = s->v.type.u;
-        buf[1] = s->v.type.u >> 8;
-        buf[2] = s->v.val.u;
-        buf[3] = s->v.val.u >> 8;
-        write(fd, buf, 4);
-    }
 }
 
 //
@@ -144,7 +117,6 @@ void aexit(struct pass1 *p1)
     (void)p1;
     unlink(atmp1);
     unlink(atmp2);
-    unlink(atmp3);
     exit(1);
 }
 
@@ -168,9 +140,8 @@ int f_create(struct pass1 *p1, char *name)
 //
 // Build the permanent (opcode) symbol table from embedded opcode_table and hash it.
 // Called once at start of pass1 after temp files are created.
-// Inputs: p1 (symtab, hshtab).
-// Outputs: Fills symtab from opcode_table, pads names to 8 chars, enters each in hash via
-// hash_enter.
+// Inputs: p1 (hshtab).
+// Outputs: Fills global_symtab from opcode_table, pads names to 8 chars, enters each in hash.
 //
 void setup(struct pass1 *p1)
 {
@@ -181,7 +152,7 @@ void setup(struct pass1 *p1)
         fprintf(stderr, "setup: permanent symbol table overflow.\n");
         exit(2);
     }
-    p = p1->symtab;
+    p = global_symtab;
     for (i = 0; i < opcode_table_size; ++i, ++p) {
         memset(p->name, 0, sizeof(p->name));
         strncpy(p->name, opcode_table[i].name, 8);

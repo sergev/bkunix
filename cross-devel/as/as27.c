@@ -45,7 +45,7 @@ struct value p2_expres1(struct pass2 *p2)
             if ((rv.type.i = p2->tok.v->type.i) == TYPEUNDEF && p2->passno != 0)
                 p2_aerror(p2, "Unknown symbol");
             if (rv.type.i == TYPEEXT) {
-                p2->xsymbol = (void *)(size_t)p2->tok.u;
+                p2->xsymbol = (struct symtab*)p2->tok.v - (struct symtab*)&global_symtab[SYMBOLS].v;
                 rv.val.i    = 0;
                 goto operand;
             }

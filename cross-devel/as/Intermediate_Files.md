@@ -1,14 +1,13 @@
 # Intermediate Files
 
-The PDP-11 assembler is a two-pass program: pass 1 parses the source and writes three temporary files; pass 2 reads those files and produces the final object (a.out). All three files are created with `mkstemp()` and are removed on exit (normal or error); they are not intended to persist.
+The PDP-11 assembler is a two-pass program: pass 1 parses the source and writes two temporary files; pass 2 reads those files and produces the final object (a.out). The symbol table (opcodes and user symbols) is a single global array (`global_symtab`, `global_symend` in [as1.h](as1.h)) used by both passes; it is not written to a file. Both temp files are created with `mkstemp()` and are removed on exit (normal or error); they are not intended to persist.
 
-| File  | Pass 1 handle              | Pass 2 handle           | Purpose                                 |
-| ----- | -------------------------- | ----------------------- | --------------------------------------- |
-| atmp1 | `p1.pof`                   | `p2.txtfil` → `p2.fin`  | Token stream (replay of source)          |
-| atmp2 | `p1.fbfil`                 | `p2.fbfil` → `p2.fin`   | Forward branch table (temporary labels) |
-| atmp3 | `fsym` (from `write_syms`) | `p2.symf` → `p2.fin`    | User symbol table                       |
+| File  | Pass 1 handle   | Pass 2 handle          | Purpose                                 |
+| ----- | --------------- | ---------------------- | --------------------------------------- |
+| atmp1 | `p1.pof`        | `p2.txtfil` → `p2.fin` | Token stream (replay of source)          |
+| atmp2 | `p1.fbfil`      | `p2.fbfil` → `p2.fin`  | Forward branch table (temporary labels) |
 
-Pass 2 reads the files in this order: atmp3 (symbols), then atmp2 (forward branches), then atmp1 (token stream) for assembly. See `asm_pass2()` in [as21.c](as21.c).
+Pass 2 reads the files in this order: atmp2 (forward branches), then atmp1 (token stream) for assembly. See `asm_pass2()` in [as21.c](as21.c).
 
 ---
 
@@ -44,7 +43,7 @@ Records each temporary label definition (`n:` with n in 0–9) so pass 2 can res
 ### Usage
 
 - **Creation (pass 1):** In [as11.c](as11.c), `p1.fbfil = f_create(&p1, atmp2)` creates the file from `/tmp/atm2XXXXXX`. For each `n:` in the source, [as13.c](as13.c) `write_fb()` appends one 4-byte record.
-- **Read (pass 2):** In [as21.c](as21.c) (lines 72–84), `p2.fin = p2.fbfil`; a loop reads two 16-bit words per entry via `p2_agetw()`, fills `p2.fbtab`, and sets `p2.endtable`. Reading stops when `p2_agetw()` returns false (EOF).
+- **Read (pass 2):** In [as21.c](as21.c), `p2.fin = p2.fbfil`; a loop reads two 16-bit words per entry via `p2_agetw()`, fills `p2.fbtab`, and sets `p2.endtable`. Reading stops when `p2_agetw()` returns false (EOF).
 - **Deletion:** `unlink(p2->atmp2)` in [as21.c](as21.c) `p2_aexit()`; on pass 1 error, `unlink(atmp2)` in [as11.c](as11.c) `aexit()`.
 
 ### Internal data layout
@@ -60,26 +59,13 @@ Written in [as13.c](as13.c) `write_fb()`: `buf[0] = b->label`, `buf[1] = b->labe
 
 ---
 
-## 3. atmp3 — User symbol table
+## 3. Symbol table (in memory)
 
 ### Purpose
 
-Dumps the user-defined symbol table from pass 1 so pass 2 can build `p2.usymtab` with the same symbols and values, and later append them to the a.out symbol table.
+Opcodes and user-defined symbols live in a single global table (`global_symtab[SYMBOLS + USERSYMBOLS]`, `global_symend` in [as1.h](as1.h)). Pass 1 fills opcodes in `setup()` and user symbols via `add_symbol()`; pass 2 uses the same table for relocation and for appending the user symbol records to a.out. No temporary file is used.
 
 ### Usage
 
-- **Creation (pass 1):** In [as11.c](as11.c), after pass 1 assembly, `fsym = f_create(&p1, atmp3)` creates the file from `/tmp/atm3XXXXXX`; then `write_syms(&p1, fsym)` writes one 12-byte record per user symbol.
-- **Read (pass 2):** In [as21.c](as21.c), `p2.symf = p2_ofile(&p2, p2.atmp3)` and `p2.fin = p2.symf`. The first read (lines 50–67) fills `p2.usymtab`. The same file is re-read (lines 141–156) to copy symbol records into the final a.out.
-- **Deletion:** `unlink(p2->atmp3)` in [as21.c](as21.c) `p2_aexit()`; on pass 1 error, `unlink(atmp3)` in [as11.c](as11.c) `aexit()`.
-
-### Internal data layout
-
-Sequence of **12-byte records**, one per user symbol (from `p1->usymtab` up to `p1->symend`).
-
-| Bytes  | Content | Description |
-| ------ | ------- | ----------- |
-| 0–7    | `name`  | Symbol name, 8 bytes, null-padded. From `struct symtab` in [as1.h](as1.h). |
-| 8–9    | `type`  | 16-bit, little-endian. Relocation/type bits (`symtab.v.type.u`). |
-| 10–11  | `val`   | 16-bit, little-endian. Symbol value (`symtab.v.val.u`). |
-
-Written in [as11.c](as11.c) `write_syms()`: `write(fd, s->name, 8)` then a 4-byte buffer with `type.u` and `val.u` (low byte first). Read in [as21.c](as21.c) using `p2_agetw()` (six words per symbol: four name words skipped for the first read, then type and value).
+- **Pass 1:** In [as11.c](as11.c) `setup()`, `global_symtab[0 .. opcode_table_size-1]` is filled from `opcode_table`. In [as18.c](as18.c) `pass1_init()`, `global_symend = global_symtab + SYMBOLS`. New user symbols are added in [as14.c](as14.c) via `add_symbol()` (writes into `global_symtab[SYMBOLS]` onward, advances `global_symend`).
+- **Pass 2:** In [as21.c](as21.c), `p2.hdr.symsiz` is set from `global_symend - (global_symtab + SYMBOLS)`; relocation runs over user symbols; the a.out symbol table is written by iterating `global_symtab + SYMBOLS` to `global_symend` (8-byte name and type/val per symbol).

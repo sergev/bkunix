@@ -26,10 +26,10 @@ void opline(struct pass1 *p1)
     if (p1->tok.u <= TOKSYMBOL) { // Operator
         if (p1->tok.u != '<') {
             express(p1);
-            p1->symtab[0].v.val.u += 2;
+            global_symtab[0].v.val.u += 2;
             return;
         }
-        p1->symtab[0].v.val.u += p1->numval; // <string>
+        global_symtab[0].v.val.u += p1->numval; // <string>
         readop(p1);
         return;
     }
@@ -37,7 +37,7 @@ void opline(struct pass1 *p1)
     t = p1->tok.v->type.u;
     if (t == TYPEREGIS || t < TYPEOPFD || t > TYPEOPJCC) { // not op code
         express(p1);
-        p1->symtab[0].v.val.u += 2;
+        global_symtab[0].v.val.u += 2;
         return;
     }
 
@@ -47,7 +47,7 @@ void opline(struct pass1 *p1)
     case TYPEOPRTS:
     case TYPEOPSYS:
         express(p1);
-        p1->symtab[0].v.val.u += 2;
+        global_symtab[0].v.val.u += 2;
         return;
 
     case TYPEOPJSR: // 2 operand instructions
@@ -63,18 +63,18 @@ void opline(struct pass1 *p1)
         }
         readop(p1);
         address(p1);
-        p1->symtab[0].v.val.u += 2;
+        global_symtab[0].v.val.u += 2;
         return;
 
     case TYPEOPSO: // 1 operand instructions
         address(p1);
-        p1->symtab[0].v.val.u += 2;
+        global_symtab[0].v.val.u += 2;
         return;
 
     case TYPEOPBYTE: // .byte
         while (1) {
             express(p1);
-            ++p1->symtab[0].v.val.u;
+            ++global_symtab[0].v.val.u;
             if (p1->tok.i != ',')
                 break;
             readop(p1);
@@ -84,7 +84,7 @@ void opline(struct pass1 *p1)
     case TYPEOPWORD: // .word
         while (1) {
             express(p1);
-            p1->symtab[0].v.val.u += 2;
+            global_symtab[0].v.val.u += 2;
             if (p1->tok.i != ',')
                 break;
             readop(p1);
@@ -92,12 +92,12 @@ void opline(struct pass1 *p1)
         return;
 
     case TYPEOPASC: // <...>
-        p1->symtab[0].v.val.u += p1->numval;
+        global_symtab[0].v.val.u += p1->numval;
         readop(p1);
         return;
 
     case TYPEOPEVEN: // .even
-        p1->symtab[0].v.val.u = (p1->symtab[0].v.val.u + 1) & ~1;
+        global_symtab[0].v.val.u = (global_symtab[0].v.val.u + 1) & ~1;
         return;
 
     case TYPEOPIF: // .if
@@ -112,7 +112,7 @@ void opline(struct pass1 *p1)
         return;
 
     case TYPEOPGLB: // .globl
-        while (p1->tok.v >= &p1->symtab[0].v && p1->tok.v < &p1->symend->v) {
+        while (p1->tok.v >= &global_symtab[0].v && p1->tok.v < &global_symend[0].v) {
             p1->tok.v->type.u |= TYPEEXT;
             readop(p1);
             if (p1->tok.u != ',')
@@ -125,15 +125,15 @@ void opline(struct pass1 *p1)
     case TYPEOPEST:
     case TYPEOPESD:
         express(p1);
-        p1->symtab[0].v.val.u += 2;
+        global_symtab[0].v.val.u += 2;
         return;
 
     case TYPEOPTXT: // .txt, .data, .bss
     case TYPEOPDAT:
     case TYPEOPBSS:
         p1->savdot[dotrel(p1) - TYPETXT] = dot(p1);
-        p1->symtab[0].v.val.u            = p1->savdot[t - TYPEOPTXT];
-        p1->symtab[0].v.type.i           = t - TYPEOPTXT + TYPETXT;
+        global_symtab[0].v.val.u            = p1->savdot[t - TYPEOPTXT];
+        global_symtab[0].v.type.i           = t - TYPEOPTXT + TYPETXT;
         return;
 
     case TYPEOPSOB: // sob
@@ -142,7 +142,7 @@ void opline(struct pass1 *p1)
             aerror(p1, "Invalid register name");
         readop(p1);
         express(p1);
-        p1->symtab[0].v.val.u += 2;
+        global_symtab[0].v.val.u += 2;
         return;
 
     case TYPEOPCOM: // .common
@@ -163,17 +163,17 @@ void opline(struct pass1 *p1)
     case TYPEOPJBR: // jbr
         v = express(p1);
         if (v.type.i != dotrel(p1) || (v.val.i -= dot(p1)) > 0 || v.val.i < -376)
-            p1->symtab[0].v.val.u += 4;
+            global_symtab[0].v.val.u += 4;
         else
-            p1->symtab[0].v.val.u += 2;
+            global_symtab[0].v.val.u += 2;
         return;
 
     case TYPEOPJCC: // jcc
         v = express(p1);
         if (v.type.i != dotrel(p1) || (v.val.i -= dot(p1)) > 0 || v.val.i < 376)
-            p1->symtab[0].v.val.u += 6;
+            global_symtab[0].v.val.u += 6;
         else
-            p1->symtab[0].v.val.u += 2;
+            global_symtab[0].v.val.u += 2;
         return;
     default:
         break;
@@ -223,7 +223,7 @@ int address(struct pass1 *p1)
     case '$':
         readop(p1);
         express(p1);
-        p1->symtab[0].v.val.u += 2;
+        global_symtab[0].v.val.u += 2;
         return (0);
 
     case '*':
@@ -231,7 +231,7 @@ int address(struct pass1 *p1)
         if (p1->tok.i == '*')
             aerror(p1, "Error at '*'");
         i = address(p1);
-        p1->symtab[0].v.val.u += i;
+        global_symtab[0].v.val.u += i;
         return (i);
 
     default:
@@ -244,14 +244,14 @@ int address(struct pass1 *p1)
         v = express(p1);
         checkreg(p1, v);
         checkrp(p1);
-        p1->symtab[0].v.val.u += 2;
+        global_symtab[0].v.val.u += 2;
         return (0);
     }
     if (v.type.i == TYPEREGIS) {
         checkreg(p1, v);
         return (0);
     }
-    p1->symtab[0].v.val.u += 2;
+    global_symtab[0].v.val.u += 2;
     return (0);
 }
 

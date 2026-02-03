@@ -40,9 +40,6 @@ struct out_buf {
 // Pass2 context - all former globals
 //
 struct pass2 {
-    struct value symtab[SYMBOLS];
-    struct value usymtab[USERSYMBOLS];
-
     struct fb_tab fbtab[1024];
     struct fb_tab *fbbufp;
     struct fb_tab *curfb[20];
@@ -70,7 +67,6 @@ struct pass2 {
     char argb[44];
     int defund;
     int txtfil;
-    int symf;
     int fbfil;
     int fin;
     int fout;
@@ -78,7 +74,7 @@ struct pass2 {
     int outmod;
     int line;
     union token savop;
-    void *xsymbol;
+    unsigned xsymbol;
     int swapf;
     int rlimit;
     int datbase;
@@ -89,14 +85,9 @@ struct pass2 {
 
     char *atmp1;
     char *atmp2;
-    char *atmp3;
     char *outfile;
 };
 
-// Accessors for values derived from struct fields
-#define dotrel(p2)   ((p2)->symtab[0].type.u)
-#define dot(p2)      ((p2)->symtab[0].val.u)
-#define dotdot(p2)   ((p2)->symtab[1].val.u)
 #define txtsiz(p2)   ((p2)->hdr.atxtsiz[0])
 #define datsiz(p2)   ((p2)->hdr.atxtsiz[1])
 #define bsssiz(p2)   ((p2)->hdr.atxtsiz[2])

@@ -28,7 +28,7 @@ struct value express(struct pass1 *p1)
     v.type.i = TYPEABS;
 
     while (1) {
-        if (p1->tok.v >= &p1->symtab[0].v && p1->tok.v < &p1->symend->v) { // name/opcode
+        if (p1->tok.v >= &global_symtab[0].v && p1->tok.v < &global_symend[0].v) { // name/opcode
             rv.type.i = p1->tok.v->type.i;
             rv.val.i  = p1->tok.v->val.i;
             goto operand;

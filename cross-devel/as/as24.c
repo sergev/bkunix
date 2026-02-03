@@ -99,10 +99,10 @@ void p2_readop(struct pass2 *p2)
     if (p2->tok.u > TOKSYMBOL) {
         if (p2->tok.u >= USYMFLAG) {
             p2->tok.u -= USYMFLAG;
-            p2->tok.v = &p2->usymtab[p2->tok.u];
+            p2->tok.v = &global_symtab[SYMBOLS + p2->tok.u].v;
         } else {
             p2->tok.u -= PSYMFLAG;
-            p2->tok.v = &p2->symtab[p2->tok.u];
+            p2->tok.v = &global_symtab[p2->tok.u].v;
         }
     }
 }
@@ -128,10 +128,9 @@ int p2_agetw(struct pass2 *p2)
     }
     p2->tok.u = buf[0] | buf[1] << 8;
     if (debug_flag) {
-        const char *name = (p2->fin == p2->symf)     ? "atmp3"
-                           : (p2->fin == p2->fbfil)  ? "atmp2"
+        const char *name = (p2->fin == p2->fbfil)  ? "atmp2"
                            : (p2->fin == p2->txtfil) ? "atmp1"
-                                                     : "?";
+                                                      : "?";
         printf("--- read %s: 0x%04x (%o)\n", name, (unsigned)p2->tok.u, (unsigned)p2->tok.u);
     }
     return (TRUE);

@@ -7,14 +7,6 @@
 //
 
 //
-// Symbol Table
-//
-struct symtab {
-    char name[8];
-    struct value v;
-};
-
-//
 // Pass1 context - all former globals
 //
 #define PASS1_CHARTAB_SIZE 128
@@ -23,9 +15,6 @@ struct symtab {
 
 struct pass1 {
     struct symtab *hshtab[HSHSIZ];
-    struct symtab symtab[SYMBOLS + USERSYMBOLS];
-    struct symtab *usymtab;
-    struct symtab *symend;
     char symbol[8];
     unsigned savdot[3];
 
@@ -58,11 +47,6 @@ struct pass1 {
     char esctab[PASS1_ESCTAB_SIZE];
 };
 
-// Accessors for values derived from struct fields
-#define dotrel(p1) ((p1)->symtab[0].v.type.i)
-#define dot(p1)    ((p1)->symtab[0].v.val.u)
-#define dotdot(p1) ((p1)->symtab[1].v.val.u)
-
 void pass1_init(struct pass1 *p1);
 
 int address(struct pass1 *p1);
@@ -88,5 +72,4 @@ struct value express(struct pass1 *p1);
 unsigned short hash(struct pass1 *p1, char *);
 char rsch(struct pass1 *p1);
 int combine(struct pass1 *p1, int, int, int);
-void write_syms(struct pass1 *p1, int);
 void write_fb(struct pass1 *p1, int, struct fb_tab *);

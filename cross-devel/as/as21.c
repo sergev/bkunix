@@ -34,8 +34,7 @@ int asm_pass2(int globflag, char *outfile)
 {
     struct pass2 p2;
     memset(&p2, 0, sizeof(p2));
-    struct value *sp, *p;
-    unsigned t;
+    struct symtab *s;
     struct fb_tab *fp;
     int *pi, i;
 
@@ -44,39 +43,18 @@ int asm_pass2(int globflag, char *outfile)
     p2.outfile = outfile ? outfile : "a.out";
     p2.atmp1   = atmp1;
     p2.atmp2   = atmp2;
-    p2.atmp3   = atmp3;
     p2.txtfil  = p2_ofile(&p2, p2.atmp1);
     p2.fbfil   = p2_ofile(&p2, p2.atmp2);
-    p2.symf    = p2_ofile(&p2, p2.atmp3);
-    p2.fin     = p2.symf;
+    p2.fin     = p2.fbfil;
     p2.fout    = creat(p2.outfile, 0644);
     if (p2.fout <= 0)
         p2_filerr(&p2, p2.outfile);
 
-    // Read in the symbol table, dropping the name part
-    sp = p2.usymtab;
-    while (p2_agetw(&p2)) {
-        p2.hdr.symsiz += 12;
-        p2_agetw(&p2);
-        p2_agetw(&p2);
-        p2_agetw(&p2);
-        p2_agetw(&p2);
-        t = p2.tok.u & 037;
-        if (t < TYPETXT || t > TYPEDATA) {
-            sp->type.i = TYPEUNDEF;
-            sp->val.i  = 0;
-            p2_agetw(&p2);
-        } else {
-            sp->type.i = p2.tok.i - TYPETXT + TYPEOPEST;
-            p2_agetw(&p2);
-            sp->val.u = p2.tok.u;
-        }
-        ++sp;
-    }
+    // User symbol table from global (no file read)
+    p2.hdr.symsiz = (unsigned)(global_symend - (global_symtab + SYMBOLS)) * 12;
 
     // Read in forward branch table
     fp = p2.fbbufp = p2.fbtab;
-    p2.fin         = p2.fbfil;
     while (p2_agetw(&p2)) {
         fp->label = (unsigned char)(p2.tok.u - TYPETXT + TYPEOPEST);
         fp->label |= p2.tok.u & ~0xff;
@@ -97,10 +75,10 @@ int asm_pass2(int globflag, char *outfile)
         p2_aexit(&p2, 1);
 
     // Now set up for pass 3, including header for a.out
-    p2.symtab[0].val.u  = 0;
-    p2.symtab[0].type.u = TYPETXT;
-    p2.symtab[1].val.u  = 0;
-    p2.brtabp           = 0;
+    global_symtab[0].v.val.u  = 0;
+    global_symtab[0].v.type.u = TYPETXT;
+    global_symtab[1].v.val.u  = 0;
+    p2.brtabp                 = 0;
     ++p2.passno;
     p2_setup(&p2);
     lseek(p2.fin, 0L, 0);
@@ -117,8 +95,8 @@ int asm_pass2(int globflag, char *outfile)
     p2.aseek[1]       = p2.hdr.atxtsiz[0] + 020;
     p2.aseek[0]       = 020;
 
-    for (p = p2.usymtab; p < sp; ++p)
-        p2_doreloc(&p2, p);
+    for (s = global_symtab + SYMBOLS; s < global_symend; ++s)
+        p2_doreloc(&p2, &s->v);
 
     for (fp = p2.fbtab; fp < p2.endtable; ++fp)
         p2_doreloc(&p2, (struct value *)fp);
@@ -134,23 +112,14 @@ int asm_pass2(int globflag, char *outfile)
     // Flush buffers, append symbol table, close output
     p2_flush(&p2, &p2.txtp);
     p2_flush(&p2, &p2.relp);
-    p2.fin = p2.symf;
-    lseek(p2.fin, 0L, 0);
     p2_oset(&p2, &p2.txtp, p2.symseek);
-    sp = p2.usymtab;
-    while (p2_agetw(&p2)) {
-        p2_aputw(&p2, &p2.txtp, p2.tok.u);
-        p2_agetw(&p2);
-        p2_aputw(&p2, &p2.txtp, p2.tok.u);
-        p2_agetw(&p2);
-        p2_aputw(&p2, &p2.txtp, p2.tok.u);
-        p2_agetw(&p2);
-        p2_aputw(&p2, &p2.txtp, p2.tok.u);
-        p2_aputw(&p2, &p2.txtp, sp->type.u);
-        p2_aputw(&p2, &p2.txtp, sp->val.u);
-        ++sp;
-        p2_agetw(&p2);
-        p2_agetw(&p2);
+    for (s = global_symtab + SYMBOLS; s < global_symend; ++s) {
+        p2_aputw(&p2, &p2.txtp, (unsigned char)s->name[0] | ((unsigned char)s->name[1] << 8));
+        p2_aputw(&p2, &p2.txtp, (unsigned char)s->name[2] | ((unsigned char)s->name[3] << 8));
+        p2_aputw(&p2, &p2.txtp, (unsigned char)s->name[4] | ((unsigned char)s->name[5] << 8));
+        p2_aputw(&p2, &p2.txtp, (unsigned char)s->name[6] | ((unsigned char)s->name[7] << 8));
+        p2_aputw(&p2, &p2.txtp, s->v.type.u);
+        p2_aputw(&p2, &p2.txtp, s->v.val.u);
     }
     p2_flush(&p2, &p2.txtp);
     p2_aexit(&p2, 0);
@@ -168,7 +137,6 @@ void p2_aexit(struct pass2 *p2, int code)
     if (!debug_flag) {
         unlink(p2->atmp1);
         unlink(p2->atmp2);
-        unlink(p2->atmp3);
     }
     exit(code);
 }
@@ -204,25 +172,13 @@ void p2_doreloc(struct pass2 *p2, struct value *pv)
 }
 
 //
-// Set up for an assembly pass: fill symtab from embedded opcode table on pass 0, reset nxtfb/curfb
-// and advance fb for 0..9. Called at start of each pass (0 and 1) from asm_pass2. Inputs: p2
-// (passno, symtab, fbtab, nxtfb, curfb). Outputs: symtab filled from opcode_table on pass 0;
-// nxtfb/curfb initialized; p2_fbadv for each temp index.
+// Set up for an assembly pass: reset nxtfb/curfb and advance fb for 0..9.
+// Called at start of each pass (0 and 1) from asm_pass2. Opcodes stay in global_symtab from pass 1.
+// Inputs: p2 (passno, fbtab, nxtfb, curfb). Outputs: nxtfb/curfb initialized; p2_fbadv for each temp index.
 //
 void p2_setup(struct pass2 *p2)
 {
     int i;
-
-    if (p2->passno == 0) {
-        if (opcode_table_size > SYMBOLS) {
-            fprintf(stderr, "setup: Permanent symbol table overflow\n");
-            p2_aexit(p2, 1);
-        }
-        for (i = 0; i < opcode_table_size; ++i) {
-            p2->symtab[i].type.u = opcode_table[i].type;
-            p2->symtab[i].val.u  = opcode_table[i].val;
-        }
-    }
 
     for (i = 0; i < 10; ++i)
         p2->nxtfb[i] = p2->curfb[i] = 0;

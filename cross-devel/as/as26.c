@@ -163,7 +163,7 @@ void p2_opline(struct pass2 *p2)
         if ((dot(p2) & 1) == 0)
             return;
         if (dotrel(p2) == TYPEBSS) {
-            p2->symtab[0].val.u++;
+            global_symtab[0].v.val.u++;
             return;
         }
         p2_outb(p2, 0, 0);
@@ -196,7 +196,7 @@ void p2_opline(struct pass2 *p2)
     case TYPEOPTXT:
     case TYPEOPDAT:
     case TYPEOPBSS:
-        p2->symtab[0].val.u              = (p2->symtab[0].val.u + 1) & ~1;
+        global_symtab[0].v.val.u              = (global_symtab[0].v.val.u + 1) & ~1;
         p2->savdot[dotrel(p2) - TYPETXT] = dot(p2);
         if (p2->passno != 0) {
             p2_flush(p2, &p2->txtp);
@@ -206,8 +206,8 @@ void p2_opline(struct pass2 *p2)
             p2->rseekp = &p2->relseek[ttype - TYPEOPTXT];
             p2_oset(p2, &p2->relp, *p2->rseekp);
         }
-        p2->symtab[0].val.u  = p2->savdot[ttype - TYPEOPTXT];
-        p2->symtab[0].type.u = ttype - TYPEOPTXT + TYPETXT;
+        global_symtab[0].v.val.u  = p2->savdot[ttype - TYPEOPTXT];
+        global_symtab[0].v.type.u = ttype - TYPEOPTXT + TYPETXT;
         return;
 
     case TYPEOPMUL:
@@ -264,7 +264,7 @@ void p2_opline(struct pass2 *p2)
             v.val.u = p2_setbr(p2, v.val.u);
             if (v.val.u != 0 && topcode != OPCODBR)
                 v.val.u += 2;
-            p2->symtab[0].val.u += v.val.u + 2;
+            global_symtab[0].v.val.u += v.val.u + 2;
             return;
         }
         if (p2_getbr(p2) == 0)
@@ -322,7 +322,7 @@ void p2_op2b(struct pass2 *p2, unsigned a1, unsigned op)
     a2 |= a1 | op;
     p2_outw(p2, 0, a2);
     for (p = &p2->adrbuf[0]; p < p2->padrb; p += 3) {
-        p2->xsymbol = (void *)(size_t)p[2];
+        p2->xsymbol = p[2];
         p2_outw(p2, p[1], p[0]);
     }
     return;
@@ -362,7 +362,7 @@ unsigned p2_address(struct pass2 *p2)
                 p2_addrovf(p2);
             *p2->padrb++ = 0;
             *p2->padrb++ = 0;
-            *p2->padrb++ = (size_t)p2->xsymbol;
+            *p2->padrb++ = p2->xsymbol;
             return (v.val.u);
 
         case '-':
@@ -386,7 +386,7 @@ unsigned p2_address(struct pass2 *p2)
                 p2_addrovf(p2);
             *p2->padrb++ = v.val.u;
             *p2->padrb++ = v.type.u;
-            *p2->padrb++ = (size_t)p2->xsymbol;
+            *p2->padrb++ = p2->xsymbol;
             v.val.u      = t | AMIMMED;
             return (v.val.u);
 
@@ -410,7 +410,7 @@ unsigned p2_address(struct pass2 *p2)
             p2_addrovf(p2);
         *p2->padrb++ = v.val.u;
         *p2->padrb++ = v.type.u;
-        *p2->padrb++ = (size_t)p2->xsymbol;
+        *p2->padrb++ = p2->xsymbol;
         v            = p2_express(p2);
         p2_checkreg(p2, &v);
         p2_checkrp(p2);
@@ -432,7 +432,7 @@ unsigned p2_address(struct pass2 *p2)
         p2_addrovf(p2);
     *p2->padrb++ = v.val.u;
     *p2->padrb++ = v.type.u;
-    *p2->padrb++ = (size_t)p2->xsymbol;
+    *p2->padrb++ = p2->xsymbol;
     return (AMRELATIVE | t);
 }
 

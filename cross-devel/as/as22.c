@@ -34,14 +34,14 @@ void p2_outw(struct pass2 *p2, int type, int val)
         p2_outb(p2, TYPEUNDEF, val);
         return;
     }
-    p2->symtab[0].val.u += 2;
+    global_symtab[0].v.val.u += 2;
     if (p2->passno == 0)
         return;
     t = ((type & ENDTABFLAG) >> 15) & 1;
     type &= ~ENDTABFLAG;
     if (type == TYPEEXT) {
         p2->outmod = 0666;
-        type       = (((struct value *)p2->xsymbol - p2->usymtab) << 3) | 4;
+        type       = (p2->xsymbol << 3) | 4;
     } else {
         if ((type &= ~TYPEEXT) >= TYPEOPFD) {
             if (type == TYPEOPEST || type == TYPEOPESD)
@@ -92,7 +92,7 @@ void p2_outb(struct pass2 *p2, int type, int val)
             *((char *)p2->txtp.slot - 1) = val;
         }
     }
-    p2->symtab[0].val.u++;
+    global_symtab[0].v.val.u++;
 }
 
 //

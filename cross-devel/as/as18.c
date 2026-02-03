@@ -46,8 +46,7 @@ void pass1_init(struct pass1 *p1)
 
     for (i = 0; i < HSHSIZ; i++)
         p1->hshtab[i] = 0;
-    p1->usymtab   = p1->symtab + SYMBOLS;
-    p1->symend    = p1->symtab + SYMBOLS;
+    global_symend = global_symtab + SYMBOLS;
     p1->savdot[0] = p1->savdot[1] = p1->savdot[2] = 0;
     for (i = 0; i < 10; i++) {
         p1->curfbr[i] = 0;

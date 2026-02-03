@@ -46,8 +46,8 @@ void rname(struct pass1 *p1, unsigned char c)
     hv     = hash(p1, p1->symbol);
     p1->ch = tc;
     if (no_hash) {
-        p1->tok.s = p1->symend;
-        add_symbol(p1, p1->tok.s, p1->symbol);
+        p1->tok.s = global_symend;
+        add_symbol(p1, global_symend, p1->symbol);
     } else {
         probe = hv % HSHSIZ;
         next  = (hv / HSHSIZ) + 1;
@@ -57,8 +57,8 @@ void rname(struct pass1 *p1, unsigned char c)
             if (debug)
                 printf("rname debug probe %d next %u\n", probe, next);
             if (p1->hshtab[probe] == 0) {
-                p1->hshtab[probe] = p1->tok.s = p1->symend;
-                add_symbol(p1, p1->tok.s, p1->symbol);
+                p1->hshtab[probe] = p1->tok.s = global_symend;
+                add_symbol(p1, global_symend, p1->symbol);
                 break;
             }
             if (debug)
@@ -71,10 +71,10 @@ void rname(struct pass1 *p1, unsigned char c)
     }
 
     stok = &p1->tok.s->v;
-    if (p1->tok.s >= p1->usymtab)
-        p1->tok.i = (p1->tok.s - p1->usymtab) + USYMFLAG;
+    if (p1->tok.s >= global_symtab + SYMBOLS)
+        p1->tok.i = (p1->tok.s - (global_symtab + SYMBOLS)) + USYMFLAG;
     else
-        p1->tok.i = (p1->tok.s - p1->symtab) + PSYMFLAG;
+        p1->tok.i = (p1->tok.s - global_symtab) + PSYMFLAG;
     aputw(p1);
     p1->tok.v = stok;
 }
@@ -234,7 +234,8 @@ void add_symbol(struct pass1 *p1, struct symtab *p, char *s)
     strncpy(p->name, s, 8);
     p->v.type.u = TYPEUNDEF;
     p->v.val.u  = 0;
-    if (++p1->symend - p1->usymtab > USERSYMBOLS) {
+    global_symend = p + 1;
+    if (global_symend - (global_symtab + SYMBOLS) > USERSYMBOLS) {
         fprintf(stderr, "add_symbol: symbol table overflow.\n");
         aexit(p1);
     }
