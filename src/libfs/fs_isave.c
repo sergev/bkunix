@@ -1,7 +1,7 @@
 /*
  * Write inode back to disk.
  *
- * Copyright (C) 2006 Serge Vakulenko, <vak@cronyx.ru>
+ * Copyright (C) 2006 Serge Vakulenko
  *
  * This file is part of BKUNIX project, which is distributed
  * under the terms of the MIT License.

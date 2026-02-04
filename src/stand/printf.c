@@ -2,7 +2,7 @@
  * Standalone version of printf(3).
  * Based on FreeBSD sources, heavily rewritten.
  *
- * Copyright (C) 2000-2002 Serge Vakulenko, <vak@cronyx.ru>
+ * Copyright (C) 2000-2002 Serge Vakulenko
  *
  * This file is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or

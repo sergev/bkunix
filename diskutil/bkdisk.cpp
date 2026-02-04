@@ -211,7 +211,7 @@ bool FormatTrack (HANDLE h, BYTE cyl, BYTE head)
 
 void Usage ()
 {
-	WriteCon("BK-0010 Disk Utility by Serge Vakulenko <vak@cronyx.ru>\n"
+	WriteCon("BK-0010 Disk Utility by Serge Vakulenko\n"
 		"Based on driver fdrawcmd.sys from http://simonowen.com/fdrawcmd/\n"
 		"Usage:\n"
 		"\tbkdisk image.bkd A: [-f] [-v]\n"

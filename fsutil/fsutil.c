@@ -1,7 +1,7 @@
 /*
  * Utility for dealing with unix v6 filesystem images.
  *
- * Copyright (C) 2006 Serge Vakulenko, <vak@cronyx.ru>
+ * Copyright (C) 2006 Serge Vakulenko
  *
  * This file is part of BKUNIX project, which is distributed
  * under the terms of the MIT License.
@@ -30,8 +30,6 @@ char *boot_sector2;
 static const char *program_version =
 	"LSX file system utility, version 1.2\n"
 	"Copyright (C) 2002-2018 Serge Vakulenko";
-
-static const char *program_bug_address = "<serge@vak.ru>";
 
 static struct option program_options[] = {
 	{ "help",	no_argument,		0,	'h' },
@@ -75,8 +73,6 @@ static void print_help (char *progname)
 	printf ("  -v, --verbose      Print verbose information\n");
 	printf ("  -V, --version      Print version information and then exit\n");
 	printf ("  -h, --help         Print this message\n");
-	printf ("\n");
-	printf ("Report bugs to \"%s\".\n", program_bug_address);
 }
 
 void print_inode (u6fs_inode_t *inode,
